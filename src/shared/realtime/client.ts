@@ -3,6 +3,7 @@ import { calculateCheckoutSummary, type CheckoutState } from '../utils/pricing';
 import { calcularPrecoItem } from '../utils/calculos';
 import { buildSnapshotFromSupabase } from '../supabase/mappers';
 import { getSupabaseProjectLabel, hasSupabaseConfig, supabase } from '../supabase/client';
+import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   CarrinhoItem,
   DemoStateSnapshot,
@@ -13,8 +14,13 @@ import type {
 } from '../types';
 
 const STANDALONE_STORAGE_KEY = 'tpv-demo-standalone-state';
+const RECONNECT_DELAY_MS = 2000;
+const REFRESH_DEBOUNCE_MS = 150;
+const FOREGROUND_HEALTHCHECK_MS = 12000;
+const BACKGROUND_HEALTHCHECK_MS = 30000;
 
 let runtimeMode: 'supabase' | 'standalone' = hasSupabaseConfig ? 'supabase' : 'standalone';
+let snapshotRequest: Promise<DemoStateSnapshot> | null = null;
 
 function setRuntimeMode(mode: 'supabase' | 'standalone') {
   runtimeMode = mode;
@@ -179,44 +185,256 @@ async function fetchSupabaseSnapshot() {
   });
 }
 
+async function fetchSupabaseSnapshotDeduped(force = false) {
+  if (!force && snapshotRequest) {
+    return snapshotRequest;
+  }
+
+  snapshotRequest = fetchSupabaseSnapshot().finally(() => {
+    snapshotRequest = null;
+  });
+
+  return snapshotRequest;
+}
+
 export async function ensureRemoteSnapshot() {
   if (!hasSupabaseConfig || !supabase) {
     setRuntimeMode('standalone');
     return getStandaloneSnapshot();
   }
 
-  const snapshot = await fetchSupabaseSnapshot();
+  const snapshot = await fetchSupabaseSnapshotDeduped();
   setRuntimeMode('supabase');
   return snapshot;
 }
 
 type RealtimeStatus = 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR';
+type ConnectionState = 'connecting' | 'connected' | 'offline' | 'standalone';
+type SnapshotListener = (snapshot: DemoStateSnapshot) => void;
+type ConnectionListener = (status: ConnectionState) => void;
 
-export function openRealtimeStream(
-  onSnapshot: (snapshot: DemoStateSnapshot) => void,
-  onStatusChange?: (status: RealtimeStatus) => void,
-) {
-  if (getRuntimeMode() === 'standalone' || !supabase) {
-    return null;
+class RealtimeManager {
+  private channel: RealtimeChannel | null = null;
+  private snapshotListeners = new Set<SnapshotListener>();
+  private connectionListeners = new Set<ConnectionListener>();
+  private started = false;
+  private disposed = false;
+  private reconnectTimer = 0;
+  private healthcheckTimer = 0;
+  private refreshTimer = 0;
+  private refreshPending = false;
+  private lastHealthyAt = 0;
+  private connectionState: ConnectionState = hasSupabaseConfig ? 'connecting' : 'standalone';
+  private latestSnapshot: DemoStateSnapshot | null = null;
+
+  subscribe(onSnapshot: SnapshotListener, onConnection?: ConnectionListener) {
+    this.snapshotListeners.add(onSnapshot);
+    if (onConnection) {
+      this.connectionListeners.add(onConnection);
+      onConnection(this.connectionState);
+    }
+
+    if (this.latestSnapshot) {
+      onSnapshot(this.latestSnapshot);
+    }
+
+    if (!this.started) {
+      this.start();
+    }
+
+    return {
+      unsubscribe: () => {
+        this.snapshotListeners.delete(onSnapshot);
+        if (onConnection) {
+          this.connectionListeners.delete(onConnection);
+        }
+      },
+    };
   }
 
-  const channel = supabase
-    .channel('tpv-demo-sync')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'flavors' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'toppings' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .subscribe((status) => {
-      onStatusChange?.(status as RealtimeStatus);
-    });
+  private setConnectionState(state: ConnectionState) {
+    this.connectionState = state;
+    this.connectionListeners.forEach((listener) => listener(state));
+  }
 
-  return {
-    close() {
-      void supabase!.removeChannel(channel);
-    },
-  };
+  private publishSnapshot(snapshot: DemoStateSnapshot) {
+    this.latestSnapshot = snapshot;
+    this.lastHealthyAt = Date.now();
+    this.setConnectionState(getRuntimeMode() === 'standalone' ? 'standalone' : 'connected');
+    this.snapshotListeners.forEach((listener) => listener(snapshot));
+  }
+
+  private scheduleReconnect() {
+    if (this.disposed || getRuntimeMode() === 'standalone') {
+      return;
+    }
+
+    window.clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = window.setTimeout(() => {
+      void this.restartChannel();
+    }, RECONNECT_DELAY_MS);
+  }
+
+  private scheduleRefresh(delay = REFRESH_DEBOUNCE_MS, force = false) {
+    if (this.disposed) {
+      return;
+    }
+
+    if (getRuntimeMode() === 'standalone') {
+      const snapshot = getStandaloneSnapshot();
+      this.publishSnapshot(snapshot);
+      return;
+    }
+
+    this.refreshPending = true;
+    window.clearTimeout(this.refreshTimer);
+    this.refreshTimer = window.setTimeout(() => {
+      void this.refreshSnapshot(force);
+    }, delay);
+  }
+
+  private async refreshSnapshot(force = false) {
+    if (this.disposed || !this.refreshPending) {
+      return;
+    }
+
+    this.refreshPending = false;
+
+    try {
+      const snapshot = await fetchSupabaseSnapshotDeduped(force);
+      if (this.disposed) {
+        return;
+      }
+      setRuntimeMode('supabase');
+      this.publishSnapshot(snapshot);
+    } catch {
+      if (this.disposed) {
+        return;
+      }
+
+      if (getRuntimeMode() === 'standalone') {
+        this.setConnectionState('standalone');
+        return;
+      }
+
+      if (this.lastHealthyAt === 0 || Date.now() - this.lastHealthyAt > FOREGROUND_HEALTHCHECK_MS) {
+        this.setConnectionState('offline');
+      }
+      this.scheduleReconnect();
+    }
+  }
+
+  private startHealthcheck() {
+    window.clearInterval(this.healthcheckTimer);
+    this.healthcheckTimer = window.setInterval(() => {
+      if (this.disposed) {
+        return;
+      }
+
+      const isHidden = typeof document !== 'undefined' && document.hidden;
+      const staleAfter = isHidden ? BACKGROUND_HEALTHCHECK_MS : FOREGROUND_HEALTHCHECK_MS;
+      if (this.lastHealthyAt !== 0 && Date.now() - this.lastHealthyAt > staleAfter) {
+        this.scheduleRefresh(0, true);
+      }
+    }, 5000);
+  }
+
+  private async restartChannel() {
+    if (this.disposed || getRuntimeMode() === 'standalone' || !supabase) {
+      return;
+    }
+
+    if (this.connectionState !== 'connected') {
+      this.setConnectionState('connecting');
+    }
+
+    if (this.channel) {
+      const previousChannel = this.channel;
+      this.channel = null;
+      await supabase.removeChannel(previousChannel);
+    }
+
+    this.createChannel();
+    this.scheduleRefresh(0, true);
+  }
+
+  private createChannel() {
+    if (!supabase || this.channel || getRuntimeMode() === 'standalone') {
+      return;
+    }
+
+    const requestRefresh = () => {
+      this.scheduleRefresh();
+    };
+
+    this.channel = supabase
+      .channel('tpv-demo-sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'flavors' }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'toppings' }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, requestRefresh)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, requestRefresh)
+      .subscribe((status) => {
+        const realtimeStatus = status as RealtimeStatus;
+
+        if (realtimeStatus === 'SUBSCRIBED') {
+          this.scheduleRefresh(0, true);
+          return;
+        }
+
+        if (realtimeStatus === 'CHANNEL_ERROR' || realtimeStatus === 'TIMED_OUT' || realtimeStatus === 'CLOSED') {
+          if (Date.now() - this.lastHealthyAt > FOREGROUND_HEALTHCHECK_MS) {
+            this.setConnectionState('offline');
+          }
+          this.scheduleReconnect();
+        }
+      });
+  }
+
+  private bindLifecycle() {
+    const handleForegroundSync = () => {
+      if (this.disposed || (typeof document !== 'undefined' && document.hidden)) {
+        return;
+      }
+      this.scheduleRefresh(0, true);
+    };
+
+    window.addEventListener('focus', handleForegroundSync);
+    window.addEventListener('online', handleForegroundSync);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        handleForegroundSync();
+      }
+    });
+  }
+
+  private async start() {
+    this.started = true;
+
+    if (!hasSupabaseConfig || !supabase) {
+      setRuntimeMode('standalone');
+      this.setConnectionState('standalone');
+      this.publishSnapshot(getStandaloneSnapshot());
+      return;
+    }
+
+    setRuntimeMode('supabase');
+    this.setConnectionState('connecting');
+    this.bindLifecycle();
+    this.startHealthcheck();
+    this.createChannel();
+    this.scheduleRefresh(0, true);
+  }
+}
+
+const realtimeManager = new RealtimeManager();
+
+export function subscribeRealtimeSession(
+  onSnapshot: (snapshot: DemoStateSnapshot) => void,
+  onConnection?: (status: ConnectionState) => void,
+) {
+  return realtimeManager.subscribe(onSnapshot, onConnection);
 }
 
 export async function createRemoteOrder(payload: {
