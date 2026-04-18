@@ -190,7 +190,12 @@ export async function ensureRemoteSnapshot() {
   return snapshot;
 }
 
-export function openRealtimeStream(onSnapshot: (snapshot: DemoStateSnapshot) => void) {
+type RealtimeStatus = 'SUBSCRIBED' | 'TIMED_OUT' | 'CLOSED' | 'CHANNEL_ERROR';
+
+export function openRealtimeStream(
+  onSnapshot: (snapshot: DemoStateSnapshot) => void,
+  onStatusChange?: (status: RealtimeStatus) => void,
+) {
   if (getRuntimeMode() === 'standalone' || !supabase) {
     return null;
   }
@@ -203,7 +208,9 @@ export function openRealtimeStream(onSnapshot: (snapshot: DemoStateSnapshot) => 
     .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
     .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
-    .subscribe();
+    .subscribe((status) => {
+      onStatusChange?.(status as RealtimeStatus);
+    });
 
   return {
     close() {
