@@ -4,7 +4,7 @@ import { getDemoServerUrl, resetRemoteDemo, updateRemoteFlavorAvailability, upda
 import { useStore } from '../../../shared/stores/useStore';
 
 export default function ConfigPage() {
-  const { sabores, establishment } = useStore();
+  const { sabores, establishment, hydrateRemoteState } = useStore();
   const [saved, setSaved] = useState(false);
   const [resetting, setResetting] = useState(false);
   const [form, setForm] = useState(establishment);
@@ -14,13 +14,15 @@ export default function ConfigPage() {
   }, [establishment]);
 
   async function handleToggleDisponivel(id: string, nextDisponivel: boolean) {
-    await updateRemoteFlavorAvailability(id, nextDisponivel);
+    const response = await updateRemoteFlavorAvailability(id, nextDisponivel);
+    hydrateRemoteState(response.snapshot);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   }
 
   async function handleSaveSettings() {
-    await updateRemoteSettings(form);
+    const response = await updateRemoteSettings(form);
+    hydrateRemoteState(response.snapshot);
     setSaved(true);
     window.setTimeout(() => setSaved(false), 1800);
   }
@@ -28,7 +30,8 @@ export default function ConfigPage() {
   async function handleResetDemo() {
     setResetting(true);
     try {
-      await resetRemoteDemo();
+      const response = await resetRemoteDemo();
+      hydrateRemoteState(response.snapshot);
     } finally {
       setResetting(false);
     }

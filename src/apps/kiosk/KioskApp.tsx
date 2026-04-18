@@ -83,7 +83,7 @@ export default function KioskApp() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-[#FAFAFA] select-none">
-      {connectionStatus !== 'connected' && (
+      {connectionStatus === 'connecting' && (
         <div className="absolute inset-x-0 top-0 z-50 bg-amber-400 px-4 py-2 text-center text-sm font-semibold text-slate-900">
           Esperando conexao com o servidor da demo...
         </div>
@@ -117,7 +117,25 @@ export default function KioskApp() {
         )}
         {currentScreen === 'toppings' && (
           <motion.div key="toppings" variants={screenVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
-            <ToppingsScreen onBack={() => setScreen('sabores')} onContinue={() => setScreen('carrinho')} />
+            <ToppingsScreen
+              onBack={() => setScreen('sabores')}
+              onContinue={() => {
+                const state = useStore.getState();
+                if (!state.selectedCategoria || state.selectedSabores.length === 0) {
+                  setScreen('sabores');
+                  return;
+                }
+
+                state.addToCarrinho({
+                  categoria: state.selectedCategoria,
+                  sabores: state.selectedSabores,
+                  toppings: state.selectedToppings,
+                });
+                state.setSelectedCategoria(null);
+                state.resetCheckout();
+                setScreen('carrinho');
+              }}
+            />
           </motion.div>
         )}
         {currentScreen === 'carrinho' && (

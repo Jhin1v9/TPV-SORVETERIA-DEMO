@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { useEffectEvent } from 'react';
-import { ensureRemoteSnapshot, openRealtimeStream } from './client';
+import { ensureRemoteSnapshot, getRuntimeMode, openRealtimeStream } from './client';
 import { useStore } from '../stores/useStore';
 import type { DemoStateSnapshot } from '../types';
 
 export function useRealtimeSync() {
   const applySnapshot = useEffectEvent((snapshot: DemoStateSnapshot) => {
     useStore.getState().hydrateRemoteState(snapshot);
-    useStore.getState().setConnectionStatus('connected');
+    useStore.getState().setConnectionStatus(getRuntimeMode() === 'standalone' ? 'standalone' : 'connected');
   });
 
   const requireBootstrap = useEffectEvent(async () => {
@@ -43,6 +43,11 @@ export function useRealtimeSync() {
             }
           },
         );
+
+        if (!stream) {
+          useStore.getState().setConnectionStatus('standalone');
+          return;
+        }
 
         stream.onopen = () => {
           if (!disposed) {

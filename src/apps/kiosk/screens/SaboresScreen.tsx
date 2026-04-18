@@ -95,6 +95,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
                       target.style.display = 'none';
                       const parent = target.parentElement!;
                       parent.style.background = sabor.corHex + '40';
+                      parent.innerHTML = `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#1f2937;font-weight:700;font-size:12px;text-align:center;padding:8px;">${(sabor.nome[locale] || sabor.nome.es).split(' ').slice(0, 2).join('<br/>')}</div>`;
                     }}
                   />
 

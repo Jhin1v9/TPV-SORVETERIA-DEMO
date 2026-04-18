@@ -79,6 +79,7 @@ export default function EstoquePage() {
 }
 
 function FlavorRow({ sabor }: { sabor: Sabor }) {
+  const hydrateRemoteState = useStore((state) => state.hydrateRemoteState);
   const [adjust, setAdjust] = useState('');
   const [saving, setSaving] = useState(false);
   const isLow = sabor.stockBaldes <= sabor.alertaStock;
@@ -91,7 +92,8 @@ function FlavorRow({ sabor }: { sabor: Sabor }) {
     }
     setSaving(true);
     try {
-      await updateRemoteFlavorStock(sabor.id, delta);
+      const response = await updateRemoteFlavorStock(sabor.id, delta);
+      hydrateRemoteState(response.snapshot);
       setAdjust('');
     } finally {
       setSaving(false);

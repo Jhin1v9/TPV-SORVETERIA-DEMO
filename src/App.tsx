@@ -16,12 +16,14 @@ function ConnectionBadge() {
     connected: 'bg-emerald-500 text-white',
     connecting: 'bg-amber-400 text-slate-900',
     offline: 'bg-red-500 text-white',
+    standalone: 'bg-sky-500 text-white',
   } as const;
 
   const label = {
     connected: 'Realtime conectado',
     connecting: 'Conectando...',
     offline: 'Sin conexion',
+    standalone: 'Modo demo local',
   } as const;
 
   return (

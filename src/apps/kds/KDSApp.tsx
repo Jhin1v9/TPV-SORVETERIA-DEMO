@@ -112,7 +112,7 @@ function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange:
 }
 
 export default function KDSApp({ onBack }: { onBack: () => void }) {
-  const { pedidos } = useStore();
+  const { pedidos, hydrateRemoteState } = useStore();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const prevPedidosRef = useRef(pedidos.length);
@@ -149,7 +149,8 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
   }, []);
 
   const handleStatusChange = async (id: string, status: PedidoStatus) => {
-    await updateRemoteOrderStatus(id, status);
+    const response = await updateRemoteOrderStatus(id, status);
+    hydrateRemoteState(response.snapshot);
     if (status === 'listo' && soundEnabled) {
       playBeep();
       window.setTimeout(playBeep, 200);

@@ -16,7 +16,7 @@ import { DEMO_PROMO_CODE, DEMO_PROMO_RATE, defaultCheckoutState } from '../utils
 interface AppState {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  connectionStatus: 'connecting' | 'connected' | 'offline';
+  connectionStatus: 'connecting' | 'connected' | 'offline' | 'standalone';
   setConnectionStatus: (status: AppState['connectionStatus']) => void;
   lastSyncAt: string | null;
   hydrateRemoteState: (snapshot: DemoStateSnapshot) => void;
