@@ -21,6 +21,7 @@ export default function KioskApp() {
   } = useStore();
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
 
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer.current) {
@@ -51,6 +52,7 @@ export default function KioskApp() {
   const handlePayment = async (metodo: string) => {
     const state = useStore.getState();
     state.setMetodoPago(metodo);
+    setPaymentError('');
     setPaymentBusy(true);
 
     try {
@@ -70,6 +72,8 @@ export default function KioskApp() {
       useStore.getState().hydrateRemoteState(response.snapshot);
       setCurrentPedido(response.pedido);
       setScreen('confirmacao');
+    } catch (error) {
+      setPaymentError(error instanceof Error ? error.message : 'No se pudo registrar el pedido');
     } finally {
       setPaymentBusy(false);
     }
@@ -145,7 +149,7 @@ export default function KioskApp() {
         )}
         {currentScreen === 'pagamento' && (
           <motion.div key="pagamento" variants={screenVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
-            <PagamentoScreen onBack={() => setScreen('carrinho')} onPay={handlePayment} busy={paymentBusy} />
+            <PagamentoScreen onBack={() => setScreen('carrinho')} onPay={handlePayment} busy={paymentBusy} errorMessage={paymentError} />
           </motion.div>
         )}
         {currentScreen === 'confirmacao' && (

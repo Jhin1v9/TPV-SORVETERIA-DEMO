@@ -1,6 +1,8 @@
 import { createBootstrapSnapshot } from './bootstrap';
 import { calculateCheckoutSummary, type CheckoutState } from '../utils/pricing';
 import { calcularPrecoItem } from '../utils/calculos';
+import { buildSnapshotFromSupabase } from '../supabase/mappers';
+import { getSupabaseProjectLabel, hasSupabaseConfig, supabase } from '../supabase/client';
 import type {
   CarrinhoItem,
   DemoStateSnapshot,
@@ -10,48 +12,16 @@ import type {
   PedidoStatus,
 } from '../types';
 
-const DEFAULT_PORT = '8787';
 const STANDALONE_STORAGE_KEY = 'tpv-demo-standalone-state';
 
-let runtimeMode: 'realtime' | 'standalone' = 'realtime';
+let runtimeMode: 'supabase' | 'standalone' = hasSupabaseConfig ? 'supabase' : 'standalone';
 
-function getBaseUrl() {
-  const envUrl = import.meta.env.VITE_DEMO_SERVER_URL;
-  if (envUrl) {
-    return envUrl;
-  }
-
-  if (typeof window === 'undefined') {
-    return `http://127.0.0.1:${DEFAULT_PORT}`;
-  }
-
-  const { protocol, hostname } = window.location;
-  return `${protocol}//${hostname}:${DEFAULT_PORT}`;
-}
-
-function setRuntimeMode(mode: 'realtime' | 'standalone') {
+function setRuntimeMode(mode: 'supabase' | 'standalone') {
   runtimeMode = mode;
 }
 
 export function getRuntimeMode() {
   return runtimeMode;
-}
-
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${getBaseUrl()}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(init?.headers || {}),
-    },
-    ...init,
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.error || `Request failed with status ${response.status}`);
-  }
-
-  return response.json();
 }
 
 function getStandaloneSnapshot() {
@@ -153,42 +123,15 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
         return consumption + totalByContainer / item.sabores.length;
       }, 0);
 
-      if (usage === 0) {
-        return sabor;
-      }
-
-      return {
-        ...sabor,
-        stockBaldes: Number(Math.max(0, sabor.stockBaldes - usage).toFixed(3)),
-      };
+      return usage === 0
+        ? sabor
+        : { ...sabor, stockBaldes: Number(Math.max(0, sabor.stockBaldes - usage).toFixed(3)) };
     });
-
-    const today = createdAt.slice(0, 10);
-    const existingDay = current.vendasHistorico.find((entry) => entry.data === today);
-    const vendasHistorico = existingDay
-      ? current.vendasHistorico.map((entry) => entry.data === today
-        ? {
-            ...entry,
-            total: Number((entry.total + pedido.total).toFixed(2)),
-            pedidos: entry.pedidos + 1,
-            ticketMedio: Number(((entry.total + pedido.total) / (entry.pedidos + 1)).toFixed(2)),
-          }
-        : entry)
-      : [
-          ...current.vendasHistorico,
-          {
-            data: today,
-            total: pedido.total,
-            pedidos: 1,
-            ticketMedio: pedido.total,
-          },
-        ];
 
     return {
       ...current,
       sabores,
       pedidos: [pedido, ...current.pedidos],
-      vendasHistorico,
       lastOrderNumber: nextOrderNumber,
     };
   });
@@ -199,50 +142,74 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
   };
 }
 
+async function fetchSupabaseSnapshot() {
+  if (!supabase) {
+    throw new Error('Supabase client not configured');
+  }
+
+  const [categoriesResult, flavorsResult, toppingsResult, settingsResult, ordersResult] = await Promise.all([
+    supabase.from('categories').select('*').order('display_order', { ascending: true }),
+    supabase.from('flavors').select('*').order('id', { ascending: true }),
+    supabase.from('toppings').select('*').order('id', { ascending: true }),
+    supabase.from('store_settings').select('*').eq('store_key', 'main').maybeSingle(),
+    supabase
+      .from('orders')
+      .select('id, numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, verifactu_qr, customer_phone, order_items(id, category_sku, category_name, flavors, toppings, unit_price, quantity, notes, sort_order)')
+      .order('numero_sequencial', { ascending: false }),
+  ]);
+
+  const possibleErrors = [
+    categoriesResult.error,
+    flavorsResult.error,
+    toppingsResult.error,
+    settingsResult.error,
+    ordersResult.error,
+  ].filter(Boolean);
+
+  if (possibleErrors.length > 0) {
+    throw possibleErrors[0]!;
+  }
+
+  return buildSnapshotFromSupabase({
+    categories: categoriesResult.data ?? [],
+    flavors: flavorsResult.data ?? [],
+    toppings: toppingsResult.data ?? [],
+    settings: settingsResult.data,
+    orders: ordersResult.data ?? [],
+  });
+}
+
 export async function ensureRemoteSnapshot() {
-  try {
-    const response = await fetch(`${getBaseUrl()}/api/state`, { method: 'GET' });
-
-    if (response.status === 503) {
-      const snapshot = createBootstrapSnapshot();
-      await request<{ snapshot: DemoStateSnapshot }>('/api/bootstrap', {
-        method: 'POST',
-        body: JSON.stringify({ snapshot }),
-      });
-      setRuntimeMode('realtime');
-      return snapshot;
-    }
-
-    if (!response.ok) {
-      throw new Error(`Unable to fetch remote snapshot (${response.status})`);
-    }
-
-    const data = await response.json() as { snapshot: DemoStateSnapshot };
-    setRuntimeMode('realtime');
-    return data.snapshot;
-  } catch {
+  if (!hasSupabaseConfig || !supabase) {
     setRuntimeMode('standalone');
     return getStandaloneSnapshot();
   }
+
+  const snapshot = await fetchSupabaseSnapshot();
+  setRuntimeMode('supabase');
+  return snapshot;
 }
 
-export function openRealtimeStream(onSnapshot: (snapshot: DemoStateSnapshot) => void, onBootstrapRequired: () => void) {
-  if (getRuntimeMode() === 'standalone') {
+export function openRealtimeStream(onSnapshot: (snapshot: DemoStateSnapshot) => void) {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     return null;
   }
 
-  const stream = new EventSource(`${getBaseUrl()}/api/events`);
+  const channel = supabase
+    .channel('tpv-demo-sync')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'flavors' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'toppings' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'store_settings' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, async () => onSnapshot(await fetchSupabaseSnapshot()))
+    .subscribe();
 
-  stream.addEventListener('snapshot', (event) => {
-    const data = JSON.parse(event.data) as { snapshot: DemoStateSnapshot };
-    onSnapshot(data.snapshot);
-  });
-
-  stream.addEventListener('bootstrap_required', () => {
-    onBootstrapRequired();
-  });
-
-  return stream;
+  return {
+    close() {
+      void supabase!.removeChannel(channel);
+    },
+  };
 }
 
 export async function createRemoteOrder(payload: {
@@ -250,23 +217,32 @@ export async function createRemoteOrder(payload: {
   metodoPago: MetodoPago;
   checkout: CheckoutState;
 }) {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     return buildStandaloneOrder(getStandaloneSnapshot(), payload);
   }
 
-  try {
-    return await request<{ pedido: Pedido; snapshot: DemoStateSnapshot }>('/api/orders', {
-      method: 'POST',
-      body: JSON.stringify(payload),
-    });
-  } catch {
-    setRuntimeMode('standalone');
-    return buildStandaloneOrder(getStandaloneSnapshot(), payload);
+  const result = await supabase.rpc('create_demo_order', {
+    cart_payload: payload.cart,
+    payment_method_input: payload.metodoPago,
+    checkout_payload: payload.checkout,
+  });
+
+  if (result.error || !result.data) {
+    throw result.error ?? new Error('Unable to create order');
   }
+
+  const snapshot = await fetchSupabaseSnapshot();
+  const pedido = snapshot.pedidos.find((item) => item.id === result.data);
+  if (!pedido) {
+    throw new Error('Created order not found in snapshot');
+  }
+
+  setRuntimeMode('supabase');
+  return { pedido, snapshot };
 }
 
 export async function updateRemoteOrderStatus(pedidoId: string, status: PedidoStatus) {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = applyStandaloneMutation((current) => ({
       ...current,
       pedidos: current.pedidos.map((pedido) => pedido.id === pedidoId
@@ -280,14 +256,18 @@ export async function updateRemoteOrderStatus(pedidoId: string, status: PedidoSt
     return { snapshot };
   }
 
-  return request<{ snapshot: DemoStateSnapshot }>(`/api/orders/${pedidoId}/status`, {
-    method: 'POST',
-    body: JSON.stringify({ status }),
+  const result = await supabase.rpc('update_order_status', {
+    order_id_input: pedidoId,
+    status_input: status,
   });
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
 }
 
 export async function updateRemoteFlavorStock(flavorId: string, delta: number) {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = applyStandaloneMutation((current) => ({
       ...current,
       sabores: current.sabores.map((sabor) => sabor.id === flavorId
@@ -297,14 +277,18 @@ export async function updateRemoteFlavorStock(flavorId: string, delta: number) {
     return { snapshot };
   }
 
-  return request<{ snapshot: DemoStateSnapshot }>(`/api/flavors/${flavorId}/stock`, {
-    method: 'POST',
-    body: JSON.stringify({ delta }),
+  const result = await supabase.rpc('adjust_flavor_stock', {
+    flavor_id_input: flavorId,
+    delta_input: delta,
   });
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
 }
 
 export async function updateRemoteFlavorAvailability(flavorId: string, disponivel: boolean) {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = applyStandaloneMutation((current) => ({
       ...current,
       sabores: current.sabores.map((sabor) => sabor.id === flavorId ? { ...sabor, disponivel } : sabor),
@@ -312,14 +296,18 @@ export async function updateRemoteFlavorAvailability(flavorId: string, disponive
     return { snapshot };
   }
 
-  return request<{ snapshot: DemoStateSnapshot }>(`/api/flavors/${flavorId}/availability`, {
-    method: 'POST',
-    body: JSON.stringify({ disponivel }),
+  const result = await supabase.rpc('set_flavor_availability', {
+    flavor_id_input: flavorId,
+    available_input: disponivel,
   });
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
 }
 
 export async function updateRemoteSettings(establishment: EstablishmentSettings) {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = applyStandaloneMutation((current) => ({
       ...current,
       establishment,
@@ -327,26 +315,29 @@ export async function updateRemoteSettings(establishment: EstablishmentSettings)
     return { snapshot };
   }
 
-  return request<{ snapshot: DemoStateSnapshot }>('/api/settings', {
-    method: 'POST',
-    body: JSON.stringify({ establishment }),
+  const result = await supabase.rpc('upsert_store_settings', {
+    setting_payload: establishment,
   });
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
 }
 
 export async function resetRemoteDemo() {
-  if (getRuntimeMode() === 'standalone') {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = withUpdatedMeta(createBootstrapSnapshot());
     saveStandaloneSnapshot(snapshot);
     return { snapshot };
   }
 
-  const snapshot = createBootstrapSnapshot();
-  return request<{ snapshot: DemoStateSnapshot }>('/api/reset', {
-    method: 'POST',
-    body: JSON.stringify({ snapshot }),
-  });
+  const result = await supabase.rpc('reset_demo_data');
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
 }
 
 export function getDemoServerUrl() {
-  return getBaseUrl();
+  return hasSupabaseConfig ? getSupabaseProjectLabel() : 'Modo local';
 }

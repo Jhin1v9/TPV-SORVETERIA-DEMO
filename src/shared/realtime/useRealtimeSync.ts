@@ -10,15 +10,10 @@ export function useRealtimeSync() {
     useStore.getState().setConnectionStatus(getRuntimeMode() === 'standalone' ? 'standalone' : 'connected');
   });
 
-  const requireBootstrap = useEffectEvent(async () => {
-    const snapshot = await ensureRemoteSnapshot();
-    applySnapshot(snapshot);
-  });
-
   useEffect(() => {
     let disposed = false;
     let reconnectTimer = 0;
-    let stream: EventSource | null = null;
+    let stream: { close: () => void } | null = null;
 
     async function connect() {
       try {
@@ -30,47 +25,27 @@ export function useRealtimeSync() {
 
         applySnapshot(snapshot);
 
-        stream = openRealtimeStream(
-          (nextSnapshot) => {
-            if (disposed) {
-              return;
-            }
-            applySnapshot(nextSnapshot);
-          },
-          () => {
-            if (!disposed) {
-              requireBootstrap();
-            }
-          },
-        );
+        stream = openRealtimeStream(async (nextSnapshot) => {
+          if (disposed) {
+            return;
+          }
+          applySnapshot(nextSnapshot);
+        });
 
         if (!stream) {
           useStore.getState().setConnectionStatus('standalone');
           return;
         }
-
-        stream.onopen = () => {
-          if (!disposed) {
-            useStore.getState().setConnectionStatus('connected');
-          }
-        };
-
-        stream.onerror = () => {
-          if (stream) {
-            stream.close();
-          }
-          if (disposed) {
-            return;
-          }
-          useStore.getState().setConnectionStatus('offline');
-          reconnectTimer = window.setTimeout(connect, 1500);
-        };
       } catch {
         if (disposed) {
           return;
         }
-        useStore.getState().setConnectionStatus('offline');
-        reconnectTimer = window.setTimeout(connect, 1500);
+        if (getRuntimeMode() === 'standalone') {
+          useStore.getState().setConnectionStatus('standalone');
+        } else {
+          useStore.getState().setConnectionStatus('offline');
+          reconnectTimer = window.setTimeout(connect, 1500);
+        }
       }
     }
 
@@ -83,5 +58,5 @@ export function useRealtimeSync() {
         stream.close();
       }
     };
-  }, [applySnapshot, requireBootstrap]);
+  }, [applySnapshot]);
 }

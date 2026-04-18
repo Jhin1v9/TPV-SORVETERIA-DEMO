@@ -11,10 +11,12 @@ export default function PagamentoScreen({
   onBack,
   onPay,
   busy,
+  errorMessage,
 }: {
   onBack: () => void;
   onPay: (method: string) => Promise<void>;
   busy: boolean;
+  errorMessage?: string;
 }) {
   const {
     locale,
@@ -126,6 +128,11 @@ export default function PagamentoScreen({
             </button>
           ))}
         </div>
+        {errorMessage && (
+          <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-600">
+            {errorMessage}
+          </p>
+        )}
       </div>
 
       <div className="flex-1 px-8 pb-4 overflow-auto">
