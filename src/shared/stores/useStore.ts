@@ -1,95 +1,159 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Locale, Categoria, Sabor, Topping, Pedido, CarrinhoItem, PedidoStatus } from '../types';
-import { categorias as cats, sabores as sabs, toppings as tops, pedidosMock, diasVenda } from '../data/mockData';
+import type {
+  CarrinhoItem,
+  Categoria,
+  DemoStateSnapshot,
+  EstablishmentSettings,
+  Locale,
+  Pedido,
+  Sabor,
+  Topping,
+} from '../types';
+import { categorias as cats, sabores as sabs, toppings as tops, pedidosMock, diasVenda, establishmentMock } from '../data/mockData';
+import { DEMO_PROMO_CODE, DEMO_PROMO_RATE, defaultCheckoutState } from '../utils/pricing';
 
 interface AppState {
-  // Locale
   locale: Locale;
-  setLocale: (l: Locale) => void;
+  setLocale: (locale: Locale) => void;
+  connectionStatus: 'connecting' | 'connected' | 'offline';
+  setConnectionStatus: (status: AppState['connectionStatus']) => void;
+  lastSyncAt: string | null;
+  hydrateRemoteState: (snapshot: DemoStateSnapshot) => void;
 
-  // Kiosk flow
   currentScreen: 'hola' | 'categorias' | 'sabores' | 'toppings' | 'carrinho' | 'pagamento' | 'confirmacao';
-  setScreen: (s: AppState['currentScreen']) => void;
+  setScreen: (screen: AppState['currentScreen']) => void;
   selectedCategoria: Categoria | null;
-  setSelectedCategoria: (c: Categoria | null) => void;
+  setSelectedCategoria: (categoria: Categoria | null) => void;
   selectedSabores: Sabor[];
-  toggleSabor: (s: Sabor) => void;
+  toggleSabor: (sabor: Sabor) => void;
   selectedToppings: Topping[];
-  toggleTopping: (t: Topping) => void;
+  toggleTopping: (topping: Topping) => void;
   carrinho: CarrinhoItem[];
   addToCarrinho: (item: CarrinhoItem) => void;
   removeFromCarrinho: (index: number) => void;
   clearCarrinho: () => void;
   currentPedido: Pedido | null;
-  setCurrentPedido: (p: Pedido | null) => void;
+  setCurrentPedido: (pedido: Pedido | null) => void;
   metodoPago: string;
-  setMetodoPago: (m: string) => void;
+  setMetodoPago: (metodo: string) => void;
+  promoCode: string;
+  setPromoCode: (value: string) => void;
+  promoApplied: boolean;
+  promoDiscountRate: number;
+  applyPromoCode: () => boolean;
+  coffeeAdded: boolean;
+  setCoffeeAdded: (value: boolean) => void;
+  coffeePrice: number;
+  notificationPhone: string;
+  setNotificationPhone: (phone: string) => void;
+  resetCheckout: () => void;
   resetKiosk: () => void;
 
-  // Data
   categorias: Categoria[];
   sabores: Sabor[];
   toppings: Topping[];
   pedidos: Pedido[];
   vendasHistorico: typeof diasVenda;
+  establishment: EstablishmentSettings;
 
-  // Pedidos actions
-  addPedido: (p: Pedido) => void;
-  updatePedidoStatus: (id: string, status: PedidoStatus) => void;
-  updateSaborStock: (id: string, baldes: number) => void;
-  toggleSaborDisponivel: (id: string) => void;
-
-  // Admin
   isAdminLogged: boolean;
-  setAdminLogged: (v: boolean) => void;
+  setAdminLogged: (value: boolean) => void;
 }
 
 export const useStore = create<AppState>()(
   persist(
     (set, get) => ({
-      // Locale
       locale: 'es',
-      setLocale: (l) => set({ locale: l }),
+      setLocale: (locale) => set({ locale }),
+      connectionStatus: 'connecting',
+      setConnectionStatus: (connectionStatus) => set({ connectionStatus }),
+      lastSyncAt: null,
+      hydrateRemoteState: (snapshot) => set({
+        categorias: snapshot.categorias,
+        sabores: snapshot.sabores,
+        toppings: snapshot.toppings,
+        pedidos: snapshot.pedidos,
+        vendasHistorico: snapshot.vendasHistorico,
+        establishment: snapshot.establishment,
+        lastSyncAt: snapshot.updatedAt,
+      }),
 
-      // Kiosk flow
       currentScreen: 'hola',
-      setScreen: (s) => set({ currentScreen: s }),
+      setScreen: (currentScreen) => set({ currentScreen }),
       selectedCategoria: null,
-      setSelectedCategoria: (c) => set({ selectedCategoria: c, selectedSabores: [], selectedToppings: [] }),
+      setSelectedCategoria: (selectedCategoria) => set({
+        selectedCategoria,
+        selectedSabores: [],
+        selectedToppings: [],
+      }),
       selectedSabores: [],
-      toggleSabor: (s) => {
+      toggleSabor: (sabor) => {
         const state = get();
         const max = state.selectedCategoria?.maxSabores ?? 2;
-        const exists = state.selectedSabores.find((x) => x.id === s.id);
+        const exists = state.selectedSabores.find((item) => item.id === sabor.id);
         if (exists) {
-          set({ selectedSabores: state.selectedSabores.filter((x) => x.id !== s.id) });
-        } else if (state.selectedSabores.length < max) {
-          set({ selectedSabores: [...state.selectedSabores, s] });
+          set({ selectedSabores: state.selectedSabores.filter((item) => item.id !== sabor.id) });
+          return;
+        }
+        if (state.selectedSabores.length < max) {
+          set({ selectedSabores: [...state.selectedSabores, sabor] });
         }
       },
       selectedToppings: [],
-      toggleTopping: (t) => {
+      toggleTopping: (topping) => {
         const state = get();
-        const exists = state.selectedToppings.find((x) => x.id === t.id);
+        const exists = state.selectedToppings.find((item) => item.id === topping.id);
         if (exists) {
-          set({ selectedToppings: state.selectedToppings.filter((x) => x.id !== t.id) });
-        } else if (state.selectedToppings.length < 5) {
-          set({ selectedToppings: [...state.selectedToppings, t] });
+          set({ selectedToppings: state.selectedToppings.filter((item) => item.id !== topping.id) });
+          return;
+        }
+        if (state.selectedToppings.length < 5) {
+          set({ selectedToppings: [...state.selectedToppings, topping] });
         }
       },
       carrinho: [],
       addToCarrinho: (item) => set({ carrinho: [...get().carrinho, item] }),
       removeFromCarrinho: (index) => {
-        const c = [...get().carrinho];
-        c.splice(index, 1);
-        set({ carrinho: c });
+        const carrinho = [...get().carrinho];
+        carrinho.splice(index, 1);
+        set({ carrinho });
       },
-      clearCarrinho: () => set({ carrinho: [], selectedSabores: [], selectedToppings: [], selectedCategoria: null }),
+      clearCarrinho: () => set({
+        carrinho: [],
+        selectedSabores: [],
+        selectedToppings: [],
+        selectedCategoria: null,
+      }),
       currentPedido: null,
-      setCurrentPedido: (p) => set({ currentPedido: p }),
+      setCurrentPedido: (currentPedido) => set({ currentPedido }),
       metodoPago: 'efectivo',
-      setMetodoPago: (m) => set({ metodoPago: m }),
+      setMetodoPago: (metodoPago) => set({ metodoPago }),
+      promoCode: '',
+      setPromoCode: (promoCode) => set({ promoCode }),
+      promoApplied: false,
+      promoDiscountRate: 0,
+      applyPromoCode: () => {
+        const normalized = get().promoCode.trim().toUpperCase();
+        const applied = normalized === DEMO_PROMO_CODE;
+        set({
+          promoApplied: applied,
+          promoDiscountRate: applied ? DEMO_PROMO_RATE : 0,
+        });
+        return applied;
+      },
+      coffeeAdded: false,
+      setCoffeeAdded: (coffeeAdded) => set({ coffeeAdded }),
+      coffeePrice: defaultCheckoutState.coffeePrice,
+      notificationPhone: '',
+      setNotificationPhone: (notificationPhone) => set({ notificationPhone }),
+      resetCheckout: () => set({
+        promoCode: '',
+        promoApplied: false,
+        promoDiscountRate: 0,
+        coffeeAdded: false,
+        notificationPhone: '',
+      }),
       resetKiosk: () => set({
         currentScreen: 'hola',
         selectedCategoria: null,
@@ -97,48 +161,30 @@ export const useStore = create<AppState>()(
         selectedToppings: [],
         carrinho: [],
         currentPedido: null,
+        metodoPago: 'efectivo',
+        promoCode: '',
+        promoApplied: false,
+        promoDiscountRate: 0,
+        coffeeAdded: false,
+        notificationPhone: '',
       }),
 
-      // Data
       categorias: cats,
       sabores: sabs,
       toppings: tops,
       pedidos: pedidosMock,
       vendasHistorico: diasVenda,
+      establishment: establishmentMock,
 
-      // Pedidos actions
-      addPedido: (p) => set({ pedidos: [p, ...get().pedidos] }),
-      updatePedidoStatus: (id, status) => {
-        const pedidos = get().pedidos.map((ped) =>
-          ped.id === id ? { ...ped, status, timestampListo: status === 'listo' ? new Date().toISOString() : ped.timestampListo } : ped
-        );
-        set({ pedidos });
-      },
-      updateSaborStock: (id, baldes) => {
-        const sabores = get().sabores.map((s) =>
-          s.id === id ? { ...s, stockBaldes: Math.max(0, s.stockBaldes + baldes) } : s
-        );
-        set({ sabores });
-      },
-      toggleSaborDisponivel: (id) => {
-        const sabores = get().sabores.map((s) =>
-          s.id === id ? { ...s, disponivel: !s.disponivel } : s
-        );
-        set({ sabores });
-      },
-
-      // Admin
       isAdminLogged: false,
-      setAdminLogged: (v) => set({ isAdminLogged: v }),
+      setAdminLogged: (isAdminLogged) => set({ isAdminLogged }),
     }),
     {
       name: 'tpv-sorveteria-storage',
       partialize: (state) => ({
         locale: state.locale,
         isAdminLogged: state.isAdminLogged,
-        pedidos: state.pedidos,
-        sabores: state.sabores,
       }),
-    }
-  )
+    },
+  ),
 );

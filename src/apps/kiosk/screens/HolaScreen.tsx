@@ -9,28 +9,28 @@ const languages: { locale: Locale; greeting: string; subtext: string; colors: [s
     greeting: 'Hola!',
     subtext: 'Benvinguts a la nostra gelateria',
     colors: ['#FFCD00', '#E3000F'],
-    flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Flag_of_Catalonia.svg/320px-Flag_of_Catalonia.svg.png',
+    flag: '/assets/flags/ca.svg',
   },
   {
     locale: 'es',
     greeting: '¡Hola!',
     subtext: 'Bienvenidos a nuestra heladería',
     colors: ['#FF0000', '#FFD700'],
-    flag: 'https://flagcdn.com/w320/es.png',
+    flag: '/assets/flags/es.png',
   },
   {
     locale: 'en',
     greeting: 'Hello!',
     subtext: 'Welcome to our ice cream shop',
     colors: ['#012169', '#FFFFFF', '#C8102E'],
-    flag: 'https://flagcdn.com/w320/gb.png',
+    flag: '/assets/flags/en.png',
   },
   {
     locale: 'fr',
     greeting: 'Bonjour!',
     subtext: 'Bienvenue dans notre glacier',
     colors: ['#0055A4', '#FFFFFF', '#EF4135'],
-    flag: 'https://flagcdn.com/w320/fr.png',
+    flag: '/assets/flags/fr.png',
   },
 ];
 

@@ -1,5 +1,5 @@
 import { ML_POR_BALDE, RENDIMENTO_PORCOES, IVA_RATE } from '../types';
-import type { Sabor, Topping, Categoria } from '../types';
+import type { Categoria, Sabor, Topping } from '../types';
 
 export function calcularPorcoes(baldes: number, tipoId: string): number {
   const mlPorcao = RENDIMENTO_PORCOES[tipoId] || 500;
@@ -16,12 +16,12 @@ export function calcularPorcoesAll(baldes: number): Record<string, number> {
 }
 
 export function calcularPrecoItem(categoria: Categoria, sabores: Sabor[], toppings: Topping[]): number {
-  const extrasSabores = sabores.reduce((sum, s) => sum + s.precoExtra, 0);
-  const extrasToppings = toppings.reduce((sum, t) => sum + t.preco, 0);
+  const extrasSabores = sabores.reduce((sum, sabor) => sum + sabor.precoExtra, 0);
+  const extrasToppings = toppings.reduce((sum, topping) => sum + topping.preco, 0);
   return categoria.precoBase + extrasSabores + extrasToppings;
 }
 
-export function calcularTotalCarrinho(carrinho: { categoria: Categoria; sabores: Sabor[]; toppings: Topping[] }[]): { subtotal: number; iva: number; total: number } {
+export function calculateCartTotals(carrinho: { categoria: Categoria; sabores: Sabor[]; toppings: Topping[] }[]): { subtotal: number; iva: number; total: number } {
   const subtotal = carrinho.reduce((sum, item) => {
     return sum + calcularPrecoItem(item.categoria, item.sabores, item.toppings);
   }, 0);
@@ -29,8 +29,10 @@ export function calcularTotalCarrinho(carrinho: { categoria: Categoria; sabores:
   return { subtotal, iva, total: subtotal + iva };
 }
 
+export const calcularTotalCarrinho = calculateCartTotals;
+
 export function formatCurrency(value: number): string {
-  return `€${value.toFixed(2)}`;
+  return `EUR ${value.toFixed(2)}`;
 }
 
 export function formatTime(dateStr: string): string {

@@ -1,13 +1,16 @@
 {
-  "name": "my-app",
+  "name": "tpv-sorveteria-demo",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:lan": "vite --host 0.0.0.0",
+    "server": "node server/demo-server.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:lan": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

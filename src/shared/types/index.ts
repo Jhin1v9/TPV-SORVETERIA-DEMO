@@ -68,6 +68,9 @@ export interface Pedido {
   timestampCriacao: string;
   timestampListo: string | null;
   metodoPago: MetodoPago;
+  subtotal?: number;
+  descuento?: number;
+  extras?: number;
   total: number;
   iva: number;
   verifactuQr: string | null;
@@ -105,6 +108,25 @@ export interface DiaVenda {
   total: number;
   pedidos: number;
   ticketMedio: number;
+}
+
+export interface EstablishmentSettings {
+  name: string;
+  nif: string;
+  address: string;
+  summerHours: string;
+  winterHours: string;
+}
+
+export interface DemoStateSnapshot {
+  categorias: Categoria[];
+  sabores: Sabor[];
+  toppings: Topping[];
+  pedidos: Pedido[];
+  vendasHistorico: DiaVenda[];
+  establishment: EstablishmentSettings;
+  lastOrderNumber: number;
+  updatedAt: string;
 }
 
 export interface BroadcastMessage {
