@@ -6,6 +6,8 @@ import type { DemoStateSnapshot } from '../types';
 
 const RESYNC_INTERVAL_MS = 4000;
 const RECONNECT_DELAY_MS = 1500;
+const HEALTH_WINDOW_MS = 15000;
+const MAX_TRANSIENT_FAILURES = 3;
 
 export function useRealtimeSync() {
   const applySnapshot = useEffectEvent((snapshot: DemoStateSnapshot) => {
@@ -18,6 +20,9 @@ export function useRealtimeSync() {
     let reconnectTimer = 0;
     let resyncTimer = 0;
     let stream: { close: () => void } | null = null;
+    let lastSuccessfulSyncAt = 0;
+    let transientFailures = 0;
+    let hasCompletedInitialSync = false;
 
     async function syncSnapshot() {
       const snapshot = await ensureRemoteSnapshot();
@@ -25,12 +30,36 @@ export function useRealtimeSync() {
         return null;
       }
       applySnapshot(snapshot);
+      lastSuccessfulSyncAt = Date.now();
+      transientFailures = 0;
+      hasCompletedInitialSync = true;
       return snapshot;
     }
 
     function scheduleReconnect() {
       window.clearTimeout(reconnectTimer);
       reconnectTimer = window.setTimeout(connect, RECONNECT_DELAY_MS);
+    }
+
+    function markHealthy() {
+      transientFailures = 0;
+      lastSuccessfulSyncAt = Date.now();
+      useStore.getState().setConnectionStatus(getRuntimeMode() === 'standalone' ? 'standalone' : 'connected');
+    }
+
+    function markTransientFailure() {
+      if (disposed || getRuntimeMode() === 'standalone') {
+        return;
+      }
+
+      transientFailures += 1;
+      const shouldShowOffline = !hasCompletedInitialSync
+        || transientFailures >= MAX_TRANSIENT_FAILURES
+        || Date.now() - lastSuccessfulSyncAt > HEALTH_WINDOW_MS;
+
+      if (shouldShowOffline) {
+        useStore.getState().setConnectionStatus('offline');
+      }
     }
 
     function startResyncLoop() {
@@ -45,9 +74,7 @@ export function useRealtimeSync() {
         }
 
         void syncSnapshot().catch(() => {
-          if (!disposed && getRuntimeMode() !== 'standalone') {
-            useStore.getState().setConnectionStatus('offline');
-          }
+          markTransientFailure();
         });
       }, RESYNC_INTERVAL_MS);
     }
@@ -59,17 +86,19 @@ export function useRealtimeSync() {
 
       try {
         await syncSnapshot();
+        markHealthy();
       } catch {
-        if (!disposed && getRuntimeMode() !== 'standalone') {
-          useStore.getState().setConnectionStatus('offline');
-        }
+        markTransientFailure();
       }
     }
 
     async function connect() {
       try {
-        useStore.getState().setConnectionStatus('connecting');
+        if (!hasCompletedInitialSync) {
+          useStore.getState().setConnectionStatus('connecting');
+        }
         await syncSnapshot();
+        markHealthy();
 
         stream?.close();
         stream = openRealtimeStream(
@@ -78,6 +107,7 @@ export function useRealtimeSync() {
               return;
             }
             applySnapshot(nextSnapshot);
+            markHealthy();
           },
           (status) => {
             if (disposed) {
@@ -86,16 +116,14 @@ export function useRealtimeSync() {
 
             if (status === 'SUBSCRIBED') {
               void syncSnapshot().catch(() => {
-                if (!disposed && getRuntimeMode() !== 'standalone') {
-                  useStore.getState().setConnectionStatus('offline');
-                }
+                markTransientFailure();
               });
               return;
             }
 
             if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
               if (getRuntimeMode() !== 'standalone') {
-                useStore.getState().setConnectionStatus('offline');
+                markTransientFailure();
                 scheduleReconnect();
               }
             }
@@ -109,6 +137,7 @@ export function useRealtimeSync() {
         if (!stream || getRuntimeMode() === 'standalone') {
           useStore.getState().setConnectionStatus('standalone');
         } else {
+          window.clearTimeout(reconnectTimer);
           startResyncLoop();
         }
       } catch {
@@ -118,7 +147,7 @@ export function useRealtimeSync() {
         if (getRuntimeMode() === 'standalone') {
           useStore.getState().setConnectionStatus('standalone');
         } else {
-          useStore.getState().setConnectionStatus('offline');
+          markTransientFailure();
           scheduleReconnect();
         }
       }
