@@ -8,10 +8,16 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { outputFolder: 'e2e-report' }]],
   use: {
-    baseURL: 'https://tpv-sorveteria-demo.vercel.app',
+    baseURL: process.env.CI ? 'https://tpv-sorveteria-demo.vercel.app' : 'http://localhost:5173',
     trace: 'on',
     screenshot: 'on',
     video: 'retain-on-failure',
+  },
+  webServer: process.env.CI ? undefined : {
+    command: 'npx serve dist/cliente -l 5173',
+    url: 'http://localhost:5173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 30000,
   },
   projects: [
     {
