@@ -7,6 +7,7 @@ import CardapioPage from './pages/CardapioPage';
 import CarrinhoPage from './pages/CarrinhoPage';
 import PedidosPage from './pages/PedidosPage';
 import ConfigPage from './pages/ConfigPage';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 
 type ClienteTab = 'cardapio' | 'carrinho' | 'pedidos' | 'config';
 
@@ -23,7 +24,9 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
   ];
 
   return (
-    <div className="h-screen w-screen bg-[#F5F5F5] flex flex-col overflow-hidden">
+    <>
+      <OnboardingFlow />
+      <div className="h-screen w-screen bg-[#F5F5F5] flex flex-col overflow-hidden">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur border-b border-black/5 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
         <button onClick={onBack} className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center hover:bg-black/10 transition-colors">
@@ -110,6 +113,7 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
         ))}
       </nav>
     </div>
+    </>
   );
 }
 
