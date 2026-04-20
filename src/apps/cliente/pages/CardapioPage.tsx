@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
-import { produtosLocal, categoriasLocal } from '../../../shared/data/produtosLocal';
+import { todosProdutos, categoriasLocal } from '../../../shared/data/produtosLocal';
+import type { Produto } from '../../../shared/types';
 import { t } from '../../../shared/i18n';
 import OptimizedImage from '../../../components/OptimizedImage';
 import SkeletonCard from '../../../components/SkeletonCard';
@@ -22,7 +23,7 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
   };
 
   const produtosFiltrados = useMemo(() => {
-    return produtosLocal.filter((p) => {
+    return todosProdutos.filter((p: Produto) => {
       const matchCat = categoriaAtiva === 'todos' || p.categoria === categoriaAtiva;
       const nome = p.nome[locale] || p.nome.es;
       const matchSearch = nome.toLowerCase().includes(search.toLowerCase());
@@ -135,18 +136,26 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
   );
 }
 
-function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: typeof produtosLocal[0]; index: number; onOpenCarrinho: () => void }) {
+function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: Produto; index: number; onOpenCarrinho: () => void }) {
   const { locale, addToCarrinho } = useStore();
   const toast = useClienteToast();
   const [added, setAdded] = useState(false);
   const nome = produto.nome[locale] || produto.nome.es;
+  const preco = 'preco' in produto ? produto.preco : produto.precoBase;
+  const isPersonalizavel = 'precoBase' in produto && 'opcoes' in produto;
 
   const handleAdd = () => {
+    if (isPersonalizavel) {
+      // Produto personalizável: abrir tela de opções (simplificado por agora)
+      toast.addedToCart(nome);
+      onOpenCarrinho();
+      return;
+    }
     addToCarrinho({
       categoria: {
         id: 'produto',
         nome: produto.nome,
-        precoBase: produto.preco,
+        precoBase: preco,
         maxSabores: 0,
         corHex: '#FF6B9D',
         ativo: true,
@@ -185,7 +194,9 @@ function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: typeof produ
       </div>
       <div className="p-3">
         <p className="font-semibold text-sm text-gray-800 line-clamp-1">{nome}</p>
-        <p className="text-[#FF6B9D] font-bold text-sm mt-1">€{produto.preco.toFixed(2)}</p>
+        <p className="text-[#FF6B9D] font-bold text-sm mt-1">
+          €{preco.toFixed(2)}{isPersonalizavel ? '+' : ''}
+        </p>
         <motion.button
           onClick={handleAdd}
           whileTap={{ scale: 0.95 }}

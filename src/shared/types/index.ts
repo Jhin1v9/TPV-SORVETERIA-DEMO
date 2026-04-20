@@ -152,23 +152,27 @@ export const RENDIMENTO_PORCOES: Record<string, number> = {
   pote1l: 1000,
 };
 
+// ===========================
+// CATEGORIAS REAIS DO CARDÁPIO
+// ===========================
 export type ProdutoCategoria =
   | 'todos'
+  | 'copas'
+  | 'gofres'
+  | 'souffle'
+  | 'banana-split'
   | 'acai'
-  | 'crema'
-  | 'picole'
-  | 'picole-premium'
-  | 'picole-duplo'
+  | 'helados'
   | 'conos'
-  | 'melhorados'
-  | 'sundae'
-  | 'sabores-especiais'
-  | 'yogurt-especial'
-  | 'barquillo'
-  | 'donuts'
-  | 'sorvetes-artesanais';
+  | 'granizados'
+  | 'batidos'
+  | 'orxata'
+  | 'cafes'
+  | 'tarrinas-nata'
+  | 'para-llevar';
 
-export interface Produto {
+// Produto com preço fixo (ex: Copa Bahia €8,10)
+export interface ProdutoFixo {
   id: string;
   nome: LocalizedText;
   descricao?: LocalizedText;
@@ -178,3 +182,48 @@ export interface Produto {
   categoria: ProdutoCategoria;
   emEstoque: boolean;
 }
+
+// Opção de personalização (ex: tamanho, topping, fruta)
+export interface OpcaoPersonalizacao {
+  id: string;
+  nome: LocalizedText;
+  preco: number;
+  tipo: 'tamanho' | 'topping' | 'fruta' | 'extra' | 'sabor';
+  imagem?: string;
+  emoji?: string;
+}
+
+// Produto personalizável (ex: Açaí, Helado à carta)
+export interface ProdutoPersonalizavel {
+  id: string;
+  nome: LocalizedText;
+  descricao?: LocalizedText;
+  precoBase: number;
+  imagem: string;
+  categoria: ProdutoCategoria;
+  emEstoque: boolean;
+  // Regras de personalização
+  opcoes: {
+    tamanhos?: OpcaoPersonalizacao[];
+    sabores?: OpcaoPersonalizacao[];
+    toppings?: OpcaoPersonalizacao[];
+    frutas?: OpcaoPersonalizacao[];
+    extras?: OpcaoPersonalizacao[];
+  };
+  // Limites (ex: max 2 toppings, max 1 fruta)
+  limites?: {
+    maxToppings?: number;
+    maxFrutas?: number;
+    maxSabores?: number;
+  };
+}
+
+// Union type para produtos do cardápio
+export type Produto = ProdutoFixo | ProdutoPersonalizavel;
+
+// Helper type guard
+export function isProdutoPersonalizavel(p: Produto): p is ProdutoPersonalizavel {
+  return 'precoBase' in p && 'opcoes' in p;
+}
+
+// Nota: Modelo kiosk (Categoria, Sabor, Topping) definido no topo do arquivo

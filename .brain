@@ -1,0 +1,104 @@
+# 🧠 PLANO DE IMPLEMENTAÇÃO APROVADO
+
+## ORDEM RECOMENDADA (mais funcional → menos dependente)
+
+### Fase 1: Fundação (Semana 1)
+1. **Atualizar cardápio real** (produtosLocal.ts + mockData.ts + types)
+   - É o fundamento de TUDO. Sem o cardápio correto, nada funciona.
+   - Menor risco, maior impacto.
+2. **Separar em monorepo** (pnpm + Turborepo)
+   - Só depois do cardápio estar correto, para não replicar dados errados.
+   - Estrutura: apps/cliente, apps/kiosk, apps/admin, apps/kds, packages/shared
+
+### Fase 2: Apps Funcionais (Semana 2)
+3. **Kiosk redesign** — Layout 22" vertical, TODOS os produtos
+4. **Cliente PWA redesign** — Mobile, "Meus Pedidos" filtrado por usuário
+5. **KDS redesign** — Cozinha (com botões) + TV Display (sem botões, só informativo)
+6. **Admin redesign** — Dashboard, gestão de produtos/pedidos
+
+### Fase 3: TWA (Semana 3)
+7. **TWA Kiosk** — Bubblewrap → Android app
+8. **TWA KDS** — Bubblewrap → Android app
+
+---
+
+## DETALHAMENTO DO CARDÁPIO REAL
+
+### Categorias do Cliente:
+1. **Copas** — 9 produtos (preços fixos, descrições elaboradas)
+2. **Gofres** — 10+ variantes (base + extras: bolas, frutas, siropes)
+3. **Soufflé** — 3 variantes (solo, +1 bola, +2 bolas)
+4. **Banana Split** — 1 produto
+5. **Açaí** — 3 tamanhos + personalização (toppings + frutas + extras)
+6. **Helados à carta (Terrinas)** — 3 tamanhos + sabores à escolha
+7. **Conos (Cucurutxos)** — 6+ variantes (tamanho + tipo + bolas)
+8. **Granizados** — 2 tipos (normal / yogurt) × 3 tamanhos
+9. **Batidos** — 3 tamanhos + extras
+10. **Orxata / Llet Merengada** — 2 tamanhos
+11. **Cafés y Bebidas** — 15+ itens
+12. **Tarrinas solo nata** — 5 tamanhos
+
+### Modelo de dados proposto:
+```typescript
+// Produto fixo (ex: Copa Bahia)
+interface ProdutoFixo {
+  id: string;
+  nome: LocalizedText;
+  descricao: LocalizedText;
+  preco: number;
+  imagem: string;
+  categoria: string;
+}
+
+// Produto personalizável (ex: Açaí, Helado à carta)
+interface ProdutoPersonalizavel {
+  id: string;
+  nome: LocalizedText;
+  precoBase: number;
+  opcoes: Opcao[]; // tamanhos, toppings, frutas
+  imagem: string;
+  categoria: string;
+}
+```
+
+---
+
+## KDS: DUAS VERSÕES
+
+### 1. KDS Cozinha (com botões)
+- Tela touch na cozinha
+- Cards grandes com botões: "Aceitar" → "Preparando" → "Pronto"
+- Timer visível
+- Badge de origem (TPV/PWA)
+- Filtros por status
+
+### 2. KDS TV Display (sem botões, só informativo)
+- HDMI em TV na área do cliente
+- Mostra TODOS os pedidos
+- Cores por status
+- Número do pedido grande
+- Lista de itens simplificada
+- Sem interação — só leitura
+
+---
+
+## CLIENTE PWA: "MEUS PEDIDOS"
+- Usuário logado (telefone/email)
+- Mostra SÓ os pedidos daquele usuário
+- Status em tempo real (pendente → preparando → pronto → entregue)
+- Histórico completo
+- Reorder com 1 toque
+
+---
+
+## DECISÃO DE MOCKADOS
+- Todos os dados serão mockados (localStorage / mockData.ts)
+- Estrutura do banco (Supabase) será definida mas não conectada ainda
+- Quando for para produção, é só trocar os adapters
+
+---
+
+## DEPLOY
+- Separar em 4 repos ou 1 monorepo com 4 apps?
+- Vercel suporta monorepo com múltiplos deploys
+- O usuário disse que se encarrega do Vercel, mas posso fazer também
