@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import { generateOrderNumber, getEstimadedTime } from '../../../shared/utils/calculos';
 
 function Confetti() {

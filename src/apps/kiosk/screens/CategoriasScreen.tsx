@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import type { Categoria } from '../../../shared/types';
 
 const iconMap: Record<string, React.ReactNode> = {

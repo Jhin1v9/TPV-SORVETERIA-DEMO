@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import { calcularPrecoItem } from '../../../shared/utils/calculos';
 
 export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => void; onContinue: () => void }) {
@@ -95,7 +95,7 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
 
                 {/* Info */}
                 <div className="flex-1">
-                  <p className="font-medium text-gray-800">{topping.nome}</p>
+                  <p className="font-medium text-gray-800">{topping.nome.es}</p>
                   <p className="text-xs text-gray-400 capitalize">{topping.categoria}</p>
                 </div>
 

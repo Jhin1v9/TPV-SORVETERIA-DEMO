@@ -109,6 +109,7 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
       establecimiento: snapshot.establishment.name,
     }),
     clienteTelefone: payload.checkout.notificationPhone || null,
+    origem: 'tpv',
     itens,
   };
 

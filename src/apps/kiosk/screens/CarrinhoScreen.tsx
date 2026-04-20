@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import { calcularPrecoItem } from '../../../shared/utils/calculos';
 import { calculateCheckoutSummary } from '../../../shared/utils/pricing';
 
@@ -69,7 +69,7 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
                     </p>
                     {item.toppings.length > 0 && (
                       <p className="text-xs text-[#FF6B9D]">
-                        + {item.toppings.map((topping) => topping.nome).join(', ')}
+                        + {item.toppings.map((topping) => topping.nome.es).join(', ')}
                       </p>
                     )}
                   </div>

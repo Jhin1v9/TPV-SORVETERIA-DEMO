@@ -1,73 +1,85 @@
-# React + TypeScript + Vite
+# 🍦 TPV Sorveteria Sabadell Nord — Versão Final Fusionada
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Demo conectada em tempo real** para sorveteria artesanal.  
+> Kiosk (mesa) + Cliente PWA (celular) + Cocina KDS + Admin Dashboard.  
+> Todos sincronizados via Supabase Realtime ou fallback local.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 Apps
 
-## React Compiler
+| App | Descrição | Acesso |
+|-----|-----------|--------|
+| **Kiosk** | Autoatendimento touch na mesa | Seletor → Kiosk |
+| **Cliente** | PWA para pedir pelo celular | Seletor → Cliente |
+| **Cocina KDS** | Fila de pedidos em tempo real | Seletor → Cocina |
+| **Admin** | Gestão, estoque, analytics | Seletor → Admin |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## 🌐 Idiomas (i18n 100%)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+| Idioma | Código | Status |
+|--------|--------|--------|
+| **Español** | `es` | Principal |
+| Català | `ca` | Completo |
+| **Português** | `pt` | **Novo — Completo** |
+| English | `en` | Completo |
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+---
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## 📦 Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **React 19** + TypeScript + Vite
+- **Tailwind CSS** + Framer Motion
+- **Zustand** (estado global com persistência seletiva)
+- **Supabase** (Realtime + Postgres + RPCs)
+- **PWA** (vite-plugin-pwa, Service Worker, instalável)
+
+---
+
+## 🖼️ Assets Reais
+
+15 fotos reais dos sorvetes artesanais em `public/assets/sabores/`:
+- Crema Catalana, Chocolate Negro, Vainilla Madagascar, Menta Fresca, Stracciatella
+- Café Espresso, Tiramisú, Coco Tropical, Pistacho, Frutos Rojos
+- Mango Alphonso, Limón Siciliano, Turrón Jijona, Yogurt Griego, Amarena
+
+---
+
+## 🗂️ Produtos (58 total)
+
+- **15 sabores artesanais** (com fotos reais)
+- **43 produtos adicionais** do cardápio completo:
+  - Açaí, Cremas, Picolés (tradicionais, premium, duplos)
+  - Conos, Melhorados, Sundaes, Sabores Especiais
+  - Yogurt Especial, Barquillos, Donuts
+
+---
+
+## ⚡ Realtime
+
+- **Modo Supabase:** Sincronização via `postgres_changes` em todas as tabelas
+- **Modo Standalone:** Fallback com `localStorage` + `BroadcastChannel`
+- Pedidos do Kiosk e do PWA Cliente chegam instantaneamente no KDS
+
+---
+
+## 🛠️ Scripts
+
+```bash
+npm install
+npm run dev      # localhost:3000
+npm run build    # dist/ pronto para deploy
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🔑 Acesso Admin (Demo)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Email: `admin@sorveteria.com`
+- Senha: `123456`
+
+---
+
+*Projeto fusionado a partir de `TPV-SORVETERIA-DEMO` (GitHub/Supabase) + `Tropicale TPV` (Local/58 produtos).*

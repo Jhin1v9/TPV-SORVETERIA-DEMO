@@ -3,7 +3,7 @@ import type { Categoria, Sabor, Topping, Pedido, Cliente, DiaVenda, Establishmen
 export const categorias: Categoria[] = [
   {
     id: 'copo300',
-    nome: { ca: 'Got 300ml', es: 'Vaso 300ml', en: 'Cup 300ml', fr: 'Pot 300ml' },
+    nome: { es: 'Vaso 300ml', ca: 'Got 300ml', pt: 'Copo 300ml', en: 'Cup 300ml' },
     precoBase: 3.50,
     maxSabores: 2,
     corHex: '#4ECDC4',
@@ -14,7 +14,7 @@ export const categorias: Categoria[] = [
   },
   {
     id: 'copo500',
-    nome: { ca: 'Got 500ml', es: 'Vaso 500ml', en: 'Cup 500ml', fr: 'Grand Pot' },
+    nome: { es: 'Vaso 500ml', ca: 'Got 500ml', pt: 'Copo 500ml', en: 'Cup 500ml' },
     precoBase: 4.80,
     maxSabores: 3,
     corHex: '#FF6B9D',
@@ -25,7 +25,7 @@ export const categorias: Categoria[] = [
   },
   {
     id: 'cone',
-    nome: { ca: 'Cucurutxo', es: 'Cono', en: 'Cone', fr: 'Cornet' },
+    nome: { es: 'Cono', ca: 'Cucurutxo', pt: 'Cone', en: 'Cone' },
     precoBase: 3.20,
     maxSabores: 2,
     corHex: '#D2691E',
@@ -35,7 +35,7 @@ export const categorias: Categoria[] = [
   },
   {
     id: 'pote1l',
-    nome: { ca: 'Tarrina 1L', es: 'Tarrina 1L', en: 'Tub 1L', fr: 'Pot 1L' },
+    nome: { es: 'Tarrina 1L', ca: 'Tarrina 1L', pt: 'Pote 1L', en: 'Tub 1L' },
     precoBase: 12.00,
     maxSabores: 4,
     corHex: '#98D8C8',
@@ -49,10 +49,10 @@ export const categorias: Categoria[] = [
 export const sabores: Sabor[] = [
   {
     id: 'crema_catalana',
-    nome: { ca: 'Crema Catalana', es: 'Crema Catalana', en: 'Crema Catalana', fr: 'Crème Catalane' },
+    nome: { es: 'Crema Catalana', ca: 'Crema Catalana', pt: 'Creme Catalão', en: 'Crema Catalana' },
     categoria: 'cremoso',
     corHex: '#FFF8E7',
-    imagemUrl: '/assets/demo/sabor-crema-catalana.jpg',
+    imagemUrl: '/assets/sabores/sabor-crema-catalana-real.jpg',
     precoExtra: 0,
     stockBaldes: 2.5,
     alertaStock: 1.0,
@@ -60,10 +60,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'choco_negro',
-    nome: { ca: 'Xocolata Negre 70%', es: 'Chocolate Negro 70%', en: 'Dark Chocolate 70%', fr: 'Chocolat Noir 70%' },
+    nome: { es: 'Chocolate Negro 70%', ca: 'Xocolata Negre 70%', pt: 'Chocolate Negro 70%', en: 'Dark Chocolate 70%' },
     categoria: 'chocolate',
     corHex: '#3C1414',
-    imagemUrl: '/assets/demo/sabor-choco-negro.jpg',
+    imagemUrl: '/assets/sabores/sabor-choco-negro-real.jpg',
     precoExtra: 0,
     stockBaldes: 5.0,
     alertaStock: 1.0,
@@ -71,10 +71,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'vainilla_madagascar',
-    nome: { ca: 'Vainilla Madagascar', es: 'Vainilla Madagascar', en: 'Madagascar Vanilla', fr: 'Vanille Madagascar' },
+    nome: { es: 'Vainilla Madagascar', ca: 'Vainilla Madagascar', pt: 'Baunilha Madagascar', en: 'Madagascar Vanilla' },
     categoria: 'cremoso',
     corHex: '#F3E5AB',
-    imagemUrl: '/assets/demo/sabor-vainilla-madagascar.jpg',
+    imagemUrl: '/assets/sabores/sabor-vainilla-madagascar-real.jpg',
     precoExtra: 0,
     stockBaldes: 3.0,
     alertaStock: 1.0,
@@ -82,10 +82,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'menta_fresca',
-    nome: { ca: 'Menta Fresca', es: 'Menta Fresca', en: 'Fresh Mint', fr: 'Menthe Fraîche' },
+    nome: { es: 'Menta Fresca', ca: 'Menta Fresca', pt: 'Menta Fresca', en: 'Fresh Mint' },
     categoria: 'especial',
     corHex: '#98FF98',
-    imagemUrl: '/assets/demo/sabor-menta-fresca.jpg',
+    imagemUrl: '/assets/sabores/sabor-menta-fresca-real.jpg',
     precoExtra: 0,
     stockBaldes: 1.5,
     alertaStock: 1.0,
@@ -93,10 +93,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'stracciatella',
-    nome: { ca: 'Stracciatella', es: 'Stracciatella', en: 'Stracciatella', fr: 'Stracciatella' },
+    nome: { es: 'Stracciatella', ca: 'Stracciatella', pt: 'Stracciatella', en: 'Stracciatella' },
     categoria: 'especial',
     corHex: '#FFFFF0',
-    imagemUrl: '/assets/demo/sabor-stracciatella.jpg',
+    imagemUrl: '/assets/sabores/sabor-stracciatella-real.jpg',
     precoExtra: 0.50,
     stockBaldes: 4.0,
     alertaStock: 1.0,
@@ -105,10 +105,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'cafe_espresso',
-    nome: { ca: 'Cafè Espresso', es: 'Café Espresso', en: 'Espresso Coffee', fr: 'Café Espresso' },
+    nome: { es: 'Café Espresso', ca: 'Cafè Espresso', pt: 'Café Espresso', en: 'Espresso Coffee' },
     categoria: 'especial',
     corHex: '#6F4E37',
-    imagemUrl: '/assets/demo/sabor-cafe-espresso.jpg',
+    imagemUrl: '/assets/sabores/sabor-cafe-espresso-real.jpg',
     precoExtra: 0.30,
     stockBaldes: 2.0,
     alertaStock: 1.0,
@@ -116,10 +116,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'tiramisu',
-    nome: { ca: 'Tiramisú', es: 'Tiramisú', en: 'Tiramisu', fr: 'Tiramisu' },
+    nome: { es: 'Tiramisú', ca: 'Tiramisú', pt: 'Tiramisù', en: 'Tiramisu' },
     categoria: 'especial',
     corHex: '#D2B48C',
-    imagemUrl: '/assets/demo/sabor-tiramisu.jpg',
+    imagemUrl: '/assets/sabores/sabor-tiramisu-real.jpg',
     precoExtra: 0.50,
     stockBaldes: 1.8,
     alertaStock: 1.0,
@@ -127,10 +127,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'coco_tropical',
-    nome: { ca: 'Coco Tropical', es: 'Coco Tropical', en: 'Tropical Coconut', fr: 'Noix de Coco' },
+    nome: { es: 'Coco Tropical', ca: 'Coco Tropical', pt: 'Coco Tropical', en: 'Tropical Coconut' },
     categoria: 'fruta',
     corHex: '#FFF5EE',
-    imagemUrl: '/assets/demo/sabor-coco-tropical.jpg',
+    imagemUrl: '/assets/sabores/sabor-coco-tropical-real.jpg',
     precoExtra: 0,
     stockBaldes: 2.2,
     alertaStock: 1.0,
@@ -138,10 +138,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'pistacho',
-    nome: { ca: 'Festuc Premium', es: 'Pistacho Premium', en: 'Premium Pistachio', fr: 'Pistache Premium' },
+    nome: { es: 'Pistacho Premium', ca: 'Festuc Premium', pt: 'Pistache Premium', en: 'Premium Pistachio' },
     categoria: 'frutos_secos',
     corHex: '#93C572',
-    imagemUrl: '/assets/demo/sabor-pistacho.jpg',
+    imagemUrl: '/assets/sabores/sabor-pistacho-real.jpg',
     precoExtra: 0.80,
     stockBaldes: 0.8,
     alertaStock: 1.0,
@@ -150,10 +150,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'frutos_rojos',
-    nome: { ca: 'Fruits Vermells', es: 'Frutos Rojos', en: 'Red Berries', fr: 'Fruits Rouges' },
+    nome: { es: 'Frutos Rojos', ca: 'Fruits Vermells', pt: 'Frutos Vermelhos', en: 'Red Berries' },
     categoria: 'sorbete',
     corHex: '#DC143C',
-    imagemUrl: '/assets/demo/sabor-frutos-rojos.jpg',
+    imagemUrl: '/assets/sabores/sabor-frutos-rojos-real.jpg',
     precoExtra: 0,
     stockBaldes: 1.2,
     alertaStock: 1.0,
@@ -161,10 +161,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'mango_alphonso',
-    nome: { ca: 'Mango Alphonso', es: 'Mango Alphonso', en: 'Alphonso Mango', fr: 'Mangue Alphonso' },
+    nome: { es: 'Mango Alphonso', ca: 'Mango Alphonso', pt: 'Manga Alphonso', en: 'Alphonso Mango' },
     categoria: 'sorbete',
     corHex: '#FF8C00',
-    imagemUrl: '/assets/demo/sabor-mango-alphonso.jpg',
+    imagemUrl: '/assets/sabores/sabor-mango-alphonso-real.jpg',
     precoExtra: 0,
     stockBaldes: 1.5,
     alertaStock: 1.0,
@@ -172,10 +172,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'limon_siciliano',
-    nome: { ca: 'Llimona Siciliana', es: 'Limón Siciliano', en: 'Sicilian Lemon', fr: 'Citron Sicilien' },
+    nome: { es: 'Limón Siciliano', ca: 'Llimona Siciliana', pt: 'Limão Siciliano', en: 'Sicilian Lemon' },
     categoria: 'sorbete',
     corHex: '#FAFAD2',
-    imagemUrl: '/assets/demo/sabor-limon-siciliano.jpg',
+    imagemUrl: '/assets/sabores/sabor-limon-siciliano-real.jpg',
     precoExtra: 0,
     stockBaldes: 2.0,
     alertaStock: 1.0,
@@ -183,10 +183,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'turron_jijona',
-    nome: { ca: 'Turró de Jijona', es: 'Turrón de Jijona', en: 'Jijona Nougat', fr: 'Nougat de Jijona' },
+    nome: { es: 'Turrón de Jijona', ca: 'Turró de Jijona', pt: 'Turrón de Jijona', en: 'Jijona Nougat' },
     categoria: 'especial',
     corHex: '#CD853F',
-    imagemUrl: '/assets/demo/sabor-turron-jijona.jpg',
+    imagemUrl: '/assets/sabores/sabor-turron-jijona-real.jpg',
     precoExtra: 0.60,
     stockBaldes: 1.0,
     alertaStock: 1.0,
@@ -195,10 +195,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'yogurt_griego',
-    nome: { ca: 'Iogurt Grec', es: 'Yogurt Griego', en: 'Greek Yogurt', fr: 'Yaourt Grec' },
+    nome: { es: 'Yogurt Griego', ca: 'Iogurt Grec', pt: 'Iogurte Grego', en: 'Greek Yogurt' },
     categoria: 'cremoso',
     corHex: '#F5F5DC',
-    imagemUrl: '/assets/demo/sabor-yogurt-griego.jpg',
+    imagemUrl: '/assets/sabores/sabor-yogurt-griego-real.jpg',
     precoExtra: 0,
     stockBaldes: 3.5,
     alertaStock: 1.0,
@@ -206,10 +206,10 @@ export const sabores: Sabor[] = [
   },
   {
     id: 'amarena',
-    nome: { ca: 'Amarena', es: 'Amarena', en: 'Amarena Cherry', fr: 'Cerise Amarena' },
+    nome: { es: 'Amarena', ca: 'Amarena', pt: 'Amarena', en: 'Amarena Cherry' },
     categoria: 'especial',
     corHex: '#8B0000',
-    imagemUrl: '/assets/demo/sabor-amarena.jpg',
+    imagemUrl: '/assets/sabores/sabor-amarena-real.jpg',
     precoExtra: 0.70,
     stockBaldes: 0.5,
     alertaStock: 1.0,
@@ -219,16 +219,16 @@ export const sabores: Sabor[] = [
 ];
 
 export const toppings: Topping[] = [
-  { id: 'choco_negro_derretido', nome: 'Chocolate Negro Derretido', preco: 0.50, categoria: 'cobertura', emoji: '🍫' },
-  { id: 'choco_blanco_derretido', nome: 'Chocolate Blanco', preco: 0.50, categoria: 'cobertura', emoji: '🤍' },
-  { id: 'nata_montada', nome: 'Nata Montada', preco: 0.60, categoria: 'crema', emoji: '🥛' },
-  { id: 'almendras_caramelizadas', nome: 'Almendras Caramelizadas', preco: 0.80, categoria: 'crocante', emoji: '🌰' },
-  { id: 'nueces_praline', nome: 'Nueces Praliné', preco: 0.80, categoria: 'crocante', emoji: '🥜' },
-  { id: 'virutas_choco', nome: 'Virutas de Chocolate', preco: 0.40, categoria: 'decoracion', emoji: '🍪' },
-  { id: 'sirope_fresa', nome: 'Sirope de Fresa', preco: 0.30, categoria: 'cobertura', emoji: '🍓' },
-  { id: 'sirope_caramelo', nome: 'Sirope de Caramelo Salado', preco: 0.40, categoria: 'cobertura', emoji: '🍯' },
-  { id: 'galleta_oreo', nome: 'Galleta Oreo Triturada', preco: 0.60, categoria: 'mix-in', emoji: '🖤' },
-  { id: 'brownie_pieces', nome: 'Trocitos de Brownie', preco: 0.70, categoria: 'mix-in', emoji: '🟫' },
+  { id: 'choco_negro_derretido', nome: { es: 'Chocolate Negro Derretido', ca: 'Xocolata Negre Fosa', pt: 'Chocolate Preto Derretido', en: 'Dark Chocolate Sauce' }, preco: 0.50, categoria: 'cobertura', emoji: '🍫' },
+  { id: 'choco_blanco_derretido', nome: { es: 'Chocolate Blanco', ca: 'Xocolata Blanca', pt: 'Chocolate Branco', en: 'White Chocolate' }, preco: 0.50, categoria: 'cobertura', emoji: '🤍' },
+  { id: 'nata_montada', nome: { es: 'Nata Montada', ca: 'Nata Muntada', pt: 'Chantilly', en: 'Whipped Cream' }, preco: 0.60, categoria: 'crema', emoji: '🥛' },
+  { id: 'almendras_caramelizadas', nome: { es: 'Almendras Caramelizadas', ca: 'Ametlles Caramelitzades', pt: 'Amêndoas Caramelizadas', en: 'Caramelized Almonds' }, preco: 0.80, categoria: 'crocante', emoji: '🌰' },
+  { id: 'nueces_praline', nome: { es: 'Nueces Praliné', ca: 'Nous Praliné', pt: 'Nozes Praliné', en: 'Praline Nuts' }, preco: 0.80, categoria: 'crocante', emoji: '🥜' },
+  { id: 'virutas_choco', nome: { es: 'Virutas de Chocolate', ca: 'Virutes de Xocolata', pt: 'Lascas de Chocolate', en: 'Chocolate Shavings' }, preco: 0.40, categoria: 'decoracion', emoji: '🍪' },
+  { id: 'sirope_fresa', nome: { es: 'Sirope de Fresa', ca: 'Xarop de Maduixa', pt: 'Calda de Morango', en: 'Strawberry Syrup' }, preco: 0.30, categoria: 'cobertura', emoji: '🍓' },
+  { id: 'sirope_caramelo', nome: { es: 'Sirope de Caramelo Salado', ca: 'Xarop de Caramel Salat', pt: 'Calda de Caramelo Salgado', en: 'Salted Caramel Syrup' }, preco: 0.40, categoria: 'cobertura', emoji: '🍯' },
+  { id: 'galleta_oreo', nome: { es: 'Galleta Oreo Triturada', ca: 'Galeta Oreo Triturada', pt: 'Biscoito Oreo Triturado', en: 'Crushed Oreo Cookies' }, preco: 0.60, categoria: 'mix-in', emoji: '🖤' },
+  { id: 'brownie_pieces', nome: { es: 'Trocitos de Brownie', ca: 'Trossos de Brownie', pt: 'Pedaços de Brownie', en: 'Brownie Pieces' }, preco: 0.70, categoria: 'mix-in', emoji: '🟫' },
 ];
 
 export const diasVenda: DiaVenda[] = [
@@ -272,6 +272,8 @@ export const pedidosMock: Pedido[] = [
     iva: 0.44,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
+    nomeUsuario: null,
     itens: [
       {
         id: 'i-001',
@@ -295,6 +297,7 @@ export const pedidosMock: Pedido[] = [
     iva: 0.32,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-002',
@@ -318,6 +321,7 @@ export const pedidosMock: Pedido[] = [
     iva: 0.73,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-003',
@@ -341,6 +345,8 @@ export const pedidosMock: Pedido[] = [
     iva: 1.09,
     verifactuQr: null,
     clienteTelefone: '612345678',
+    origem: 'tpv',
+    nomeUsuario: null,
     itens: [
       {
         id: 'i-004',
@@ -364,6 +370,7 @@ export const pedidosMock: Pedido[] = [
     iva: 0.87,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-005',
@@ -387,6 +394,7 @@ export const pedidosMock: Pedido[] = [
     iva: 0.29,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-006',
@@ -410,6 +418,7 @@ export const pedidosMock: Pedido[] = [
     iva: 1.53,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-007',
@@ -433,6 +442,8 @@ export const pedidosMock: Pedido[] = [
     iva: 0.64,
     verifactuQr: null,
     clienteTelefone: '623456789',
+    origem: 'tpv',
+    nomeUsuario: null,
     itens: [
       {
         id: 'i-008',
@@ -456,6 +467,7 @@ export const pedidosMock: Pedido[] = [
     iva: 1.09,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-009',
@@ -479,6 +491,7 @@ export const pedidosMock: Pedido[] = [
     iva: 0.58,
     verifactuQr: null,
     clienteTelefone: null,
+    origem: 'tpv',
     itens: [
       {
         id: 'i-010',

@@ -1,0 +1,8 @@
+feat: 5 melhorias enterprise - tests, code splitting, images, animations, SQL schema
+
+- Vitest: 73 testes unitarios (calculos, pricing, i18n, store)
+- Code splitting: React.lazy + Suspense + manualChunks por app
+- OptimizedImage: WebP fallback, lazy loading, skeleton shimmer
+- Cliente PWA: toast sonner, skeleton loading, micro-interacoes, layoutId nav
+- Schema SQL: tabela products, campo origem em orders, toppings jsonb, RPCs novas
+- Fix: tipo Locale em todos os apps, zero console.log, zero any

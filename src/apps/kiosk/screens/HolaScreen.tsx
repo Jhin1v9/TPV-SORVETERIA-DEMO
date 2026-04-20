@@ -26,11 +26,11 @@ const languages: { locale: Locale; greeting: string; subtext: string; colors: [s
     flag: '/assets/flags/en.png',
   },
   {
-    locale: 'fr',
-    greeting: 'Bonjour!',
-    subtext: 'Bienvenue dans notre glacier',
-    colors: ['#0055A4', '#FFFFFF', '#EF4135'],
-    flag: '/assets/flags/fr.png',
+    locale: 'pt',
+    greeting: 'Olá!',
+    subtext: 'Bem-vindos à nossa sorveteria',
+    colors: ['#006600', '#FF0000', '#FFD700'],
+    flag: '/assets/flags/pt.png',
   },
 ];
 

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
+import { t } from '../../../shared/i18n';
 
 export default function LoginScreen() {
-  const { setAdminLogged } = useStore();
+  const { setAdminLogged, locale } = useStore();
   const [email, setEmail] = useState('admin@sorveteria.com');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -32,13 +33,13 @@ export default function LoginScreen() {
             </svg>
           </div>
           <h1 className="font-display text-2xl font-bold text-gray-800">Sabadell Nord</h1>
-          <p className="text-gray-400 text-sm mt-1">Panel de Administración</p>
+          <p className="text-gray-400 text-sm mt-1">{t('loginTitle', locale)}</p>
         </div>
 
         {/* Form */}
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">Email</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">{t('email', locale)}</label>
             <input
               type="email"
               value={email}
@@ -48,7 +49,7 @@ export default function LoginScreen() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1.5">Contraseña</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1.5">{t('password', locale)}</label>
             <input
               type="password"
               value={password}
@@ -61,7 +62,7 @@ export default function LoginScreen() {
 
           {error && (
             <motion.p initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="text-red-500 text-sm">
-              {error}
+              {t('invalidCredentials', locale)}
             </motion.p>
           )}
 
@@ -70,11 +71,11 @@ export default function LoginScreen() {
             className="w-full h-14 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-display font-bold shadow-lg"
             whileTap={{ scale: 0.98 }}
           >
-            Entrar
+            {t('login', locale)}
           </motion.button>
         </div>
 
-        <p className="text-center text-gray-400 text-xs mt-6">Demo: contraseña 123456</p>
+        <p className="text-center text-gray-400 text-xs mt-6">Demo: {t('password', locale)} 123456</p>
       </motion.div>
     </div>
   );

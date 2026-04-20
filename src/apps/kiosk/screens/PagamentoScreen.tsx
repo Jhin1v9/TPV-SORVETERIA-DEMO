@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import { calculateCheckoutSummary } from '../../../shared/utils/pricing';
 
 type PaymentTab = 'tarjeta' | 'efectivo' | 'bizum';

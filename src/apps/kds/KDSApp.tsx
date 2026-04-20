@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../shared/stores/useStore';
 import { updateRemoteOrderStatus } from '../../shared/realtime/client';
 import { generateOrderNumber } from '../../shared/utils/calculos';
-import type { Pedido, PedidoStatus } from '../../shared/types';
+import { t } from '../../shared/i18n';
+import type { Locale, Pedido, PedidoStatus } from '../../shared/types';
 
 const statusColors: Record<PedidoStatus, string> = {
   pendiente: '#2196F3',
@@ -11,14 +12,6 @@ const statusColors: Record<PedidoStatus, string> = {
   listo: '#4CAF50',
   entregado: '#9E9E9E',
   cancelado: '#F44336',
-};
-
-const statusLabels: Record<PedidoStatus, string> = {
-  pendiente: 'Pendiente',
-  preparando: 'Preparando',
-  listo: 'Listo',
-  entregado: 'Entregado',
-  cancelado: 'Cancelado',
 };
 
 function OrderTimer({ startTime }: { startTime: string }) {
@@ -43,7 +36,7 @@ function OrderTimer({ startTime }: { startTime: string }) {
   );
 }
 
-function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange: (id: string, status: PedidoStatus) => void }) {
+function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatusChange: (id: string, status: PedidoStatus) => void; locale: Locale }) {
   const bgColor = statusColors[pedido.status];
   const isNew = pedido.status === 'pendiente';
 
@@ -54,6 +47,9 @@ function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange:
     entregado: null,
     cancelado: null,
   };
+
+  const statusLabel = t(pedido.status === 'pendiente' ? 'pending' : pedido.status === 'preparando' ? 'preparing' : pedido.status === 'listo' ? 'ready' : pedido.status === 'entregado' ? 'delivered' : 'cancelled', locale);
+  const nextLabel = nextStatus[pedido.status] === 'preparando' ? t('preparing', locale) : nextStatus[pedido.status] === 'listo' ? t('ready', locale) : nextStatus[pedido.status] === 'entregado' ? t('delivered', locale) : null;
 
   return (
     <motion.div
@@ -66,10 +62,15 @@ function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange:
     >
       <div className="flex justify-between items-start mb-3">
         <div>
-          <span className="font-mono text-4xl font-bold text-white">{generateOrderNumber(pedido.numeroSequencial)}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-4xl font-bold text-white">{generateOrderNumber(pedido.numeroSequencial)}</span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pedido.origem === 'pwa' ? 'bg-[#FF6B9D]/30 text-[#FF6B9D]' : 'bg-[#4ECDC4]/30 text-[#4ECDC4]'}`}>
+              {pedido.origem === 'pwa' ? t('fromPWA', locale) : t('fromTPV', locale)}
+            </span>
+          </div>
           <div className="flex items-center gap-2 mt-1">
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: bgColor }} />
-            <span className="text-white/60 text-xs font-medium">{statusLabels[pedido.status]}</span>
+            <span className="text-white/60 text-xs font-medium">{statusLabel}</span>
           </div>
         </div>
         <OrderTimer startTime={pedido.timestampCriacao} />
@@ -83,23 +84,21 @@ function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange:
             <span className="text-white/50"> - {item.sabores.map((sabor) => sabor.nome.es).join(', ')}</span>
             {item.toppings.length > 0 && (
               <span className="text-[#FFD700]/70 text-xs block ml-4">
-                + {item.toppings.map((topping) => topping.nome).join(', ')}
+                + {item.toppings.map((topping) => topping.nome.es).join(', ')}
               </span>
             )}
           </div>
         ))}
       </div>
 
-      {nextStatus[pedido.status] && (
+      {nextStatus[pedido.status] && nextLabel && (
         <motion.button
           onClick={() => onStatusChange(pedido.id, nextStatus[pedido.status]!)}
           className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 transition-all hover:brightness-110"
           style={{ backgroundColor: bgColor }}
           whileTap={{ scale: 0.97 }}
         >
-          {pedido.status === 'pendiente' && 'Preparar'}
-          {pedido.status === 'preparando' && 'Listo'}
-          {pedido.status === 'listo' && 'Entregar'}
+          {nextLabel}
         </motion.button>
       )}
 
@@ -112,9 +111,10 @@ function OrderCard({ pedido, onStatusChange }: { pedido: Pedido; onStatusChange:
 }
 
 export default function KDSApp({ onBack }: { onBack: () => void }) {
-  const { pedidos, hydrateRemoteState } = useStore();
+  const { pedidos, hydrateRemoteState, locale } = useStore();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [filter, setFilter] = useState<'all' | 'tpv' | 'pwa'>('all');
   const prevPedidosRef = useRef(pedidos.length);
 
   useEffect(() => {
@@ -157,8 +157,14 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const activeOrders = pedidos.filter((pedido) => pedido.status !== 'entregado' && pedido.status !== 'cancelado');
-  const queueCount = activeOrders.filter((pedido) => pedido.status === 'pendiente').length;
+  const filteredOrders = pedidos.filter((pedido) => {
+    const active = pedido.status !== 'entregado' && pedido.status !== 'cancelado';
+    if (!active) return false;
+    if (filter === 'all') return true;
+    return pedido.origem === filter;
+  });
+
+  const queueCount = filteredOrders.filter((pedido) => pedido.status === 'pendiente').length;
 
   return (
     <div className="h-screen w-screen bg-[#121212] flex flex-col kds-dark overflow-hidden">
@@ -170,7 +176,7 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
             </svg>
           </button>
           <div>
-            <h1 className="font-display text-xl font-bold text-white">Cocina KDS</h1>
+            <h1 className="font-display text-xl font-bold text-white">{t('cocinaDesc', locale).split(' ').slice(0, 2).join(' ')}</h1>
             <p className="text-white/40 text-xs">Sabadell Nord</p>
           </div>
         </div>
@@ -180,9 +186,22 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Filter */}
+          <div className="flex bg-white/5 rounded-xl overflow-hidden">
+            {(['all', 'tpv', 'pwa'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`px-3 py-2 text-xs font-bold transition-colors ${filter === f ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'}`}
+              >
+                {f === 'all' ? t('allOrders', locale) : f === 'tpv' ? 'TPV' : 'PWA'}
+              </button>
+            ))}
+          </div>
+
           <div className="flex items-center gap-2 bg-red-500/20 px-4 py-2 rounded-xl">
             <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            <span className="text-red-400 font-bold text-sm">{queueCount} en cola</span>
+            <span className="text-red-400 font-bold text-sm">{queueCount} {t('queue', locale).replace('{n}', '')}</span>
           </div>
 
           <button
@@ -191,27 +210,26 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
               soundEnabled ? 'bg-[#4ECDC4]/20 text-[#4ECDC4]' : 'bg-white/10 text-white/40'
             }`}
           >
-            <span className="text-xs font-bold">{soundEnabled ? 'ON' : 'OFF'}</span>
+            <span className="text-xs font-bold">{soundEnabled ? t('soundOn', locale).split(' ')[1] : t('soundOff', locale).split(' ')[1]}</span>
           </button>
         </div>
       </div>
 
       <div className="flex-1 p-6 overflow-auto">
-        {activeOrders.length === 0 ? (
+        {filteredOrders.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white/20">
             <svg className="w-24 h-24 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
-            <p className="font-display text-2xl">Sin pedidos activos</p>
-            <p className="text-sm mt-2">Los pedidos llegaran aqui en tiempo real</p>
+            <p className="font-display text-2xl">{t('noOrdersYet', locale)}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             <AnimatePresence>
-              {activeOrders
+              {filteredOrders
                 .sort((left, right) => new Date(right.timestampCriacao).getTime() - new Date(left.timestampCriacao).getTime())
                 .map((pedido) => (
-                  <OrderCard key={pedido.id} pedido={pedido} onStatusChange={handleStatusChange} />
+                  <OrderCard key={pedido.id} pedido={pedido} onStatusChange={handleStatusChange} locale={locale} />
                 ))}
             </AnimatePresence>
           </div>
@@ -220,11 +238,11 @@ export default function KDSApp({ onBack }: { onBack: () => void }) {
 
       <div className="px-6 py-3 border-t border-white/10 flex items-center justify-between text-white/40 text-xs">
         <div className="flex gap-6">
-          <span>Pendientes: {pedidos.filter((pedido) => pedido.status === 'pendiente').length}</span>
-          <span>Preparando: {pedidos.filter((pedido) => pedido.status === 'preparando').length}</span>
-          <span>Listos: {pedidos.filter((pedido) => pedido.status === 'listo').length}</span>
+          <span>{t('pending', locale)}: {pedidos.filter((p) => p.status === 'pendiente').length}</span>
+          <span>{t('preparing', locale)}: {pedidos.filter((p) => p.status === 'preparando').length}</span>
+          <span>{t('ready', locale)}: {pedidos.filter((p) => p.status === 'listo').length}</span>
         </div>
-        <span>Total sesion: {pedidos.length} pedidos</span>
+        <span>{t('orders', locale)}: {pedidos.length}</span>
       </div>
     </div>
   );

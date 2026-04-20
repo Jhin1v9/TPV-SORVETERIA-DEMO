@@ -3,6 +3,7 @@ import type {
   CategoriaId,
   DemoStateSnapshot,
   DiaVenda,
+  LocalizedText,
   Pedido,
   Sabor,
   SaborCategoria,
@@ -15,7 +16,7 @@ type AnyRecord = Record<string, unknown>;
 function normalizeFlavor(row: AnyRecord): Sabor {
   return {
     id: String(row.id),
-    nome: row.nome as { ca: string; es: string; en: string; fr: string },
+    nome: row.nome as { ca: string; es: string; en: string; pt: string },
     categoria: String(row.categoria) as SaborCategoria,
     corHex: String(row.cor_hex),
     imagemUrl: String(row.image_url),
@@ -30,7 +31,7 @@ function normalizeFlavor(row: AnyRecord): Sabor {
 function normalizeCategory(row: AnyRecord): Categoria {
   return {
     id: String(row.id) as CategoriaId,
-    nome: row.nome as { ca: string; es: string; en: string; fr: string },
+    nome: row.nome as { ca: string; es: string; en: string; pt: string },
     precoBase: Number(row.base_price),
     maxSabores: Number(row.max_flavors),
     corHex: String(row.cor_hex),
@@ -44,7 +45,7 @@ function normalizeCategory(row: AnyRecord): Categoria {
 function normalizeTopping(row: AnyRecord): Topping {
   return {
     id: String(row.id),
-    nome: String(row.nome),
+    nome: row.nome as LocalizedText,
     preco: Number(row.price),
     categoria: String(row.categoria) as ToppingCategoria,
     emoji: row.emoji ? String(row.emoji) : undefined,
@@ -93,6 +94,7 @@ export function buildSnapshotFromSupabase(data: {
     iva: Number(row.iva),
     verifactuQr: row.verifactu_qr ? String(row.verifactu_qr) : null,
     clienteTelefone: row.customer_phone ? String(row.customer_phone) : null,
+    origem: ((row.origem as string) || 'tpv') as Pedido['origem'],
     itens: ((row.order_items as AnyRecord[] | null) ?? [])
       .sort((left, right) => Number(left.sort_order ?? 0) - Number(right.sort_order ?? 0))
       .map((item) => ({

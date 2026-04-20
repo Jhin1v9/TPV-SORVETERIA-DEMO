@@ -183,7 +183,8 @@ export const useStore = create<AppState>()(
       name: 'tpv-sorveteria-storage',
       partialize: (state) => ({
         locale: state.locale,
-        isAdminLogged: state.isAdminLogged,
+        // NOTA DE SEGURANÇA: isAdminLogged NÃO é persistido.
+        // O admin deve fazer login novamente ao recarregar a página.
       }),
     },
   ),

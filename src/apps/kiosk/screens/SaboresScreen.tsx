@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/utils/i18n';
+import { t } from '../../../shared/i18n';
 import type { Sabor } from '../../../shared/types';
 
 export default function SaboresScreen({ onBack, onContinue }: { onBack: () => void; onContinue: () => void }) {

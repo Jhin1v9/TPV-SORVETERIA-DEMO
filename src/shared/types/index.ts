@@ -1,4 +1,4 @@
-export type Locale = 'ca' | 'es' | 'en' | 'fr';
+export type Locale = 'es' | 'ca' | 'pt' | 'en';
 
 export type CategoriaId = 'copo300' | 'copo500' | 'cone' | 'pote1l';
 
@@ -11,10 +11,10 @@ export type MetodoPago = 'tarjeta' | 'efectivo' | 'bizum' | 'pendiente';
 export type ToppingCategoria = 'cobertura' | 'crema' | 'crocante' | 'decoracion' | 'mix-in';
 
 export interface LocalizedText {
-  ca: string;
   es: string;
+  ca: string;
+  pt: string;
   en: string;
-  fr: string;
 }
 
 export interface Categoria {
@@ -44,7 +44,7 @@ export interface Sabor {
 
 export interface Topping {
   id: string;
-  nome: string;
+  nome: LocalizedText;
   preco: number;
   categoria: ToppingCategoria;
   emoji?: string;
@@ -76,6 +76,8 @@ export interface Pedido {
   verifactuQr: string | null;
   clienteTelefone: string | null;
   itens: ItemPedido[];
+  origem: 'tpv' | 'pwa';
+  nomeUsuario?: string | null;
 }
 
 export interface CarrinhoItem {
@@ -149,3 +151,62 @@ export const RENDIMENTO_PORCOES: Record<string, number> = {
   cone: 156.25,
   pote1l: 1000,
 };
+
+// === Tipos do Projeto Local (Tropicale) fusionados ===
+
+export type ProdutoCategoria =
+  | 'todos'
+  | 'acai'
+  | 'crema'
+  | 'picole'
+  | 'picole-premium'
+  | 'picole-duplo'
+  | 'conos'
+  | 'melhorados'
+  | 'sundae'
+  | 'sabores-especiais'
+  | 'yogurt-especial'
+  | 'barquillo'
+  | 'donuts'
+  | 'sorvetes-artesanais';
+
+export interface Produto {
+  id: string;
+  nome: LocalizedText;
+  preco: number;
+  imagem: string;
+  categoria: ProdutoCategoria;
+  descricao?: LocalizedText;
+  emEstoque: boolean;
+  badge?: LocalizedText;
+}
+
+export interface ItemCarrinhoPWA {
+  produto: Produto;
+  quantidade: number;
+  observacoes?: string;
+}
+
+export interface PedidoPWA {
+  id: string;
+  itens: ItemCarrinhoPWA[];
+  total: number;
+  status: PedidoStatus;
+  origem: 'pwa';
+  timestamp: number;
+  usuarioId: string;
+  nomeUsuario: string;
+  emailUsuario: string;
+  metodoPago: MetodoPago;
+  telefone?: string;
+}
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  telefone?: string;
+  logado: boolean;
+}
+
+export type ViewMode = 'selector' | 'kiosk' | 'cocina' | 'cliente' | 'admin';
