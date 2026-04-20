@@ -11,7 +11,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./src/*"
+        "./packages/shared/src/*"
+      ],
+      "@tpv/shared/*": [
+        "./packages/shared/src/*"
       ]
     },
     /* Bundler mode */
@@ -30,5 +33,12 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": [
+    "apps/**/*",
+    "packages/shared/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

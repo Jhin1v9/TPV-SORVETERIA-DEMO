@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import type { Locale } from '../../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import type { Locale } from '@tpv/shared/types';
 
 const languages: { locale: Locale; greeting: string; subtext: string; colors: [string, string, string?]; flag: string }[] = [
   {

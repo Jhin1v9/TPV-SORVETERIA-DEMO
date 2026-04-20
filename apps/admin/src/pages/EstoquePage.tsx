@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { updateRemoteFlavorStock } from '../../../shared/realtime/client';
-import { useStore } from '../../../shared/stores/useStore';
-import { calcularPorcoesAll } from '../../../shared/utils/calculos';
-import type { Sabor } from '../../../shared/types';
+import { updateRemoteFlavorStock } from '@tpv/shared/realtime/client';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { calcularPorcoesAll } from '@tpv/shared/utils/calculos';
+import type { Sabor } from '@tpv/shared/types';
 
 function StockCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: string }) {
   const isLow = value < 10;

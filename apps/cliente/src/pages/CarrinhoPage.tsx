@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
 import { useClienteToast } from '../hooks/useClienteToast';
-import { createRemoteOrder } from '../../../shared/realtime/client';
+import { createRemoteOrder } from '@tpv/shared/realtime/client';
 
 export default function CarrinhoPage() {
   const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState } = useStore();

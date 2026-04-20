@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
-import { useStore } from '../shared/stores/useStore';
-import { t } from '../shared/i18n';
+import { useStore } from '../stores/useStore';
+import { t } from '../i18n';
 
 export default function LoadingApp() {
   const { locale } = useStore();

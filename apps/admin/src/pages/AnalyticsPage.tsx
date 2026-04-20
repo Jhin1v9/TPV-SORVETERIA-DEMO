@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { useStore } from '../../../shared/stores/useStore';
+import { useStore } from '@tpv/shared/stores/useStore';
 
 function StatCard({ title, value, caption, icon }: { title: string; value: string; caption: string; icon: string }) {
   return (

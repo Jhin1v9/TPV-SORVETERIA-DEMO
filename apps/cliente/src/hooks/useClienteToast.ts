@@ -1,6 +1,6 @@
 import { toast } from 'sonner';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
 
 /**
  * Hook de toast para o Cliente PWA.

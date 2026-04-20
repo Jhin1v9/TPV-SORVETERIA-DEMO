@@ -1,9 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
-import { generateOrderNumber, getEstimadedTime } from '../../../shared/utils/calculos';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import { generateOrderNumber, getEstimadedTime } from '@tpv/shared/utils/calculos';
 
 function Confetti() {
   const particles = useMemo(() => {

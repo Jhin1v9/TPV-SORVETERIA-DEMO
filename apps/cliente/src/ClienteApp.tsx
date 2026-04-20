@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster } from 'sonner';
-import { useStore } from '../../shared/stores/useStore';
-import { t } from '../../shared/i18n';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
 import CardapioPage from './pages/CardapioPage';
 import CarrinhoPage from './pages/CarrinhoPage';
 import PedidosPage from './pages/PedidosPage';
@@ -10,7 +10,7 @@ import ConfigPage from './pages/ConfigPage';
 
 type ClienteTab = 'cardapio' | 'carrinho' | 'pedidos' | 'config';
 
-export default function ClienteApp({ onBack }: { onBack: () => void }) {
+export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
   const { locale } = useStore();
   const [tab, setTab] = useState<ClienteTab>('cardapio');
   const [showCarrinho, setShowCarrinho] = useState(false);

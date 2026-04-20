@@ -29,4 +29,7 @@ export function getLocaleName(locale: Locale): string {
   return names[locale];
 }
 
+export const defaultLocale: Locale = 'ca';
+export const supportedLocales: Locale[] = ['ca', 'es', 'pt', 'en'];
+
 export { es, ca, pt, en };

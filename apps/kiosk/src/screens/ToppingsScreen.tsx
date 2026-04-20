@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
-import { calcularPrecoItem } from '../../../shared/utils/calculos';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import { calcularPrecoItem } from '@tpv/shared/utils/calculos';
 
 export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => void; onContinue: () => void }) {
   const { locale, selectedCategoria, selectedSabores, selectedToppings, toggleTopping, toppings } = useStore();

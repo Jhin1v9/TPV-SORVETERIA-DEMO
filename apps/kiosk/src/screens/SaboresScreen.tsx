@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
-import type { Sabor } from '../../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import type { Sabor } from '@tpv/shared/types';
 
 export default function SaboresScreen({ onBack, onContinue }: { onBack: () => void; onContinue: () => void }) {
   const { locale, selectedCategoria, selectedSabores, toggleSabor, sabores } = useStore();

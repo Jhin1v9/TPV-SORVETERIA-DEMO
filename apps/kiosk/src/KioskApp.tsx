@@ -1,7 +1,7 @@
 import { useEffect, useCallback, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../shared/stores/useStore';
-import { createRemoteOrder } from '../../shared/realtime/client';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { createRemoteOrder } from '@tpv/shared/realtime/client';
 import HolaScreen from './screens/HolaScreen';
 import CategoriasScreen from './screens/CategoriasScreen';
 import SaboresScreen from './screens/SaboresScreen';

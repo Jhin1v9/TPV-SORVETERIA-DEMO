@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
-import { calculateCheckoutSummary } from '../../../shared/utils/pricing';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import { calculateCheckoutSummary } from '@tpv/shared/utils/pricing';
 
 type PaymentTab = 'tarjeta' | 'efectivo' | 'bizum';
 

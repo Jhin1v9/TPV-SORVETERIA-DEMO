@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { getDemoServerUrl, resetRemoteDemo, updateRemoteFlavorAvailability, updateRemoteSettings } from '../../../shared/realtime/client';
-import { useStore } from '../../../shared/stores/useStore';
+import { getDemoServerUrl, resetRemoteDemo, updateRemoteFlavorAvailability, updateRemoteSettings } from '@tpv/shared/realtime/client';
+import { useStore } from '@tpv/shared/stores/useStore';
 
 export default function ConfigPage() {
   const { sabores, establishment, hydrateRemoteState } = useStore();

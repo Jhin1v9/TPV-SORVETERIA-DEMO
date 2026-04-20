@@ -1,8 +1,8 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
-import { calcularPrecoItem } from '../../../shared/utils/calculos';
-import { calculateCheckoutSummary } from '../../../shared/utils/pricing';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import { calcularPrecoItem } from '@tpv/shared/utils/calculos';
+import { calculateCheckoutSummary } from '@tpv/shared/utils/pricing';
 
 export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; onPay: () => void }) {
   const {

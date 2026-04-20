@@ -1,10 +1,10 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../shared/stores/useStore';
-import { updateRemoteOrderStatus } from '../../shared/realtime/client';
-import { generateOrderNumber } from '../../shared/utils/calculos';
-import { t } from '../../shared/i18n';
-import type { Locale, Pedido, PedidoStatus } from '../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { updateRemoteOrderStatus } from '@tpv/shared/realtime/client';
+import { generateOrderNumber } from '@tpv/shared/utils/calculos';
+import { t } from '@tpv/shared/i18n';
+import type { Locale, Pedido, PedidoStatus } from '@tpv/shared/types';
 
 const statusColors: Record<PedidoStatus, string> = {
   pendiente: '#2196F3',
@@ -110,7 +110,7 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
   );
 }
 
-export default function KDSApp({ onBack }: { onBack: () => void }) {
+export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
   const { pedidos, hydrateRemoteState, locale } = useStore();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());

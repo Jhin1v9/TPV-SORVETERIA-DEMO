@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useStore } from '../../../shared/stores/useStore';
-import { t, getLocaleName } from '../../../shared/i18n';
-import type { Locale } from '../../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t, getLocaleName } from '@tpv/shared/i18n';
+import type { Locale } from '@tpv/shared/types';
 
 export default function ConfigPage() {
   const { locale, setLocale } = useStore();

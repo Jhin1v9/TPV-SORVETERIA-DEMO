@@ -1,11 +1,11 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { todosProdutos, categoriasLocal } from '../../../shared/data/produtosLocal';
-import type { Produto } from '../../../shared/types';
-import { t } from '../../../shared/i18n';
-import OptimizedImage from '../../../components/OptimizedImage';
-import SkeletonCard from '../../../components/SkeletonCard';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
+import type { Produto } from '@tpv/shared/types';
+import { t } from '@tpv/shared/i18n';
+import OptimizedImage from '@tpv/shared/components/OptimizedImage';
+import SkeletonCard from '@tpv/shared/components/SkeletonCard';
 import { useClienteToast } from '../hooks/useClienteToast';
 
 export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () => void }) {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { t } from '../../../shared/i18n';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
 
 export default function LoginScreen() {
   const { setAdminLogged, locale } = useStore();

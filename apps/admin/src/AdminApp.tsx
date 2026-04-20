@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../shared/stores/useStore';
-import { t } from '../../shared/i18n';
-import type { Locale } from '../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { t } from '@tpv/shared/i18n';
+import type { Locale } from '@tpv/shared/types';
 import LoginScreen from './pages/LoginScreen';
 import EstoquePage from './pages/EstoquePage';
 import PedidosPage from './pages/PedidosPage';
@@ -53,7 +53,7 @@ function useNavItems(locale: Locale) {
   ];
 }
 
-export default function AdminApp({ onBack }: { onBack: () => void }) {
+export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
   const { isAdminLogged, setAdminLogged, locale } = useStore();
   const [currentPage, setCurrentPage] = useState<AdminPage>('analytics');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -126,7 +126,7 @@ export default function AdminApp({ onBack }: { onBack: () => void }) {
           </button>
 
           <button
-            onClick={() => { setAdminLogged(false); onBack(); }}
+            onClick={() => { setAdminLogged(false); onBack?.(); }}
             className="w-full flex items-center gap-3 px-4 py-3 text-white/60 hover:text-white hover:bg-white/10 transition-all"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

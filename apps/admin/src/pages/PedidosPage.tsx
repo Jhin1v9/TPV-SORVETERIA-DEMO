@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../../shared/stores/useStore';
-import { formatCurrency, formatTime, generateOrderNumber } from '../../../shared/utils/calculos';
-import type { PedidoStatus } from '../../../shared/types';
+import { useStore } from '@tpv/shared/stores/useStore';
+import { formatCurrency, formatTime, generateOrderNumber } from '@tpv/shared/utils/calculos';
+import type { PedidoStatus } from '@tpv/shared/types';
 
 const statusColors: Record<PedidoStatus, string> = {
   pendiente: '#2196F3',
