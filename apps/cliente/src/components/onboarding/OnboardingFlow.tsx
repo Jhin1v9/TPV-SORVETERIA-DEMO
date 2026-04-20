@@ -2,6 +2,7 @@ import { AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '../../hooks/useOnboarding';
 import WelcomeScreen from './WelcomeScreen';
 import QuickRegister from './QuickRegister';
+import InteractiveTutorial from './InteractiveTutorial';
 import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { motion } from 'framer-motion';
@@ -47,6 +48,15 @@ export default function OnboardingFlow() {
           key="register"
           onComplete={() => goToStep('allergy')}
           onBack={() => goToStep('welcome')}
+        />
+      )}
+
+      {step === 'tutorial' && (
+        <InteractiveTutorial
+          key="tutorial"
+          locale={locale}
+          onComplete={skipOnboarding}
+          onSkip={skipOnboarding}
         />
       )}
 
