@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../../shared/stores/useStore';
 import { t } from '../../../shared/i18n';
 import { useClienteToast } from '../hooks/useClienteToast';
+import { createRemoteOrder } from '../../../shared/realtime/client';
 
 export default function CarrinhoPage() {
-  const { carrinho, removeFromCarrinho, locale, clearCarrinho } = useStore();
+  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState } = useStore();
   const toast = useClienteToast();
+  const [busy, setBusy] = useState(false);
 
   const total = carrinho.reduce((sum, item) => {
     const base = item.categoria.precoBase;
@@ -18,9 +21,30 @@ export default function CarrinhoPage() {
     toast.removedFromCart();
   };
 
-  const handleOrder = () => {
-    clearCarrinho();
-    toast.orderPlaced();
+  const handleOrder = async () => {
+    if (busy || carrinho.length === 0) return;
+    setBusy(true);
+    try {
+      const response = await createRemoteOrder({
+        cart: carrinho,
+        metodoPago: 'bizum',
+        checkout: {
+          promoCode: '',
+          promoApplied: false,
+          promoDiscountRate: 0,
+          coffeeAdded: false,
+          coffeePrice: 1.5,
+          notificationPhone: '',
+        },
+      });
+      hydrateRemoteState(response.snapshot);
+      clearCarrinho();
+      toast.orderPlaced();
+    } catch {
+      toast.connectionError();
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (

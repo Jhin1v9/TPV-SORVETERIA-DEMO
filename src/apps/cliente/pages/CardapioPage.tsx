@@ -136,19 +136,26 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
 }
 
 function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: typeof produtosLocal[0]; index: number; onOpenCarrinho: () => void }) {
-  const { locale, addToCarrinho, selectedSabores, selectedToppings, selectedCategoria } = useStore();
+  const { locale, addToCarrinho } = useStore();
   const toast = useClienteToast();
   const [added, setAdded] = useState(false);
   const nome = produto.nome[locale] || produto.nome.es;
 
   const handleAdd = () => {
-    if (selectedCategoria) {
-      addToCarrinho({
-        categoria: selectedCategoria,
-        sabores: selectedSabores,
-        toppings: selectedToppings,
-      });
-    }
+    addToCarrinho({
+      categoria: {
+        id: 'produto',
+        nome: produto.nome,
+        precoBase: produto.preco,
+        maxSabores: 0,
+        corHex: '#FF6B9D',
+        ativo: true,
+        ordem: 0,
+        imagem: produto.imagem,
+      } as any,
+      sabores: [],
+      toppings: [],
+    });
     setAdded(true);
     toast.addedToCart(nome);
     setTimeout(() => setAdded(false), 1200);

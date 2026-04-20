@@ -1,4 +1,4 @@
-export type Locale = 'es' | 'ca' | 'pt' | 'en';
+export type Locale = 'ca' | 'es' | 'pt' | 'en';
 
 export type CategoriaId = 'copo300' | 'copo500' | 'cone' | 'pote1l';
 
@@ -11,8 +11,8 @@ export type MetodoPago = 'tarjeta' | 'efectivo' | 'bizum' | 'pendiente';
 export type ToppingCategoria = 'cobertura' | 'crema' | 'crocante' | 'decoracion' | 'mix-in';
 
 export interface LocalizedText {
-  es: string;
   ca: string;
+  es: string;
   pt: string;
   en: string;
 }
@@ -76,7 +76,7 @@ export interface Pedido {
   verifactuQr: string | null;
   clienteTelefone: string | null;
   itens: ItemPedido[];
-  origem: 'tpv' | 'pwa';
+  origem?: 'tpv' | 'pwa';
   nomeUsuario?: string | null;
 }
 
@@ -152,8 +152,6 @@ export const RENDIMENTO_PORCOES: Record<string, number> = {
   pote1l: 1000,
 };
 
-// === Tipos do Projeto Local (Tropicale) fusionados ===
-
 export type ProdutoCategoria =
   | 'todos'
   | 'acai'
@@ -173,40 +171,10 @@ export type ProdutoCategoria =
 export interface Produto {
   id: string;
   nome: LocalizedText;
+  descricao?: LocalizedText;
+  badge?: LocalizedText;
   preco: number;
   imagem: string;
   categoria: ProdutoCategoria;
-  descricao?: LocalizedText;
   emEstoque: boolean;
-  badge?: LocalizedText;
 }
-
-export interface ItemCarrinhoPWA {
-  produto: Produto;
-  quantidade: number;
-  observacoes?: string;
-}
-
-export interface PedidoPWA {
-  id: string;
-  itens: ItemCarrinhoPWA[];
-  total: number;
-  status: PedidoStatus;
-  origem: 'pwa';
-  timestamp: number;
-  usuarioId: string;
-  nomeUsuario: string;
-  emailUsuario: string;
-  metodoPago: MetodoPago;
-  telefone?: string;
-}
-
-export interface Usuario {
-  id: string;
-  nome: string;
-  email: string;
-  telefone?: string;
-  logado: boolean;
-}
-
-export type ViewMode = 'selector' | 'kiosk' | 'cocina' | 'cliente' | 'admin';

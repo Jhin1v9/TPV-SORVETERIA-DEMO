@@ -81,10 +81,10 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
           <div key={item.id} className="text-white/80 text-sm">
             <span className="font-semibold">{item.quantidade}x</span>{' '}
             {item.categoriaNome}
-            <span className="text-white/50"> - {item.sabores.map((sabor) => sabor.nome.es).join(', ')}</span>
+            <span className="text-white/50"> - {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</span>
             {item.toppings.length > 0 && (
               <span className="text-[#FFD700]/70 text-xs block ml-4">
-                + {item.toppings.map((topping) => topping.nome.es).join(', ')}
+                + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
               </span>
             )}
           </div>

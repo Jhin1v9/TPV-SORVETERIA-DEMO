@@ -69,7 +69,7 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
                     </p>
                     {item.toppings.length > 0 && (
                       <p className="text-xs text-[#FF6B9D]">
-                        + {item.toppings.map((topping) => topping.nome.es).join(', ')}
+                        + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
                       </p>
                     )}
                   </div>

@@ -36,7 +36,7 @@ function getDayKey(date: Date) {
 }
 
 export default function PedidosPage() {
-  const { pedidos } = useStore();
+  const { pedidos, locale } = useStore();
   const [activeFilter, setActiveFilter] = useState<(typeof filters)[number]['key']>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
@@ -197,8 +197,8 @@ export default function PedidosPage() {
                       {pedido.itens.map((item) => (
                         <div key={item.id} className="bg-gray-50 rounded-xl p-4">
                           <p className="font-semibold">{item.quantidade}x {item.categoriaNome}</p>
-                          <p className="text-sm text-gray-500">Sabores: {item.sabores.map((sabor) => sabor.nome.es).join(', ')}</p>
-                          {item.toppings.length > 0 && <p className="text-sm text-gray-500">Extras: {item.toppings.map((topping) => topping.nome.es).join(', ')}</p>}
+                          <p className="text-sm text-gray-500">Sabores: {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</p>
+                          {item.toppings.length > 0 && <p className="text-sm text-gray-500">Extras: {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}</p>}
                           <p className="font-mono font-bold text-[#FF6B9D] mt-1">{formatCurrency(item.precoUnitario)}</p>
                         </div>
                       ))}

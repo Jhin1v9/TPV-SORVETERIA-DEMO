@@ -1,0 +1,26 @@
+- generic [ref=e2]:
+  - generic [ref=e5]:
+    - paragraph [ref=e6]: Conectado
+    - paragraph [ref=e7]: Sync 19:41:06
+  - generic [ref=e9]:
+    - generic [ref=e10]:
+      - img [ref=e12]
+      - heading "Sabadell Nord" [level=1] [ref=e16]
+      - paragraph [ref=e17]: Selecciona una aplicación
+    - generic [ref=e18]:
+      - button "🖥️ Kiosk Autoatendimiento en mesa" [ref=e19] [cursor=pointer]:
+        - generic [ref=e21]: 🖥️
+        - heading "Kiosk" [level=2] [ref=e22]
+        - paragraph [ref=e23]: Autoatendimiento en mesa
+      - button "📱 Cliente Pedir desde el móvil" [ref=e24] [cursor=pointer]:
+        - generic [ref=e26]: 📱
+        - heading "Cliente" [level=2] [ref=e27]
+        - paragraph [ref=e28]: Pedir desde el móvil
+      - button "👨‍🍳 Cocina Pantalla de cocina" [ref=e29] [cursor=pointer]:
+        - generic [ref=e31]: 👨‍🍳
+        - heading "Cocina" [level=2] [ref=e32]
+        - paragraph [ref=e33]: Pantalla de cocina
+      - button "⚙️ Admin Gestión y analíticas" [ref=e34] [cursor=pointer]:
+        - generic [ref=e36]: ⚙️
+        - heading "Admin" [level=2] [ref=e37]
+        - paragraph [ref=e38]: Gestión y analíticas

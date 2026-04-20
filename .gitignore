@@ -4,3 +4,6 @@ server/data/current-state.json
 .env
 .env.local
 .env.*.local
+.playwright-mcp/
+e2e-report/
+test-results/
