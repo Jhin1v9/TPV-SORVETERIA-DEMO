@@ -9,6 +9,8 @@ import type {
   Pedido,
   Sabor,
   Topping,
+  PerfilUsuario,
+  Alergeno,
 } from '../types';
 import { categorias as cats, sabores as sabs, toppings as tops, pedidosMock, diasVenda, establishmentMock } from '../data/mockData';
 import { DEMO_PROMO_CODE, DEMO_PROMO_RATE, defaultCheckoutState } from '../utils/pricing';
@@ -59,6 +61,12 @@ interface AppState {
 
   isAdminLogged: boolean;
   setAdminLogged: (value: boolean) => void;
+
+  // Perfil do usuário (alergias)
+  perfilUsuario: PerfilUsuario | null;
+  setPerfilUsuario: (perfil: PerfilUsuario | null) => void;
+  atualizarAlergias: (alergias: Alergeno[]) => void;
+  temAlergiaA: (alergeno: Alergeno) => boolean;
 }
 
 export const useStore = create<AppState>()(
@@ -178,11 +186,31 @@ export const useStore = create<AppState>()(
 
       isAdminLogged: false,
       setAdminLogged: (isAdminLogged) => set({ isAdminLogged }),
+
+      perfilUsuario: null,
+      setPerfilUsuario: (perfilUsuario) => set({ perfilUsuario }),
+      atualizarAlergias: (alergias) => {
+        const perfil = get().perfilUsuario;
+        if (perfil) {
+          set({
+            perfilUsuario: {
+              ...perfil,
+              temAlergias: alergias.length > 0,
+              alergias,
+            },
+          });
+        }
+      },
+      temAlergiaA: (alergeno) => {
+        const perfil = get().perfilUsuario;
+        return perfil?.temAlergias && perfil.alergias.includes(alergeno) || false;
+      },
     }),
     {
       name: 'tpv-sorveteria-storage',
       partialize: (state) => ({
         locale: state.locale,
+        perfilUsuario: state.perfilUsuario,
         // NOTA DE SEGURANÇA: isAdminLogged NÃO é persistido.
         // O admin deve fazer login novamente ao recarregar a página.
       }),

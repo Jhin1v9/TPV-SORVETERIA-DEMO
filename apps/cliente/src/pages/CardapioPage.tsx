@@ -6,6 +6,7 @@ import type { Produto } from '@tpv/shared/types';
 import { t } from '@tpv/shared/i18n';
 import OptimizedImage from '@tpv/shared/components/OptimizedImage';
 import SkeletonCard from '@tpv/shared/components/SkeletonCard';
+import AlergenoBadge from '@tpv/shared/components/AlergenoBadge';
 import { useClienteToast } from '../hooks/useClienteToast';
 
 export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () => void }) {
@@ -137,12 +138,18 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
 }
 
 function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: Produto; index: number; onOpenCarrinho: () => void }) {
-  const { locale, addToCarrinho } = useStore();
+  const { locale, addToCarrinho, perfilUsuario, temAlergiaA } = useStore();
   const toast = useClienteToast();
   const [added, setAdded] = useState(false);
   const nome = produto.nome[locale] || produto.nome.es;
   const preco = 'preco' in produto ? produto.preco : produto.precoBase;
   const isPersonalizavel = 'precoBase' in produto && 'opcoes' in produto;
+  
+  // Verificar se produto contém alérgenos do usuário
+  const alergenosProduto = produto.alergenos || [];
+  const alergenosConflito = perfilUsuario?.temAlergias
+    ? alergenosProduto.filter((a) => temAlergiaA(a.alergeno))
+    : [];
 
   const handleAdd = () => {
     if (isPersonalizavel) {
@@ -182,7 +189,11 @@ function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: Produto; ind
       transition={{ delay: index * 0.05, duration: 0.3 }}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.97 }}
-      className="bg-white rounded-2xl overflow-hidden shadow-sm border border-black/5"
+      className={`rounded-2xl overflow-hidden shadow-sm border-2 transition-colors ${
+        alergenosConflito.length > 0
+          ? 'bg-amber-50 border-amber-300'
+          : 'bg-white border-black/5'
+      }`}
     >
       <div className="aspect-square relative overflow-hidden">
         <OptimizedImage
@@ -194,6 +205,7 @@ function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: Produto; ind
       </div>
       <div className="p-3">
         <p className="font-semibold text-sm text-gray-800 line-clamp-1">{nome}</p>
+        <AlergenoBadge alergenos={alergenosProduto} locale={locale} compact showOnlyUserAlergias={alergenosConflito.length > 0 ? alergenosConflito : undefined} />
         <p className="text-[#FF6B9D] font-bold text-sm mt-1">
           €{preco.toFixed(2)}{isPersonalizavel ? '+' : ''}
         </p>

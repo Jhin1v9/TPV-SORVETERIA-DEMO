@@ -141,6 +141,40 @@ export interface BroadcastMessage {
   stockBaldes?: number;
 }
 
+// ===========================
+// ALÉRGENOS (14 oficiais UE + extras)
+// ===========================
+export type Alergeno =
+  | 'gluten'
+  | 'crustaceos'
+  | 'ovos'
+  | 'peixe'
+  | 'amendoim'
+  | 'soja'
+  | 'leite'
+  | 'frutos_casca_rija'
+  | 'apio'
+  | 'mostarda'
+  | 'sesamo'
+  | 'sulfitos'
+  | 'tremocos'
+  | 'moluscos';
+
+export interface AvisoAlergeno {
+  alergeno: Alergeno;
+  nivel: 'contem' | 'pode_conter'; // 'contem' = ingrediente | 'pode_conter' = cross-contamination
+}
+
+export interface PerfilUsuario {
+  id: string;
+  nome: string;
+  email: string;
+  telefone: string;
+  temAlergias: boolean;
+  alergias: Alergeno[];
+  criadoEm: string;
+}
+
 export const IVA_RATE = 0.10;
 
 export const ML_POR_BALDE = 5000;
@@ -181,6 +215,7 @@ export interface ProdutoFixo {
   imagem: string;
   categoria: ProdutoCategoria;
   emEstoque: boolean;
+  alergenos: AvisoAlergeno[];
 }
 
 // Opção de personalização (ex: tamanho, topping, fruta)
@@ -202,6 +237,7 @@ export interface ProdutoPersonalizavel {
   imagem: string;
   categoria: ProdutoCategoria;
   emEstoque: boolean;
+  alergenos: AvisoAlergeno[];
   // Regras de personalização
   opcoes: {
     tamanhos?: OpcaoPersonalizacao[];

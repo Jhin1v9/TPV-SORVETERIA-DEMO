@@ -10,6 +10,7 @@ export * from './data/mockData.ts';
 
 // i18n
 export { t, defaultLocale, supportedLocales } from './i18n/index.ts';
+export { tAlergeno, nomeAlergeno, nomeNivel, alergenoNomes, alergenoMensagens } from './i18n/alergenos.ts';
 
 // Utils
 export * from './utils/calculos.ts';
@@ -20,6 +21,9 @@ export * from './utils/broadcast.ts';
 export { default as LoadingApp } from './components/LoadingApp.tsx';
 export { default as OptimizedImage } from './components/OptimizedImage.tsx';
 export { default as SkeletonCard } from './components/SkeletonCard.tsx';
+export { default as AlergenoBadge } from './components/AlergenoBadge.tsx';
+export { default as AlergenoWarning } from './components/AlergenoWarning.tsx';
+export { default as AlergenoSelector } from './components/AlergenoSelector.tsx';
 
 // Hooks
 export { useIsMobile } from './hooks/use-mobile.ts';
