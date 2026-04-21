@@ -30,15 +30,15 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
 
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
-      <div className="flex items-center justify-between px-8 py-5">
+      <div className="flex items-center justify-between px-8 py-7">
         <motion.button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-700" whileTap={{ scale: 0.95 }}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm font-medium">{t('back', locale)}</span>
+          <span className="text-base font-medium">{t('back', locale)}</span>
         </motion.button>
 
-        <h1 className="font-display text-2xl font-bold text-gray-800">{t('yourOrder', locale)}</h1>
+        <h1 className="font-display text-3xl font-bold text-gray-800">{t('yourOrder', locale)}</h1>
 
         <div className="w-20" />
       </div>
@@ -56,19 +56,19 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
-                  className="bg-white rounded-2xl p-4 shadow-sm flex items-center gap-4"
+                  className="bg-white rounded-2xl p-6 shadow-sm flex items-center gap-4"
                 >
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: item.categoria.corHex }}>
+                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: item.categoria.corHex }}>
                     {item.sabores.length}x
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-gray-800">{item.categoria.nome[locale]}</p>
-                    <p className="text-sm text-gray-400 truncate">
+                    <p className="text-base text-gray-400 truncate">
                       {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(' + ')}
                     </p>
                     {item.toppings.length > 0 && (
-                      <p className="text-xs text-[#FF6B9D]">
+                      <p className="text-sm text-[#FF6B9D]">
                         + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
                       </p>
                     )}
@@ -76,7 +76,7 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
 
                   <div className="text-right flex-shrink-0">
                     <p className="font-mono font-bold text-gray-800">EUR {preco.toFixed(2)}</p>
-                    <button onClick={() => removeFromCarrinho(idx)} className="text-red-400 hover:text-red-600 text-xs mt-1">
+                    <button onClick={() => removeFromCarrinho(idx)} className="text-red-400 hover:text-red-600 text-sm mt-1">
                       Eliminar
                     </button>
                   </div>
@@ -92,36 +92,36 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, height: 0 }}
-              className="mt-4 bg-gradient-to-r from-[#6F4E37] to-[#8B6914] rounded-2xl p-4 text-white flex items-center gap-4"
+              className="mt-4 bg-gradient-to-r from-[#6F4E37] to-[#8B6914] rounded-2xl p-6 text-white flex items-center gap-4"
             >
-              <div className="text-3xl">Cafe</div>
+              <div className="text-4xl">Cafe</div>
               <div className="flex-1">
-                <p className="font-semibold">{t('addCoffee', locale)}</p>
-                <p className="text-xs text-white/70">Extra integrado ao pedido real da demo</p>
+                <p className="font-semibold text-lg">{t('addCoffee', locale)}</p>
+                <p className="text-sm text-white/70">Extra integrado ao pedido real da demo</p>
               </div>
-              <button onClick={() => setCoffeeAdded(true)} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-sm font-semibold transition-colors">
+              <button onClick={() => setCoffeeAdded(true)} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-base font-semibold transition-colors">
                 Anadir
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <div className="mt-4 bg-white rounded-2xl p-4 shadow-sm">
-          <p className="text-sm font-medium text-gray-700 mb-2">{t('promoCode', locale)}</p>
+        <div className="mt-4 bg-white rounded-2xl p-6 shadow-sm">
+          <p className="text-base font-medium text-gray-700 mb-2">{t('promoCode', locale)}</p>
           <div className="flex gap-2">
             <input
               type="text"
               value={promoCode}
               onChange={(event) => setPromoCode(event.target.value)}
               placeholder="SABADELL20"
-              className="flex-1 h-12 px-4 rounded-xl border-2 border-gray-100 focus:border-[#FF6B9D] outline-none text-sm"
+              className="flex-1 h-14 px-4 rounded-xl border-2 border-gray-100 focus:border-[#FF6B9D] outline-none text-base"
             />
-            <button onClick={applyPromoCode} className="h-12 px-6 rounded-xl bg-gray-100 hover:bg-gray-200 font-semibold text-sm transition-colors">
+            <button onClick={applyPromoCode} className="h-14 px-6 rounded-xl bg-gray-100 hover:bg-gray-200 font-semibold text-base transition-colors">
               {t('apply', locale)}
             </button>
           </div>
           {promoApplied && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-500 text-sm mt-2">
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-500 text-base mt-2">
               Descuento 20% aplicado (-EUR {summary.descuento.toFixed(2)})
             </motion.p>
           )}
@@ -130,27 +130,27 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
 
       <div className="px-8 py-5 bg-white border-t border-gray-100">
         <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-gray-500">
+          <div className="flex justify-between text-gray-500 text-lg">
             <span>Base productos</span>
             <span className="font-mono">EUR {summary.itemsSubtotal.toFixed(2)}</span>
           </div>
           {summary.extras > 0 && (
-            <div className="flex justify-between text-gray-500">
+            <div className="flex justify-between text-gray-500 text-lg">
               <span>Cafe</span>
               <span className="font-mono">EUR {summary.extras.toFixed(2)}</span>
             </div>
           )}
           {summary.descuento > 0 && (
-            <div className="flex justify-between text-green-500">
+            <div className="flex justify-between text-green-500 text-lg">
               <span>Descuento</span>
               <span className="font-mono">-EUR {summary.descuento.toFixed(2)}</span>
             </div>
           )}
-          <div className="flex justify-between text-gray-500">
+          <div className="flex justify-between text-gray-500 text-lg">
             <span>{t('iva', locale)}</span>
             <span className="font-mono">EUR {summary.iva.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between text-xl font-bold pt-2 border-t border-gray-100">
+          <div className="flex justify-between text-2xl font-bold pt-2 border-t border-gray-100">
             <span>{t('total', locale)}</span>
             <span className="font-mono text-[#FF6B9D]">EUR {summary.total.toFixed(2)}</span>
           </div>
@@ -158,10 +158,10 @@ export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; 
 
         <motion.button
           onClick={onPay}
-          className="w-full h-16 rounded-2xl bg-[#4CAF50] text-white font-display font-bold text-xl flex items-center justify-center gap-3 shadow-lg hover:bg-[#43A047] transition-colors"
+          className="w-full h-20 rounded-2xl bg-[#4CAF50] text-white font-display font-bold text-2xl flex items-center justify-center gap-3 shadow-lg hover:bg-[#43A047] transition-colors"
           whileTap={{ scale: 0.98 }}
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
           </svg>
           {t('pay', locale, { amount: summary.total.toFixed(2) })}

@@ -2,19 +2,13 @@ import type { Locale, Alergeno } from '../types';
 
 export const alergenoNomes: Record<Alergeno, Record<Locale, string>> = {
   gluten: { ca: 'Gluten', es: 'Gluten', pt: 'Glúten', en: 'Gluten' },
-  crustaceos: { ca: 'Crustacis', es: 'Crustáceos', pt: 'Crustáceos', en: 'Crustaceans' },
+  leite: { ca: 'Llet', es: 'Leche', pt: 'Leite', en: 'Milk' },
   ovos: { ca: 'Ous', es: 'Huevos', pt: 'Ovos', en: 'Eggs' },
-  peixe: { ca: 'Peix', es: 'Pescado', pt: 'Peixe', en: 'Fish' },
+  frutos_casca_rija: { ca: 'Fruits secs', es: 'Frutos secos', pt: 'Frutos de casca rija', en: 'Tree Nuts' },
   amendoim: { ca: 'Cacauet', es: 'Cacahuete', pt: 'Amendoim', en: 'Peanuts' },
   soja: { ca: 'Soja', es: 'Soja', pt: 'Soja', en: 'Soy' },
-  leite: { ca: 'Llet', es: 'Leche', pt: 'Leite', en: 'Milk' },
-  frutos_casca_rija: { ca: 'Fruits secs', es: 'Frutos secos', pt: 'Frutos de casca rija', en: 'Tree Nuts' },
-  apio: { ca: 'Api', es: 'Apio', pt: 'Aipo', en: 'Celery' },
-  mostarda: { ca: 'Mostassa', es: 'Mostaza', pt: 'Mostarda', en: 'Mustard' },
   sesamo: { ca: 'Sèsam', es: 'Sésamo', pt: 'Sésamo', en: 'Sesame' },
   sulfitos: { ca: 'Sulfitos', es: 'Sulfitos', pt: 'Sulfitos', en: 'Sulphites' },
-  tremocos: { ca: 'Tramussos', es: 'Altramuces', pt: 'Tremoços', en: 'Lupin' },
-  moluscos: { ca: 'Mol·luscs', es: 'Moluscos', pt: 'Moluscos', en: 'Molluscs' },
 };
 
 export const nivelAlergenoNomes: Record<'contem' | 'pode_conter', Record<Locale, string>> = {
@@ -25,9 +19,9 @@ export const nivelAlergenoNomes: Record<'contem' | 'pode_conter', Record<Locale,
 export const alergenoMensagens: Record<Locale, Record<string, string>> = {
   ca: {
     alergenoTitle: 'Al·lèrgens',
-    alergenoSubtitle: 'Informació sobre aliments',
+    alergenoSubtitle: 'Informació sobre gelats',
     temAlergia: 'Tens alguna al·lèrgia alimentària?',
-    temAlergiaDesc: 'Aquesta informació ens ajuda a mostrar avisos personalitzats al menú i durant la comanda.',
+    temAlergiaDesc: 'Els nostres gelats poden contenir lactosa, fruits secs, gluten i altres al·lèrgens comuns.',
     selecioneAlergias: 'Selecciona els teus al·lèrgens:',
     nenhumaAlergia: 'No tinc cap al·lèrgia',
     produtoContem: 'Aquest producte conté al·lèrgens',
@@ -41,9 +35,9 @@ export const alergenoMensagens: Record<Locale, Record<string, string>> = {
   },
   es: {
     alergenoTitle: 'Alérgenos',
-    alergenoSubtitle: 'Información alimentaria',
+    alergenoSubtitle: 'Información sobre helados',
     temAlergia: '¿Tienes alguna alergia alimentaria?',
-    temAlergiaDesc: 'Esta información nos ayuda a mostrar avisos personalizados en el menú y durante el pedido.',
+    temAlergiaDesc: 'Nuestros helados pueden contener lactosa, frutos secos, gluten y otros alérgenos comunes.',
     selecioneAlergias: 'Selecciona tus alérgenos:',
     nenhumaAlergia: 'No tengo ninguna alergia',
     produtoContem: 'Este producto contiene alérgenos',
@@ -57,9 +51,9 @@ export const alergenoMensagens: Record<Locale, Record<string, string>> = {
   },
   pt: {
     alergenoTitle: 'Alérgenos',
-    alergenoSubtitle: 'Informação alimentar',
+    alergenoSubtitle: 'Informação sobre gelados',
     temAlergia: 'Tem alguma alergia alimentar?',
-    temAlergiaDesc: 'Esta informação ajuda-nos a mostrar avisos personalizados no menu e durante o pedido.',
+    temAlergiaDesc: 'Os nossos gelados podem conter lactose, frutos secos, glúten e outros alérgenos comuns.',
     selecioneAlergias: 'Selecione os seus alérgenos:',
     nenhumaAlergia: 'Não tenho nenhuma alergia',
     produtoContem: 'Este produto contém alérgenos',
@@ -73,9 +67,9 @@ export const alergenoMensagens: Record<Locale, Record<string, string>> = {
   },
   en: {
     alergenoTitle: 'Allergens',
-    alergenoSubtitle: 'Food Information',
+    alergenoSubtitle: 'Ice cream allergen info',
     temAlergia: 'Do you have any food allergies?',
-    temAlergiaDesc: 'This information helps us show personalized warnings on the menu and during checkout.',
+    temAlergiaDesc: 'Our ice creams may contain lactose, nuts, gluten and other common allergens.',
     selecioneAlergias: 'Select your allergens:',
     nenhumaAlergia: 'I have no allergies',
     produtoContem: 'This product contains allergens',

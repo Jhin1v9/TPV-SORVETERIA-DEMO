@@ -11,7 +11,7 @@ interface SkeletonCardProps {
  */
 export default function SkeletonCard({ count = 4, className = '' }: SkeletonCardProps) {
   return (
-    <div className={`grid grid-cols-2 gap-3 ${className}`}>
+    <div className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 ${className}`}>
       {Array.from({ length: count }).map((_, i) => (
         <motion.div
           key={i}

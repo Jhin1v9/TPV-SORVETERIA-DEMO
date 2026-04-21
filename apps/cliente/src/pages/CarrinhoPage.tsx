@@ -1,14 +1,21 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
 import { useClienteToast } from '../hooks/useClienteToast';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
+import { PagamentoModal, ProcessandoPagamento, ConfirmacaoPedido } from '../components/pagamento';
+import type { PagamentoData } from '../components/pagamento';
 
 export default function CarrinhoPage() {
   const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState } = useStore();
   const toast = useClienteToast();
-  const [busy, setBusy] = useState(false);
+
+  // Estados do fluxo de pagamento
+  const [showPagamento, setShowPagamento] = useState(false);
+  const [showProcessando, setShowProcessando] = useState(false);
+  const [showConfirmacao, setShowConfirmacao] = useState(false);
+  const [ultimoPedido, setUltimoPedido] = useState<{ numero: number; total: number; metodo: string } | null>(null);
 
   const total = carrinho.reduce((sum, item) => {
     const base = item.categoria.precoBase;
@@ -21,38 +28,59 @@ export default function CarrinhoPage() {
     toast.removedFromCart();
   };
 
-  const handleOrder = async () => {
-    if (busy || carrinho.length === 0) return;
-    setBusy(true);
+  const handleIniciarPagamento = () => {
+    if (carrinho.length === 0) return;
+    setShowPagamento(true);
+  };
+
+  const handlePagamentoSubmit = useCallback(async (data: PagamentoData) => {
+    setShowPagamento(false);
+    setShowProcessando(true);
+
+    // Simula processamento do TPV (2.5s de animação)
+    await new Promise((resolve) => setTimeout(resolve, 2500));
+
     try {
       const response = await createRemoteOrder({
         cart: carrinho,
-        metodoPago: 'bizum',
+        metodoPago: data.metodo,
         checkout: {
           promoCode: '',
           promoApplied: false,
           promoDiscountRate: 0,
           coffeeAdded: false,
           coffeePrice: 1.5,
-          notificationPhone: '',
+          notificationPhone: data.bizum?.telefono || '',
         },
       });
+
       hydrateRemoteState(response.snapshot);
       clearCarrinho();
-      toast.orderPlaced();
+
+      setUltimoPedido({
+        numero: response.pedido.numeroSequencial,
+        total: response.pedido.total,
+        metodo: data.metodo,
+      });
+
+      setShowProcessando(false);
+      setShowConfirmacao(true);
     } catch {
+      setShowProcessando(false);
       toast.connectionError();
-    } finally {
-      setBusy(false);
     }
+  }, [carrinho, clearCarrinho, hydrateRemoteState, toast]);
+
+  const handleConfirmacaoClose = () => {
+    setShowConfirmacao(false);
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-2xl mx-auto">
       <h2 className="font-display font-bold text-2xl mb-4">{t('yourOrder', locale)}</h2>
 
       <AnimatePresence mode="wait">
-        {carrinho.length === 0 ? (
+        {carrinho.length === 0 && !showConfirmacao ? (
           <motion.div
             key="empty"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -110,33 +138,65 @@ export default function CarrinhoPage() {
               </AnimatePresence>
             </div>
 
-            <motion.div
-              layout
-              className="bg-white rounded-2xl p-4 shadow-sm border border-black/5 space-y-2"
-            >
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('subtotal', locale)}</span>
-                <span className="font-medium">€{total.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">{t('iva', locale)}</span>
-                <span className="font-medium">€{(total * 0.10).toFixed(2)}</span>
-              </div>
-              <div className="border-t border-black/5 pt-2 flex justify-between text-lg font-bold">
-                <span>{t('total', locale)}</span>
-                <span>€{(total * 1.10).toFixed(2)}</span>
-              </div>
-            </motion.div>
+            {carrinho.length > 0 && (
+              <>
+                <motion.div
+                  layout
+                  className="bg-white rounded-2xl p-4 shadow-sm border border-black/5 space-y-2"
+                >
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">{t('subtotal', locale)}</span>
+                    <span className="font-medium">€{total.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">{t('iva', locale)}</span>
+                    <span className="font-medium">€{(total * 0.10).toFixed(2)}</span>
+                  </div>
+                  <div className="border-t border-black/5 pt-2 flex justify-between text-lg font-bold">
+                    <span>{t('total', locale)}</span>
+                    <span>€{(total * 1.10).toFixed(2)}</span>
+                  </div>
+                </motion.div>
 
-            <motion.button
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleOrder}
-              className="w-full mt-4 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
-            >
-              {t('orderNow', locale)}
-            </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleIniciarPagamento}
+                  className="w-full mt-4 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  {t('orderNow', locale)}
+                </motion.button>
+              </>
+            )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fluxo de pagamento overlay */}
+      <AnimatePresence>
+        {showPagamento && (
+          <PagamentoModal
+            total={total}
+            onClose={() => setShowPagamento(false)}
+            onSubmit={handlePagamentoSubmit}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showProcessando && (
+          <ProcessandoPagamento metodo="tarjeta" total={total * 1.10} />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showConfirmacao && ultimoPedido && (
+          <ConfirmacaoPedido
+            numeroPedido={ultimoPedido.numero}
+            total={ultimoPedido.total}
+            metodo={ultimoPedido.metodo as any}
+            onClose={handleConfirmacaoClose}
+          />
         )}
       </AnimatePresence>
     </div>

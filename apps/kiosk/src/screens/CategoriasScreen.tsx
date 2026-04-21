@@ -6,21 +6,21 @@ import type { Categoria } from '@tpv/shared/types';
 
 const iconMap: Record<string, React.ReactNode> = {
   copo300: (
-    <svg viewBox="0 0 80 80" className="w-16 h-16">
+    <svg viewBox="0 0 80 80" className="w-24 h-24">
       <path d="M20 25 Q20 20 25 20h30Q60 20 60 25v35Q60 70 40 70Q20 70 20 60Z" fill="#4ECDC4" opacity="0.9" />
       <ellipse cx="40" cy="25" rx="20" ry="6" fill="#4ECDC4" />
       <ellipse cx="40" cy="25" rx="16" ry="4" fill="#E8F8F7" />
     </svg>
   ),
   copo500: (
-    <svg viewBox="0 0 80 80" className="w-16 h-16">
+    <svg viewBox="0 0 80 80" className="w-24 h-24">
       <path d="M15 22 Q15 16 22 16h36Q70 16 70 22v40Q70 72 40 72Q15 72 15 62Z" fill="#FF6B9D" opacity="0.9" />
       <ellipse cx="40" cy="22" rx="25" ry="7" fill="#FF6B9D" />
       <ellipse cx="40" cy="22" rx="20" ry="5" fill="#FDE8F0" />
     </svg>
   ),
   cone: (
-    <svg viewBox="0 0 80 80" className="w-16 h-16">
+    <svg viewBox="0 0 80 80" className="w-24 h-24">
       <path d="M25 28 L40 72 L55 28Z" fill="#D2691E" />
       <path d="M25 28 Q25 18 40 18Q55 18 55 28" fill="#FF6B9D" opacity="0.8" />
       <path d="M28 28 Q28 22 40 22Q52 22 52 28" fill="#FFF8E7" opacity="0.5" />
@@ -29,7 +29,7 @@ const iconMap: Record<string, React.ReactNode> = {
     </svg>
   ),
   pote1l: (
-    <svg viewBox="0 0 80 80" className="w-16 h-16">
+    <svg viewBox="0 0 80 80" className="w-24 h-24">
       <rect x="15" y="20" width="50" height="45" rx="8" fill="#98D8C8" opacity="0.9" />
       <rect x="12" y="16" width="56" height="10" rx="4" fill="#98D8C8" />
       <rect x="18" y="24" width="44" height="35" rx="4" fill="#E8F5F0" opacity="0.4" />
@@ -45,7 +45,7 @@ export default function CategoriasScreen({ onBack, onSelectCategoria }: { onBack
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5">
+      <div className="flex items-center justify-between px-8 py-8">
         <motion.button
           onClick={onBack}
           className="flex items-center gap-2 text-gray-500 hover:text-gray-700 transition-colors"
@@ -54,7 +54,7 @@ export default function CategoriasScreen({ onBack, onSelectCategoria }: { onBack
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm font-medium">{t('back', locale)}</span>
+          <span className="text-base font-medium">{t('back', locale)}</span>
         </motion.button>
 
         <div className="flex items-center gap-2">
@@ -83,18 +83,18 @@ export default function CategoriasScreen({ onBack, onSelectCategoria }: { onBack
 
       {/* Title */}
       <div className="px-8 pb-4">
-        <h1 className="font-display text-4xl font-bold text-gray-800">{t('chooseContainer', locale)}</h1>
-        <p className="text-gray-400 mt-1">{t('continue', locale)}</p>
+        <h1 className="font-display text-5xl font-bold text-gray-800">{t('chooseContainer', locale)}</h1>
+        <p className="text-gray-400 mt-1 text-lg">{t('continue', locale)}</p>
       </div>
 
       {/* Grid */}
       <div className="flex-1 px-8 pb-8 overflow-auto">
-        <div className="grid grid-cols-2 gap-6 max-w-3xl mx-auto h-full">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto h-full">
           {ativas.map((cat, idx) => (
             <motion.button
               key={cat.id}
               onClick={() => onSelectCategoria(cat)}
-              className="relative bg-white rounded-3xl shadow-md hover:shadow-xl transition-all p-6 flex flex-col items-center justify-center group"
+              className="relative bg-white rounded-3xl shadow-md hover:shadow-xl transition-all p-8 flex flex-col items-center justify-center group"
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
@@ -111,7 +111,7 @@ export default function CategoriasScreen({ onBack, onSelectCategoria }: { onBack
               {/* Badge */}
               {cat.badge && (
                 <div
-                  className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-bold text-white"
+                  className="absolute top-4 right-4 px-3 py-1 rounded-full text-sm font-bold text-white"
                   style={{ backgroundColor: cat.corHex }}
                 >
                   {cat.badge}
@@ -121,22 +121,22 @@ export default function CategoriasScreen({ onBack, onSelectCategoria }: { onBack
               {/* Icon */}
               <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
                 {iconMap[cat.id] || (
-                  <div className="w-16 h-16 rounded-2xl" style={{ backgroundColor: cat.corHex + '30' }} />
+                  <div className="w-24 h-24 rounded-2xl" style={{ backgroundColor: cat.corHex + '30' }} />
                 )}
               </div>
 
               {/* Name */}
-              <h3 className="font-display text-xl font-bold text-gray-800 text-center">
+              <h3 className="font-display text-2xl font-bold text-gray-800 text-center">
                 {cat.nome[locale] || cat.nome.es}
               </h3>
 
               {/* Max flavors */}
-              <p className="text-gray-400 text-sm mt-1">
+              <p className="text-gray-400 text-base mt-1">
                 {cat.maxSabores} sabores
               </p>
 
               {/* Price */}
-              <p className="font-mono text-2xl font-bold mt-3" style={{ color: cat.corHex }}>
+              <p className="font-mono text-3xl font-bold mt-3" style={{ color: cat.corHex }}>
                 €{cat.precoBase.toFixed(2)}
               </p>
 

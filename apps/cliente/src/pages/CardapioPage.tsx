@@ -93,7 +93,7 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
         ) : (
           <motion.div
             key="grid"
-            className="grid grid-cols-2 gap-3"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

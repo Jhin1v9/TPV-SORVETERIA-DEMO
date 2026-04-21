@@ -13,8 +13,11 @@ test.describe('🎯 Tutorial Interativo - 6 Passos', () => {
     await page.click('text=COMENZAR');
     await page.waitForTimeout(400);
     await page.fill('input[type="text"]', 'Teste');
-    await page.click('text=ENTRAR');
-    await page.waitForTimeout(1000);
+    await page.fill('input[type="tel"]', '+34 612 345 678');
+    await page.locator('button[type="submit"]').click();
+    await page.waitForTimeout(1500);
+    await page.locator('button:has-text("Empaquetado para viaje")').click();
+    await page.waitForTimeout(800);
     await page.click('text=ninguna alergia');
     await page.waitForTimeout(200);
     await page.click('text=Continuar');
@@ -72,7 +75,7 @@ test.describe('🎯 Tutorial Interativo - 6 Passos', () => {
 
     // Voltar
     await page.click('text=Atrás');
-    await page.waitForTimeout(400);
+    await page.waitForTimeout(800);
 
     // Deve estar no passo 1
     await expect(page.locator('text=Este es tu menú digital')).toBeVisible();
@@ -95,7 +98,7 @@ test.describe('🎯 Tutorial Interativo - 6 Passos', () => {
     // Avancar ate o passo 5
     for (let i = 0; i < 4; i++) {
       await page.click('text=Siguiente');
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(800);
     }
 
     await expect(page.locator('text=Sigue tu pedido en tiempo real')).toBeVisible();
@@ -113,17 +116,17 @@ test.describe('🎯 Tutorial Interativo - 6 Passos', () => {
     // Avancar ate o passo 6
     for (let i = 0; i < 5; i++) {
       await page.click('text=Siguiente');
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(800);
     }
 
-    await expect(page.locator('text=Listo! Ven a recogerlo')).toBeVisible();
+    await expect(page.locator('text=/Listo! Ven a recogerlo/i')).toBeVisible();
 
     // Clicar em Comenzar para ativar confetti
     await page.click('text=/Comenzar|Começar|Començar|Start/i');
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
 
     // Confetti deve aparecer (divs coloridas animadas) ou o app principal deve aparecer
-    const appVisible = await page.locator('text=Carta').isVisible().catch(() => false);
+    const appVisible = await page.locator('text=Sabadell Nord').isVisible().catch(() => false);
     const confettiVisible = await page.locator('div[style*="backgroundColor"]').first().isVisible().catch(() => false);
     expect(appVisible || confettiVisible).toBe(true);
   });

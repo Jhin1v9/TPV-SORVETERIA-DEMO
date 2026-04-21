@@ -23,22 +23,22 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5">
+      <div className="flex items-center justify-between px-8 py-7">
         <motion.button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-700" whileTap={{ scale: 0.95 }}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm font-medium">{t('back', locale)}</span>
+          <span className="text-base font-medium">{t('back', locale)}</span>
         </motion.button>
 
         <div className="text-center">
-          <h1 className="font-display text-2xl font-bold text-gray-800">{t('chooseFlavors', locale)}</h1>
-          <p className="text-sm text-gray-400">{selectedCategoria?.nome[locale] || ''}</p>
+          <h1 className="font-display text-3xl font-bold text-gray-800">{t('chooseFlavors', locale)}</h1>
+          <p className="text-base text-gray-400">{selectedCategoria?.nome[locale] || ''}</p>
         </div>
 
         <div className="flex items-center gap-2 bg-gray-100 rounded-full px-4 py-2">
           <span className="font-mono font-bold text-gray-700">{selectedSabores.length}/{maxSabores}</span>
-          <span className="text-xs text-gray-400">{t('selectedCount', locale, { current: selectedSabores.length, max: maxSabores })}</span>
+          <span className="text-sm text-gray-400">{t('selectedCount', locale, { current: selectedSabores.length, max: maxSabores })}</span>
         </div>
       </div>
 
@@ -59,7 +59,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
 
       {/* Flavors grid */}
       <div className="flex-1 px-8 pb-4 overflow-auto">
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-5">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-5">
           {disponiveis.map((sabor, idx) => {
             const isSelected = selectedSabores.some((s) => s.id === sabor.id);
             const isLowStock = sabor.stockBaldes <= sabor.alertaStock;
@@ -78,7 +78,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
               >
                 {/* Circle */}
                 <div
-                  className="relative w-24 h-24 rounded-full overflow-hidden transition-all duration-300"
+                  className="relative w-32 h-32 rounded-full overflow-hidden transition-all duration-300"
                   style={{
                     border: isSelected ? `4px solid ${sabor.corHex}` : `3px solid ${sabor.corHex}40`,
                     boxShadow: isSelected ? `0 4px 16px ${sabor.corHex}50` : 'none',
@@ -102,7 +102,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
                   {/* Out of stock overlay */}
                   {isOutOfStock && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">{t('soldOut', locale)}</span>
+                      <span className="text-white text-sm font-bold">{t('soldOut', locale)}</span>
                     </div>
                   )}
 
@@ -116,8 +116,8 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
                         className="absolute inset-0 flex items-center justify-center"
                         style={{ backgroundColor: sabor.corHex + '30' }}
                       >
-                        <div className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center">
-                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke={sabor.corHex} strokeWidth={3}>
+                        <div className="w-12 h-12 rounded-full bg-white shadow-lg flex items-center justify-center">
+                          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke={sabor.corHex} strokeWidth={3}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
@@ -129,26 +129,26 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
                 {/* Badges */}
                 <div className="absolute -top-1 -right-1 flex flex-col gap-1">
                   {sabor.precoExtra > 0 && (
-                    <span className="bg-[#FFD700] text-[#2D3436] text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
+                    <span className="bg-[#FFD700] text-[#2D3436] text-xs font-bold px-2 py-0.5 rounded-full shadow">
                       +€{sabor.precoExtra.toFixed(2)}
                     </span>
                   )}
                 </div>
 
                 {isLowStock && !isOutOfStock && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full whitespace-nowrap">
                     {t('lowStock', locale)}
                   </span>
                 )}
 
                 {/* Name */}
-                <p className="mt-2 text-sm font-medium text-gray-700 text-center leading-tight max-w-[90px]">
+                <p className="mt-2 text-base font-medium text-gray-700 text-center leading-tight max-w-[120px]">
                   {sabor.nome[locale] || sabor.nome.es}
                 </p>
 
                 {/* Extra price indicator */}
                 {sabor.precoExtra > 0 && (
-                  <p className="text-[10px] text-[#FFD700] font-semibold">Premium</p>
+                  <p className="text-xs text-[#FFD700] font-semibold">Premium</p>
                 )}
               </motion.button>
             );
@@ -165,10 +165,10 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
             exit={{ y: 50, opacity: 0 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-red-500 text-white px-6 py-3 rounded-2xl shadow-lg flex items-center gap-2 z-50"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span className="text-sm font-medium">{t('maxFlavors', locale, { n: maxSabores })}</span>
+            <span className="text-base font-medium">{t('maxFlavors', locale, { n: maxSabores })}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -177,7 +177,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
       <div className="px-8 py-5">
         <motion.button
           onClick={selectedSabores.length > 0 ? onContinue : undefined}
-          className="w-full h-16 rounded-2xl font-display font-bold text-lg text-white transition-all duration-300 flex items-center justify-center gap-2"
+          className="w-full h-20 rounded-2xl font-display font-bold text-xl text-white transition-all duration-300 flex items-center justify-center gap-2"
           style={{
             backgroundColor: selectedSabores.length > 0 ? selectedCategoria?.corHex || '#FF6B9D' : '#E0E0E0',
             opacity: selectedSabores.length > 0 ? 1 : 0.6,
@@ -185,7 +185,7 @@ export default function SaboresScreen({ onBack, onContinue }: { onBack: () => vo
           whileTap={selectedSabores.length > 0 ? { scale: 0.98 } : {}}
         >
           {t('continue', locale)}
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </motion.button>

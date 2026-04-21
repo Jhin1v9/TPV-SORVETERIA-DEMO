@@ -20,41 +20,41 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
   return (
     <div className="h-full flex flex-col bg-[#FAFAFA]">
       {/* Header */}
-      <div className="flex items-center justify-between px-8 py-5">
+      <div className="flex items-center justify-between px-8 py-7">
         <motion.button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-700" whileTap={{ scale: 0.95 }}>
           <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
-          <span className="text-sm font-medium">{t('back', locale)}</span>
+          <span className="text-base font-medium">{t('back', locale)}</span>
         </motion.button>
 
         <div className="text-center">
-          <h1 className="font-display text-2xl font-bold text-gray-800">{t('addExtras', locale)}</h1>
-          <p className="text-sm text-gray-400">{selectedToppings.length}/5 extras</p>
+          <h1 className="font-display text-3xl font-bold text-gray-800">{t('addExtras', locale)}</h1>
+          <p className="text-base text-gray-400">{selectedToppings.length}/5 extras</p>
         </div>
 
         <div className="font-mono font-bold text-[#FF6B9D]">€{currentItemTotal.toFixed(2)}</div>
       </div>
 
       {/* Current item summary */}
-      <div className="mx-8 mb-4 bg-white rounded-2xl p-4 shadow-sm flex items-center gap-3">
+      <div className="mx-8 mb-4 bg-white rounded-2xl p-6 shadow-sm flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold" style={{ backgroundColor: selectedCategoria?.corHex }}>
           {selectedSabores.length}
         </div>
         <div className="flex-1">
-          <p className="text-sm font-semibold text-gray-800">{selectedCategoria?.nome[locale]}</p>
-          <p className="text-xs text-gray-400">{selectedSabores.map((s) => s.nome[locale] || s.nome.es).join(', ')}</p>
+          <p className="text-base font-semibold text-gray-800">{selectedCategoria?.nome[locale]}</p>
+          <p className="text-sm text-gray-400">{selectedSabores.map((s) => s.nome[locale] || s.nome.es).join(', ')}</p>
         </div>
         {selectedToppings.length > 0 && (
           <div className="text-right">
-            <p className="text-xs text-gray-400">+{selectedToppings.length} extras</p>
+            <p className="text-sm text-gray-400">+{selectedToppings.length} extras</p>
           </div>
         )}
       </div>
 
       {/* Toppings list */}
       <div className="flex-1 px-8 pb-4 overflow-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {toppings.map((topping, idx) => {
             const isSelected = selectedToppings.some((t) => t.id === topping.id);
             const isSmartMatch = getSmartSuggestion(topping.id);
@@ -75,7 +75,7 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
               >
                 {/* Smart match badge */}
                 {isSmartMatch && !isSelected && (
-                  <div className="absolute -top-2 -right-2 bg-[#FFD700] text-[#2D3436] text-[9px] font-bold px-2 py-1 rounded-full shadow">
+                  <div className="absolute -top-2 -right-2 bg-[#FFD700] text-[#2D3436] text-xs font-bold px-2 py-1 rounded-full shadow">
                     ★ {t('perfectMatch', locale)}
                   </div>
                 )}
@@ -95,8 +95,8 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
 
                 {/* Info */}
                 <div className="flex-1">
-                  <p className="font-medium text-gray-800">{topping.nome[locale] || topping.nome.es}</p>
-                  <p className="text-xs text-gray-400 capitalize">{t(`topping_${topping.categoria}` as any, locale)}</p>
+                  <p className="font-medium text-lg text-gray-800">{topping.nome[locale] || topping.nome.es}</p>
+                  <p className="text-sm text-gray-400 capitalize">{t(`topping_${topping.categoria}` as any, locale)}</p>
                 </div>
 
                 {/* Price */}
@@ -111,7 +111,7 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
       <div className="px-8 py-5">
         <motion.button
           onClick={onContinue}
-          className="w-full h-16 rounded-2xl font-display font-bold text-lg text-white flex items-center justify-center gap-2 transition-all"
+          className="w-full h-20 rounded-2xl font-display font-bold text-xl text-white flex items-center justify-center gap-2 transition-all"
           style={{
             background: selectedToppings.length > 0
               ? 'linear-gradient(135deg, #FF6B9D, #FFA07A)'
@@ -120,7 +120,7 @@ export default function ToppingsScreen({ onBack, onContinue }: { onBack: () => v
           whileTap={{ scale: 0.98 }}
         >
           {selectedToppings.length > 0 ? `${t('continue', locale)} (+€${selectedToppings.reduce((s, t) => s + t.preco, 0).toFixed(2)})` : `${t('continue', locale)} (${t('noExtras', locale)})`}
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </motion.button>

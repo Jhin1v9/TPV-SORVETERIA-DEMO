@@ -12,8 +12,7 @@ interface AlergenoSelectorProps {
 
 const ALERGENOS_ORDEM: Alergeno[] = [
   'gluten', 'leite', 'ovos', 'frutos_casca_rija', 'amendoim',
-  'soja', 'sesamo', 'sulfitos', 'crustaceos', 'peixe',
-  'mostarda', 'apio', 'tremocos', 'moluscos',
+  'soja', 'sesamo', 'sulfitos',
 ];
 
 export default function AlergenoSelector({ locale, selecionados, onChange, obrigatorio }: AlergenoSelectorProps) {

@@ -49,7 +49,7 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
       </motion.button>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center px-6 text-center max-w-sm">
+      <div className="relative z-10 flex flex-col items-center px-6 text-center max-w-md w-full">
         {/* Logo area */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}

@@ -62,11 +62,13 @@ interface AppState {
   isAdminLogged: boolean;
   setAdminLogged: (value: boolean) => void;
 
-  // Perfil do usuário (alergias)
+  // Perfil do usuário (alergias + auth)
   perfilUsuario: PerfilUsuario | null;
   setPerfilUsuario: (perfil: PerfilUsuario | null) => void;
   atualizarAlergias: (alergias: Alergeno[]) => void;
   temAlergiaA: (alergeno: Alergeno) => boolean;
+  logout: () => void;
+  loginByPhone: (telefone: string) => PerfilUsuario | null;
 }
 
 export const useStore = create<AppState>()(
@@ -204,6 +206,15 @@ export const useStore = create<AppState>()(
       temAlergiaA: (alergeno) => {
         const perfil = get().perfilUsuario;
         return perfil?.temAlergias && perfil.alergias.includes(alergeno) || false;
+      },
+      logout: () => set({ perfilUsuario: null, carrinho: [] }),
+      loginByPhone: (telefone: string) => {
+        const { findUserByPhone } = require('../lib/authMock');
+        const user = findUserByPhone(telefone);
+        if (user) {
+          set({ perfilUsuario: user });
+        }
+        return user;
       },
     }),
     {

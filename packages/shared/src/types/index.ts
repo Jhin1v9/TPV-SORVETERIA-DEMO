@@ -142,23 +142,17 @@ export interface BroadcastMessage {
 }
 
 // ===========================
-// ALÉRGENOS (14 oficiais UE + extras)
+// ALÉRGENOS relevantes para sorveteria / gelateria
 // ===========================
 export type Alergeno =
   | 'gluten'
-  | 'crustaceos'
+  | 'leite'
   | 'ovos'
-  | 'peixe'
+  | 'frutos_casca_rija'
   | 'amendoim'
   | 'soja'
-  | 'leite'
-  | 'frutos_casca_rija'
-  | 'apio'
-  | 'mostarda'
   | 'sesamo'
-  | 'sulfitos'
-  | 'tremocos'
-  | 'moluscos';
+  | 'sulfitos';
 
 export interface AvisoAlergeno {
   alergeno: Alergeno;

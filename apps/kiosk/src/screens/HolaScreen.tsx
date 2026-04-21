@@ -103,7 +103,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
         className="mb-8 z-10"
       >
         <div className="flex items-center gap-3">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-lg flex items-center justify-center">
+          <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center">
             <svg viewBox="0 0 64 64" className="w-10 h-10" fill="none">
               <circle cx="32" cy="20" r="14" fill="#FF6B9D" opacity="0.8" />
               <path d="M18 24 Q32 52 46 24" fill="#D2691E" />
@@ -112,14 +112,14 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
             </svg>
           </div>
           <div>
-            <h1 className="font-display text-2xl font-bold text-white leading-tight">Sabadell Nord</h1>
-            <p className="text-white/70 text-sm">Gelats Artesans</p>
+            <h1 className="font-display text-3xl font-bold text-white leading-tight">Sabadell Nord</h1>
+            <p className="text-white/70 text-base">Gelats Artesans</p>
           </div>
         </div>
       </motion.div>
 
       {/* Carousel */}
-      <div className="relative w-full max-w-md h-[420px] z-10">
+      <div className="relative w-full max-w-2xl h-[520px] z-10">
         <AnimatePresence custom={direction} mode="wait">
           <motion.div
             key={currentIndex}
@@ -133,7 +133,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
           >
             <motion.button
               onClick={() => handleSelect(currentIndex)}
-              className="w-[280px] h-[400px] rounded-3xl shadow-2xl overflow-hidden relative group cursor-pointer"
+              className="w-[400px] h-[520px] rounded-3xl shadow-2xl overflow-hidden relative group cursor-pointer"
               style={{
                 background: languages[currentIndex].colors.length === 3
                   ? `linear-gradient(135deg, ${languages[currentIndex].colors[0]} 0%, ${languages[currentIndex].colors[1]} 50%, ${languages[currentIndex].colors[2]} 100%)`
@@ -149,7 +149,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
               <div className="flex flex-col items-center justify-center h-full p-6 text-center">
                 {/* Flag */}
                 <motion.div
-                  className="w-36 h-22 rounded-xl overflow-hidden shadow-lg border-2 border-white/50 mb-8"
+                  className="w-44 h-28 rounded-xl overflow-hidden shadow-lg border-2 border-white/50 mb-8"
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.15 }}
@@ -169,7 +169,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
 
                 {/* Greeting */}
                 <motion.h2
-                  className="font-display text-6xl font-bold text-white mb-3 drop-shadow-lg"
+                  className="font-display text-7xl font-bold text-white mb-3 drop-shadow-lg"
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
@@ -179,7 +179,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
 
                 {/* Subtext */}
                 <motion.p
-                  className="text-white/90 text-base leading-relaxed"
+                  className="text-white/90 text-lg leading-relaxed"
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.3 }}
@@ -189,12 +189,12 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
 
                 {/* Tap hint */}
                 <motion.div
-                  className="mt-8 flex items-center gap-2 text-white/70 text-sm"
+                  className="mt-8 flex items-center gap-2 text-white/70 text-base"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.5 }}
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122" />
                   </svg>
                   Toca para seleccionar
@@ -212,10 +212,10 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
               setCurrentIndex(currentIndex - 1);
             }
           }}
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors z-20"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors z-20"
           style={{ opacity: currentIndex > 0 ? 1 : 0.3 }}
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -227,10 +227,10 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
               setCurrentIndex(currentIndex + 1);
             }
           }}
-          className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors z-20"
+          className="absolute right-0 top-1/2 -translate-y-1/2 w-16 h-16 bg-white/20 backdrop-blur rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors z-20"
           style={{ opacity: currentIndex < languages.length - 1 ? 1 : 0.3 }}
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -257,7 +257,7 @@ export default function HolaScreen({ onSelectLang }: { onSelectLang: () => void 
 
       {/* Bottom hint */}
       <motion.p
-        className="text-white/60 text-sm mt-6 z-10"
+        className="text-white/60 text-lg mt-6 z-10"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}

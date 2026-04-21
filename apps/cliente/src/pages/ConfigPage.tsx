@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t, getLocaleName } from '@tpv/shared/i18n';
 import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
+import { clearAllUsers } from '@tpv/shared/lib/authMock';
 import type { Locale, PerfilUsuario } from '@tpv/shared/types';
+import { LogOut, Trash2 } from 'lucide-react';
 
 export default function ConfigPage() {
   const { locale, setLocale, perfilUsuario, setPerfilUsuario } = useStore();
@@ -11,6 +13,8 @@ export default function ConfigPage() {
   const [email, setEmail] = useState(perfilUsuario?.email || '');
   const [telefone, setTelefone] = useState(perfilUsuario?.telefone || '');
   const [alergias, setAlergias] = useState(perfilUsuario?.alergias || []);
+
+  const { logout } = useStore();
 
   const handleSave = () => {
     const perfil: PerfilUsuario = {
@@ -27,10 +31,23 @@ export default function ConfigPage() {
     setTimeout(() => setSaved(false), 2000);
   };
 
+  const handleLogout = () => {
+    logout();
+    window.location.reload();
+  };
+
+  const handleDeleteAll = () => {
+    if (typeof window !== 'undefined' && window.confirm(t('deleteAllConfirm', locale))) {
+      clearAllUsers();
+      logout();
+      window.location.reload();
+    }
+  };
+
   const locales: Locale[] = ['es', 'ca', 'pt', 'en'];
 
   return (
-    <div className="p-4 max-w-md mx-auto space-y-4 pb-24">
+    <div className="p-4 max-w-2xl mx-auto space-y-4 pb-24">
       <h2 className="font-display font-bold text-2xl">{t('settings', locale)}</h2>
 
       {/* Language */}
@@ -110,6 +127,23 @@ export default function ConfigPage() {
       >
         {saved ? '✓ Guardado' : t('save', locale)}
       </button>
+
+      {/* Session actions */}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-black/5 space-y-2">
+        <h3 className="font-semibold text-gray-800 text-sm">{t('session', locale)}</h3>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 text-gray-700 font-medium text-sm hover:bg-gray-100 transition-colors"
+        >
+          <LogOut size={16} /> {t('logout', locale)}
+        </button>
+        <button
+          onClick={handleDeleteAll}
+          className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-red-50 text-red-600 font-medium text-sm hover:bg-red-100 transition-colors"
+        >
+          <Trash2 size={16} /> {t('deleteAllData', locale)}
+        </button>
+      </div>
     </div>
   );
 }

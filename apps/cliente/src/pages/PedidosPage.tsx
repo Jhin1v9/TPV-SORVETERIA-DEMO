@@ -21,7 +21,7 @@ export default function PedidosPage() {
   };
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-4 max-w-2xl mx-auto">
       <h2 className="font-display font-bold text-2xl mb-4">{t('myOrders', locale)}</h2>
 
       {pedidos.length === 0 ? (

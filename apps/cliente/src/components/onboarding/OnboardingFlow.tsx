@@ -2,6 +2,8 @@ import { AnimatePresence } from 'framer-motion';
 import { useOnboarding } from '../../hooks/useOnboarding';
 import WelcomeScreen from './WelcomeScreen';
 import QuickRegister from './QuickRegister';
+import ConsumoPreferenceStep from './ConsumoPreferenceStep';
+import ReturningUserScreen from './ReturningUserScreen';
 import InteractiveTutorial from './InteractiveTutorial';
 import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
 import { useStore } from '@tpv/shared/stores/useStore';
@@ -10,7 +12,7 @@ import { ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 
 export default function OnboardingFlow() {
-  const { step, goToStep, skipOnboarding, nextTutorialStep } = useOnboarding();
+  const { step, goToStep, skipOnboarding, nextTutorialStep, returningUser } = useOnboarding();
   const { locale, perfilUsuario, setPerfilUsuario } = useStore();
   const [alergias, setAlergias] = useState(perfilUsuario?.alergias || []);
 
@@ -35,6 +37,15 @@ export default function OnboardingFlow() {
 
   return (
     <AnimatePresence mode="wait">
+      {step === 'returning' && returningUser && (
+        <ReturningUserScreen
+          key="returning"
+          userName={returningUser.nome}
+          onContinue={skipOnboarding}
+          onNewAccount={() => goToStep('welcome')}
+        />
+      )}
+
       {step === 'welcome' && (
         <WelcomeScreen
           key="welcome"
@@ -46,8 +57,16 @@ export default function OnboardingFlow() {
       {step === 'register' && (
         <QuickRegister
           key="register"
-          onComplete={() => goToStep('allergy')}
+          onComplete={() => goToStep('consumo')}
           onBack={() => goToStep('welcome')}
+        />
+      )}
+
+      {step === 'consumo' && (
+        <ConsumoPreferenceStep
+          key="consumo"
+          onComplete={() => goToStep('allergy')}
+          onBack={() => goToStep('register')}
         />
       )}
 
@@ -68,7 +87,7 @@ export default function OnboardingFlow() {
           exit={{ opacity: 0, x: -100 }}
           className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-[#0a0a0f] via-[#1a1a2e] to-[#16213e] overflow-y-auto"
         >
-          <div className="flex-1 px-6 py-8 max-w-sm mx-auto w-full">
+          <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full">
             <div className="flex items-center justify-between mb-6">
               <button
                 onClick={() => goToStep('register')}
