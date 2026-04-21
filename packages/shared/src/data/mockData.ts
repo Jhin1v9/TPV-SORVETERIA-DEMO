@@ -242,9 +242,9 @@ export const diasVenda: DiaVenda[] = [
 ];
 
 export const establishmentMock: EstablishmentSettings = {
-  name: 'Heladeria Sabadell Nord',
+  name: 'Heladeria Tropicale',
   nif: 'B-12345678',
-  address: 'Carrer de la Concepcio, 23, 08201 Sabadell, Barcelona',
+  address: 'Avda. Francesc Macià, 43, 08201 Sabadell, Barcelona',
   summerHours: '16:00 - 23:00',
   winterHours: '17:00 - 22:00',
 };

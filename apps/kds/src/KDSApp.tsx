@@ -207,7 +207,7 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
           </button>
           <div>
             <h1 className="font-display text-xl font-bold text-white">{t('cocinaDesc', locale).split(' ').slice(0, 2).join(' ')}</h1>
-            <p className="text-white/40 text-xs">Sabadell Nord</p>
+            <p className="text-white/40 text-xs">Tropicale</p>
           </div>
         </div>
 

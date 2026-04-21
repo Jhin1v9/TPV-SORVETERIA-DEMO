@@ -86,7 +86,7 @@ export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
           transition={{ delay: 0.4 }}
           className="font-display text-6xl font-bold text-white text-center mb-2"
         >
-          Sabadell Nord
+          Tropicale
         </motion.h1>
 
         <motion.p

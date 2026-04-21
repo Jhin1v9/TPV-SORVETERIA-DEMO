@@ -87,7 +87,7 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
           </div>
           {!sidebarCollapsed && (
             <div className="overflow-hidden">
-              <h1 className="font-display text-lg font-bold text-white whitespace-nowrap">Sabadell Nord</h1>
+              <h1 className="font-display text-lg font-bold text-white whitespace-nowrap">Tropicale</h1>
               <p className="text-white/60 text-xs whitespace-nowrap">Admin</p>
             </div>
           )}

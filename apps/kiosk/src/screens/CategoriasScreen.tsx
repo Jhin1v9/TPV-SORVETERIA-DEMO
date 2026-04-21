@@ -228,7 +228,7 @@ export default function CategoriasScreen({
               <path d="M8 14 Q16 36 24 14" fill="#D2691E" />
             </svg>
           </div>
-          <span className="font-display font-bold text-white text-xl hidden md:block">Sabadell Nord</span>
+          <span className="font-display font-bold text-white text-xl hidden md:block">Tropicale</span>
         </div>
 
         <div className="w-12" />

@@ -71,6 +71,26 @@ export interface ItemPedido {
   notas?: string;
 }
 
+export type EstadoPagamento = 'aprovado' | 'rejeitado' | 'pendente' | 'reembolsado';
+
+export interface ComprovantePagamento {
+  estado: EstadoPagamento;
+  /** ID da transação (Stripe, Bizum, etc.) */
+  idTransacao?: string;
+  /** Data/hora do processamento */
+  dataProcessamento?: string;
+  /** Mensagem de erro se rejeitado */
+  mensagemErro?: string;
+  /** URL do comprovante PDF/IMG */
+  urlComprovante?: string;
+  /** Últimos 4 dígitos do cartão (se aplicável) */
+  ultimos4Digitos?: string;
+  /** Bandeira do cartão (visa, mastercard, etc.) */
+  bandeiraCartao?: string;
+  /** Gateway usado: stripe, bizum, efectivo, etc. */
+  gateway?: string;
+}
+
 export interface Pedido {
   id: string;
   numeroSequencial: number;
@@ -88,6 +108,8 @@ export interface Pedido {
   itens: ItemPedido[];
   origem?: OrigemPedido;
   nomeUsuario?: string | null;
+  /** Dados do pagamento — mock por enquanto, preparado para real */
+  comprovantePagamento?: ComprovantePagamento;
 }
 
 // ─── Formato legado de carrinho (deprecated, mantido para compatibilidade) ───

@@ -56,7 +56,7 @@ export function generateVeriFactuQR(pedidoId: string, total: number): string {
     nif: 'B12345678',
     fecha: new Date().toISOString().split('T')[0],
     importe: total.toFixed(2),
-    establecimiento: 'Heladeria Sabadell Nord',
+    establecimiento: 'Heladeria Tropicale',
   };
   return JSON.stringify(data);
 }

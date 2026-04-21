@@ -35,7 +35,7 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h1 className="font-display font-bold text-lg">Sabadell Nord</h1>
+        <h1 className="font-display font-bold text-lg">Tropicale</h1>
         <div className="w-10" />
       </header>
 

@@ -32,7 +32,7 @@ export default function LoginScreen() {
               <path d="M8 14 Q16 36 24 14" fill="#D2691E" />
             </svg>
           </div>
-          <h1 className="font-display text-2xl font-bold text-gray-800">Sabadell Nord</h1>
+          <h1 className="font-display text-2xl font-bold text-gray-800">Tropicale</h1>
           <p className="text-gray-400 text-sm mt-1">{t('loginTitle', locale)}</p>
         </div>
 

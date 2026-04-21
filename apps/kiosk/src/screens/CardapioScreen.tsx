@@ -70,7 +70,7 @@ export default function CardapioScreen({
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B9D] to-[#FFA07A] flex items-center justify-center">
             <span className="text-white text-lg">🍦</span>
           </div>
-          <span className="font-display font-bold text-white text-xl">Sabadell Nord</span>
+          <span className="font-display font-bold text-white text-xl">Tropicale</span>
         </div>
 
         <motion.button
