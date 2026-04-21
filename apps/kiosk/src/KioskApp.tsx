@@ -110,26 +110,49 @@ export default function KioskApp() {
     setCart((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // Mapeia categorias do novo cardápio para categorias legadas do Supabase
+  const categoriaMap: Record<string, string> = {
+    copas: 'copo500',
+    gofres: 'copo500',
+    souffle: 'pote1l',
+    'banana-split': 'pote1l',
+    acai: 'copo500',
+    helados: 'copo300',
+    conos: 'cone',
+    granizados: 'copo300',
+    batidos: 'copo500',
+    orxata: 'copo300',
+    cafes: 'copo300',
+    'tarrinas-nata': 'pote1l',
+    'para-llevar': 'pote1l',
+  };
+
   const handlePayment = async (metodo: string) => {
     setPaymentError('');
     setPaymentBusy(true);
 
     try {
-      // Convert cart to legacy format for createRemoteOrder
-      const legacyCart = cart.map((item) => ({
-        categoria: {
-          id: item.produto.id,
-          nome: item.produto.nome,
-          precoBase: item.precoUnitario,
-          maxSabores: 0,
-          corHex: '#FF6B9D',
-          ativo: true,
-          ordem: 0,
-          imagem: item.produto.imagem,
-        },
-        sabores: [],
-        toppings: [],
-      }));
+      const { sabores } = useStore.getState();
+      const saborFallback = sabores.find((s) => s.disponivel) || { id: 'crema_catalana', nome: { es: 'Crema Catalana' }, categoria: 'cremoso', corHex: '#FFF8E7', imagemUrl: '', precoExtra: 0, stockBaldes: 1, alertaStock: 1, disponivel: true };
+
+      // Converte carrinho do novo cardápio para formato legado da RPC
+      const legacyCart = cart.map((item) => {
+        const catLegacy = categoriaMap[item.produto.categoria] || 'copo500';
+        return {
+          categoria: {
+            id: catLegacy,
+            nome: item.produto.nome,
+            precoBase: item.precoUnitario,
+            maxSabores: 3,
+            corHex: '#FF6B9D',
+            ativo: true,
+            ordem: 0,
+            imagem: item.produto.imagem,
+          },
+          sabores: [saborFallback],
+          toppings: [],
+        };
+      });
 
       const response = await createRemoteOrder({
         cart: legacyCart as any,
