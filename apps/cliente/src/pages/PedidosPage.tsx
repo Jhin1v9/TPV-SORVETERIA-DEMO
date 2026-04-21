@@ -2,7 +2,11 @@ import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
 
 export default function PedidosPage() {
-  const { pedidos, locale } = useStore();
+  const { pedidos, locale, perfilUsuario } = useStore();
+
+  const meusPedidos = perfilUsuario?.telefone
+    ? pedidos.filter((p) => p.clienteTelefone === perfilUsuario.telefone)
+    : [];
 
   const statusColors: Record<string, string> = {
     pendiente: 'bg-blue-100 text-blue-700',
@@ -24,14 +28,14 @@ export default function PedidosPage() {
     <div className="p-4 max-w-2xl mx-auto">
       <h2 className="font-display font-bold text-2xl mb-4">{t('myOrders', locale)}</h2>
 
-      {pedidos.length === 0 ? (
+      {meusPedidos.length === 0 ? (
         <div className="text-center py-16 text-gray-400">
           <span className="text-6xl">📋</span>
           <p className="text-lg font-medium mt-4">{t('noOrdersYet', locale)}</p>
         </div>
       ) : (
         <div className="space-y-3">
-          {pedidos.map((pedido) => (
+          {meusPedidos.map((pedido) => (
             <div key={pedido.id} className="bg-white rounded-2xl p-4 shadow-sm border border-black/5">
               <div className="flex justify-between items-center mb-2">
                 <span className="font-mono font-bold text-gray-800">#{pedido.numeroSequencial.toString().padStart(3, '0')}</span>

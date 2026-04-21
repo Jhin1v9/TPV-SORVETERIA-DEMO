@@ -33,6 +33,7 @@ export function useOnboarding() {
     }
 
     if (profile?.nome) {
+      localStorage.setItem(STORAGE_KEY, 'true');
       return { step: 'returning', tutorialStep: 0, isFirstAccess: false, returningUser: profile };
     }
 

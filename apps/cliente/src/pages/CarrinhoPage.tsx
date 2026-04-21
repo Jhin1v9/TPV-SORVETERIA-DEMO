@@ -8,7 +8,7 @@ import { PagamentoModal, ProcessandoPagamento, ConfirmacaoPedido } from '../comp
 import type { PagamentoData } from '../components/pagamento';
 
 export default function CarrinhoPage() {
-  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState } = useStore();
+  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario } = useStore();
   const toast = useClienteToast();
 
   // Estados do fluxo de pagamento
@@ -46,7 +46,7 @@ export default function CarrinhoPage() {
           promoDiscountRate: 0,
           coffeeAdded: false,
           coffeePrice: 1.5,
-          notificationPhone: data.bizum?.telefono || '',
+          notificationPhone: data.bizum?.telefono || perfilUsuario?.telefone || '',
           origem: 'pwa',
         },
       });
