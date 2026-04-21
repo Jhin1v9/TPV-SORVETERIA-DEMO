@@ -13,6 +13,9 @@
       "@/*": [
         "./packages/shared/src/*"
       ],
+      "@tpv/shared": [
+        "./packages/shared/src/index.ts"
+      ],
       "@tpv/shared/*": [
         "./packages/shared/src/*"
       ]

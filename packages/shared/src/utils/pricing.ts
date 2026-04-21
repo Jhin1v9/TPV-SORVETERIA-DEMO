@@ -1,5 +1,4 @@
-import type { CarrinhoItem } from '../types';
-import { calculateCartTotals } from './calculos';
+import type { CartItem } from '../types';
 
 export const DEMO_PROMO_CODE = 'SABADELL20';
 export const DEMO_PROMO_RATE = 0.2;
@@ -12,6 +11,8 @@ export interface CheckoutState {
   coffeeAdded: boolean;
   coffeePrice: number;
   notificationPhone: string;
+  origem?: 'tpv' | 'kiosk' | 'pwa';
+  nomeUsuario?: string;
 }
 
 export interface CheckoutSummary {
@@ -32,8 +33,8 @@ export const defaultCheckoutState: CheckoutState = {
   notificationPhone: '',
 };
 
-export function calculateCheckoutSummary(carrinho: CarrinhoItem[], checkout: CheckoutState): CheckoutSummary {
-  const itemsSubtotal = calculateCartTotals(carrinho).subtotal;
+export function calculateCheckoutSummary(carrinho: CartItem[], checkout: CheckoutState): CheckoutSummary {
+  const itemsSubtotal = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const extras = checkout.coffeeAdded ? checkout.coffeePrice : 0;
   const descuento = checkout.promoApplied ? Number((itemsSubtotal * checkout.promoDiscountRate).toFixed(2)) : 0;
   const subtotal = Number((itemsSubtotal + extras - descuento).toFixed(2));

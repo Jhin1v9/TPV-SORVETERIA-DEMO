@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {
-  CarrinhoItem,
+  CartItem,
   Categoria,
   DemoStateSnapshot,
   EstablishmentSettings,
@@ -9,10 +9,12 @@ import type {
   Pedido,
   Sabor,
   Topping,
+  Product,
+  ProductCategory,
   PerfilUsuario,
   Alergeno,
 } from '../types';
-import { categorias as cats, sabores as sabs, toppings as tops, pedidosMock, diasVenda, establishmentMock } from '../data/mockData';
+import { categorias as cats, sabores as sabs, toppings as tops, diasVenda, establishmentMock } from '../data/mockData';
 import { DEMO_PROMO_CODE, DEMO_PROMO_RATE, defaultCheckoutState } from '../utils/pricing';
 
 interface AppState {
@@ -23,6 +25,9 @@ interface AppState {
   lastSyncAt: string | null;
   hydrateRemoteState: (snapshot: DemoStateSnapshot) => void;
 
+  productCategories: ProductCategory[];
+  products: Product[];
+
   currentScreen: 'hola' | 'categorias' | 'sabores' | 'toppings' | 'carrinho' | 'pagamento' | 'confirmacao';
   setScreen: (screen: AppState['currentScreen']) => void;
   selectedCategoria: Categoria | null;
@@ -31,8 +36,8 @@ interface AppState {
   toggleSabor: (sabor: Sabor) => void;
   selectedToppings: Topping[];
   toggleTopping: (topping: Topping) => void;
-  carrinho: CarrinhoItem[];
-  addToCarrinho: (item: CarrinhoItem) => void;
+  carrinho: CartItem[];
+  addToCarrinho: (item: CartItem) => void;
   removeFromCarrinho: (index: number) => void;
   clearCarrinho: () => void;
   currentPedido: Pedido | null;
@@ -81,6 +86,8 @@ export const useStore = create<AppState>()(
       lastSyncAt: null,
       hydrateRemoteState: (snapshot) => set({
         categorias: snapshot.categorias,
+        productCategories: snapshot.productCategories,
+        products: snapshot.products,
         sabores: snapshot.sabores,
         toppings: snapshot.toppings,
         pedidos: snapshot.pedidos,
@@ -180,9 +187,11 @@ export const useStore = create<AppState>()(
       }),
 
       categorias: cats,
+      productCategories: [],
+      products: [],
       sabores: sabs,
       toppings: tops,
-      pedidos: pedidosMock,
+      pedidos: [],
       vendasHistorico: diasVenda,
       establishment: establishmentMock,
 

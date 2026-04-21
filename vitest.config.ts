@@ -5,8 +5,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/setupTests.ts'],
     css: false,
+    exclude: ['node_modules', 'dist', 'e2e'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -16,11 +16,11 @@ export default defineConfig({
         lines: 70,
         statements: 70,
       },
-      include: ['src/shared/**/*'],
+      include: ['packages/shared/src/**/*'],
       exclude: [
-        'src/shared/data/**',
-        'src/shared/realtime/**',
-        'src/shared/types/**',
+        'packages/shared/src/data/**',
+        'packages/shared/src/realtime/**',
+        'packages/shared/src/types/**',
         '**/*.d.ts',
         '**/*.test.ts',
         '**/*.test.tsx',
@@ -29,7 +29,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': path.resolve(__dirname, './packages/shared/src'),
+      '@shared': path.resolve(__dirname, './packages/shared/src'),
     },
   },
 });

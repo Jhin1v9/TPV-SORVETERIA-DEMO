@@ -1,27 +1,46 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
-import type { Produto } from '@tpv/shared/types';
+import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
+import { normalizeProdutoToProduct, isProdutoPersonalizavel } from '@tpv/shared/types';
 import { t } from '@tpv/shared/i18n';
 import OptimizedImage from '@tpv/shared/components/OptimizedImage';
 import SkeletonCard from '@tpv/shared/components/SkeletonCard';
 import AlergenoBadge from '@tpv/shared/components/AlergenoBadge';
 import { useClienteToast } from '../hooks/useClienteToast';
+import PersonalizacaoDrawer from '../components/PersonalizacaoDrawer';
 
-export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () => void }) {
+interface FlyingItem {
+  id: string;
+  image: string;
+  emoji: string;
+  startX: number;
+  startY: number;
+}
+
+export default function CardapioPage() {
   const { locale } = useStore();
   const [search, setSearch] = useState('');
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [loading, setLoading] = useState(false);
+  const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
+  const [flyingItems, setFlyingItems] = useState<FlyingItem[]>([]);
 
-  // Simula loading ao trocar categoria (UX premium)
   const handleCategoriaChange = (catId: string) => {
     if (catId === categoriaAtiva) return;
     setLoading(true);
     setCategoriaAtiva(catId);
     setTimeout(() => setLoading(false), 350);
   };
+
+  const triggerFly = useCallback((image: string, emoji: string, startX: number, startY: number) => {
+    const id = `fly-${Date.now()}-${Math.random()}`;
+    setFlyingItems((prev) => [...prev, { id, image, emoji, startX, startY }]);
+    setTimeout(() => {
+      setFlyingItems((prev) => prev.filter((f) => f.id !== id));
+    }, 800);
+  }, []);
 
   const produtosFiltrados = useMemo(() => {
     return todosProdutos.filter((p: Produto) => {
@@ -48,7 +67,7 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
         </svg>
       </div>
 
-      {/* Categories com animação */}
+      {/* Categories */}
       <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
         <AnimatePresence mode="popLayout">
           {categoriasLocal.map((cat) => (
@@ -78,7 +97,7 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
         </AnimatePresence>
       </div>
 
-      {/* Products Grid com Skeleton */}
+      {/* Products Grid */}
       <AnimatePresence mode="wait">
         {loading ? (
           <motion.div
@@ -104,7 +123,8 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
                   key={produto.id}
                   produto={produto}
                   index={index}
-                  onOpenCarrinho={onOpenCarrinho}
+                  onPersonalizar={(p) => setProdutoPersonalizando(p)}
+                  onFlyToCart={triggerFly}
                 />
               ))}
             </AnimatePresence>
@@ -112,7 +132,12 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
         )}
       </AnimatePresence>
 
-      {/* Empty State Animado */}
+      <PersonalizacaoDrawer
+        produto={produtoPersonalizando}
+        onClose={() => setProdutoPersonalizando(null)}
+      />
+
+      {/* Empty State */}
       <AnimatePresence>
         {!loading && produtosFiltrados.length === 0 && (
           <motion.div
@@ -133,52 +158,86 @@ export default function CardapioPage({ onOpenCarrinho }: { onOpenCarrinho: () =>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Fly-to-cart animations (viewport fixed) */}
+      <AnimatePresence>
+        {flyingItems.map((item) => (
+          <FlyToCartParticle key={item.id} item={item} />
+        ))}
+      </AnimatePresence>
     </div>
   );
 }
 
-function ProdutoCard({ produto, index, onOpenCarrinho }: { produto: Produto; index: number; onOpenCarrinho: () => void }) {
+function FlyToCartParticle({ item }: { item: FlyingItem }) {
+  const cartBtn = typeof document !== 'undefined' ? document.getElementById('cart-tab-btn') : null;
+  const cartRect = cartBtn?.getBoundingClientRect();
+  const endX = cartRect ? cartRect.left + cartRect.width / 2 - 16 : window.innerWidth * 0.375;
+  const endY = cartRect ? cartRect.top + cartRect.height / 2 - 16 : window.innerHeight - 40;
+
+  return (
+    <motion.div
+      initial={{ x: item.startX - 16, y: item.startY - 16, scale: 1, opacity: 1 }}
+      animate={{ x: endX, y: endY, scale: 0.3, opacity: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.7, ease: 'easeInOut' }}
+      className="fixed z-[9999] w-8 h-8 rounded-full overflow-hidden shadow-lg pointer-events-none"
+      style={{ top: 0, left: 0 }}
+    >
+      {item.image ? (
+        <img src={item.image} alt="" className="w-full h-full object-cover" />
+      ) : (
+        <div className="w-full h-full bg-[#FF6B9D] flex items-center justify-center text-white text-sm">
+          {item.emoji}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
+function ProdutoCard({
+  produto,
+  index,
+  onPersonalizar,
+  onFlyToCart,
+}: {
+  produto: Produto;
+  index: number;
+  onPersonalizar?: (p: ProdutoPersonalizavel) => void;
+  onFlyToCart?: (image: string, emoji: string, x: number, y: number) => void;
+}) {
   const { locale, addToCarrinho, perfilUsuario, temAlergiaA } = useStore();
   const toast = useClienteToast();
   const [added, setAdded] = useState(false);
   const nome = produto.nome[locale] || produto.nome.es;
   const preco = 'preco' in produto ? produto.preco : produto.precoBase;
-  const isPersonalizavel = 'precoBase' in produto && 'opcoes' in produto;
-  
-  // Verificar se produto contém alérgenos do usuário
+  const isPersonalizavel = isProdutoPersonalizavel(produto);
+
   const alergenosProduto = produto.alergenos || [];
   const alergenosConflito = perfilUsuario?.temAlergias
     ? alergenosProduto.filter((a) => temAlergiaA(a.alergeno))
     : [];
 
-  const handleAdd = () => {
+  const categoriaEmoji = categoriasLocal.find((c) => c.id === produto.categoria)?.emoji || '🍨';
+
+  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (isPersonalizavel) {
-      // Produto personalizável: abrir tela de opções (simplificado por agora)
-      toast.addedToCart(nome);
-      onOpenCarrinho();
+      onPersonalizar?.(produto);
       return;
     }
+    const rect = e.currentTarget.getBoundingClientRect();
+    onFlyToCart?.(produto.imagem, categoriaEmoji, rect.left + rect.width / 2, rect.top + rect.height / 2);
+
+    const product = normalizeProdutoToProduct(produto);
     addToCarrinho({
-      categoria: {
-        id: 'produto',
-        nome: produto.nome,
-        precoBase: preco,
-        maxSabores: 0,
-        corHex: '#FF6B9D',
-        ativo: true,
-        ordem: 0,
-        imagem: produto.imagem,
-      } as any,
-      sabores: [],
-      toppings: [],
+      product,
+      quantity: 1,
+      unitPrice: preco,
     });
     setAdded(true);
     toast.addedToCart(nome);
     setTimeout(() => setAdded(false), 1200);
-    onOpenCarrinho();
   };
-
-  const categoriaEmoji = categoriasLocal.find((c) => c.id === produto.categoria)?.emoji || '🍨';
 
   return (
     <motion.div

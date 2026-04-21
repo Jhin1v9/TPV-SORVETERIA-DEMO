@@ -75,7 +75,18 @@ export default function PedidosPage() {
       const fecha = new Date(pedido.timestampCriacao).toLocaleDateString('es-ES');
       const hora = formatTime(pedido.timestampCriacao);
       const num = generateOrderNumber(pedido.numeroSequencial);
-      const items = pedido.itens.map((item) => `${item.categoriaNome}(${item.sabores.map((sabor) => sabor.nome.es).join('+')})`).join('; ');
+      const items = pedido.itens.map((item) => {
+        const name = item.productName || item.categoriaNome;
+        if (item.itemType === 'product' && item.selections) {
+          const sel = Object.entries(item.selections)
+            .filter(([, opts]) => Array.isArray(opts) && opts.length > 0)
+            .map(([key, opts]) => `${key}: ${opts.map((o) => o.nome?.es || o.id).join('+')}`)
+            .join('; ');
+          return sel ? `${name}(${sel})` : name;
+        }
+        const flavors = item.sabores.map((sabor) => sabor.nome.es).join('+');
+        return flavors ? `${name}(${flavors})` : name;
+      }).join('; ');
       csv += `${fecha},${hora},${num},${pedido.total.toFixed(2)},${pedido.metodoPago},${pedido.status},"${items}"\n`;
     });
 
@@ -196,9 +207,37 @@ export default function PedidosPage() {
                     <div className="space-y-3 mb-4">
                       {pedido.itens.map((item) => (
                         <div key={item.id} className="bg-gray-50 rounded-xl p-4">
-                          <p className="font-semibold">{item.quantidade}x {item.categoriaNome}</p>
-                          <p className="text-sm text-gray-500">Sabores: {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</p>
-                          {item.toppings.length > 0 && <p className="text-sm text-gray-500">Extras: {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}</p>}
+                          <p className="font-semibold">{item.quantidade}x {item.productName || item.categoriaNome}</p>
+                          {/* Legado */}
+                          {(!item.itemType || item.itemType === 'legacy') && (
+                            <>
+                              <p className="text-sm text-gray-500">Sabores: {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</p>
+                              {item.toppings.length > 0 && <p className="text-sm text-gray-500">Extras: {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}</p>}
+                            </>
+                          )}
+                          {/* Produto novo com selections */}
+                          {item.itemType === 'product' && item.selections && (
+                            <div className="space-y-0.5 mt-1">
+                              {Object.entries(item.selections).map(([selKey, opts]) => {
+                                if (!Array.isArray(opts) || opts.length === 0) return null;
+                                const label = selKey === 'tamanhos' ? 'Tamaño'
+                                  : selKey === 'sabores' ? 'Sabores'
+                                  : selKey === 'toppings' ? 'Toppings'
+                                  : selKey === 'frutas' ? 'Frutas'
+                                  : selKey === 'extras' ? 'Extras'
+                                  : selKey.charAt(0).toUpperCase() + selKey.slice(1);
+                                return (
+                                  <p key={selKey} className="text-sm text-gray-500">
+                                    {label}: {opts.map((o) => o.nome?.[locale] || o.nome?.es || o.id).join(', ')}
+                                  </p>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {/* Produto fixo sem selections */}
+                          {item.itemType === 'product' && !item.selections && item.notas && (
+                            <p className="text-sm text-gray-400">{item.notas}</p>
+                          )}
                           <p className="font-mono font-bold text-[#FF6B9D] mt-1">{formatCurrency(item.precoUnitario)}</p>
                         </div>
                       ))}

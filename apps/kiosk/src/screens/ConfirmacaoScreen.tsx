@@ -46,7 +46,7 @@ function Confetti() {
 }
 
 export default function ConfirmacaoScreen({ onDone }: { onDone: () => void }) {
-  const { locale, currentPedido, pedidos } = useStore();
+  const { currentPedido, pedidos } = useStore();
   const pedidosPendientes = pedidos.filter((p) => p.status === 'pendiente' || p.status === 'preparando').length;
   const estimado = getEstimadedTime(pedidosPendientes);
 

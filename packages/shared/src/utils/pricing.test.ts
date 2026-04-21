@@ -7,23 +7,24 @@ import {
   calculateCheckoutSummary,
   type CheckoutState,
 } from './pricing';
-import type { CarrinhoItem } from '../types';
+import type { CartItem } from '../types';
 
-function mockItem(precoBase: number): CarrinhoItem {
+function mockItem(unitPrice: number): CartItem {
   return {
-    categoria: {
-      id: 'copo300',
-      nome: { ca: 'Got', es: 'Vaso', pt: 'Copo', en: 'Cup' },
-      precoBase,
-      maxSabores: 2,
-      corHex: '#4ECDC4',
-      ativo: true,
-      ordem: 0,
+    product: {
+      id: 'test',
+      nome: { ca: 'Test', es: 'Test', pt: 'Teste', en: 'Test' },
       imagem: '/assets/demo/categoria-copo300.jpg',
-      badge: undefined,
+      categoriaId: 'copas',
+      emEstoque: true,
+      alergenos: [],
+      isPersonalizavel: false,
+      opcoes: {},
+      active: true,
+      displayOrder: 0,
     },
-    sabores: [],
-    toppings: [],
+    quantity: 1,
+    unitPrice,
   };
 }
 

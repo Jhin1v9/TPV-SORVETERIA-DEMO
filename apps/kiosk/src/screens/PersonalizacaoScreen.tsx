@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Minus, Check, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Check, ArrowLeft, ShoppingCart } from 'lucide-react';
 import type { ProdutoPersonalizavel, OpcaoPersonalizacao } from '@tpv/shared/types';
 
 interface PersonalizacaoScreenProps {
@@ -11,7 +11,7 @@ interface PersonalizacaoScreenProps {
 }
 
 export default function PersonalizacaoScreen({ produto, locale, onBack, onAddToCart }: PersonalizacaoScreenProps) {
-  const nome = produto.nome[locale] || produto.nome.es;
+  const nome = produto.nome[locale as keyof typeof produto.nome] || produto.nome.es;
   const [selecoes, setSelecoes] = useState<Record<string, OpcaoPersonalizacao[]>>({});
 
   const toggleOpcao = (tipo: string, opcao: OpcaoPersonalizacao, max: number) => {
@@ -115,7 +115,7 @@ export default function PersonalizacaoScreen({ produto, locale, onBack, onAddToC
                         }`}
                       >
                         <div className="flex items-center justify-between">
-                          <span className="font-medium text-base">{opcao.nome[locale] || opcao.nome.es}</span>
+                          <span className="font-medium text-base">{opcao.nome[locale as keyof typeof opcao.nome] || opcao.nome.es}</span>
                           {selecionado && <Check size={16} className="text-[#FF6B9D]" />}
                         </div>
                         {opcao.preco > 0 && (

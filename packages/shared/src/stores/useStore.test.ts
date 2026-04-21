@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useStore } from './useStore';
-import type { Sabor, Topping, CarrinhoItem } from '../types';
+import type { Sabor, Topping, CartItem } from '../types';
 
 function createMockSabor(id: string, precoExtra = 0): Sabor {
   return {
@@ -27,20 +27,22 @@ function createMockTopping(id: string): Topping {
   };
 }
 
-function createMockItem(): CarrinhoItem {
+function createMockItem(): CartItem {
   return {
-    categoria: {
-      id: 'copo300',
-      nome: { ca: 'Got', es: 'Vaso', pt: 'Copo', en: 'Cup' },
-      precoBase: 3.5,
-      maxSabores: 2,
-      corHex: '#4ECDC4',
-      ativo: true,
-      ordem: 0,
+    product: {
+      id: 'test-product',
+      nome: { ca: 'Test', es: 'Test', pt: 'Teste', en: 'Test' },
       imagem: '/test.jpg',
+      categoriaId: 'copas',
+      emEstoque: true,
+      alergenos: [],
+      isPersonalizavel: false,
+      opcoes: {},
+      active: true,
+      displayOrder: 0,
     },
-    sabores: [],
-    toppings: [],
+    quantity: 1,
+    unitPrice: 3.5,
   };
 }
 
@@ -48,7 +50,16 @@ describe('useStore — toggleSabor', () => {
   beforeEach(() => {
     useStore.setState({
       selectedSabores: [],
-      selectedCategoria: createMockItem().categoria,
+      selectedCategoria: {
+        id: 'copo300',
+        nome: { ca: 'Got', es: 'Vaso', pt: 'Copo', en: 'Cup' },
+        precoBase: 3.5,
+        maxSabores: 2,
+        corHex: '#4ECDC4',
+        ativo: true,
+        ordem: 0,
+        imagem: '/test.jpg',
+      },
     });
   });
 
@@ -67,7 +78,7 @@ describe('useStore — toggleSabor', () => {
   });
 
   it('respeita maxSabores da categoria', () => {
-    const cat = { ...createMockItem().categoria, maxSabores: 1 };
+    const cat = { ...useStore.getState().selectedCategoria!, maxSabores: 1 };
     useStore.setState({ selectedCategoria: cat });
     const s1 = createMockSabor('vainilla');
     const s2 = createMockSabor('choco');
@@ -77,7 +88,7 @@ describe('useStore — toggleSabor', () => {
   });
 
   it('permite trocar sabor quando atinge limite', () => {
-    const cat = { ...createMockItem().categoria, maxSabores: 1 };
+    const cat = { ...useStore.getState().selectedCategoria!, maxSabores: 1 };
     useStore.setState({ selectedCategoria: cat });
     const s1 = createMockSabor('vainilla');
     useStore.getState().toggleSabor(s1);
@@ -209,7 +220,16 @@ describe('useStore — resetKiosk', () => {
       carrinho: [createMockItem()],
       selectedSabores: [createMockSabor('test')],
       selectedToppings: [createMockTopping('test')],
-      selectedCategoria: createMockItem().categoria,
+      selectedCategoria: {
+        id: 'copo300',
+        nome: { ca: 'Got', es: 'Vaso', pt: 'Copo', en: 'Cup' },
+        precoBase: 3.5,
+        maxSabores: 2,
+        corHex: '#4ECDC4',
+        ativo: true,
+        ordem: 0,
+        imagem: '/test.jpg',
+      },
       currentPedido: { id: '1', numeroSequencial: 1, status: 'pendiente', timestampCriacao: new Date().toISOString(), timestampListo: null, metodoPago: 'efectivo', total: 0, iva: 0, verifactuQr: null, clienteTelefone: null, itens: [], origem: 'tpv' } as unknown as import('../types').Pedido,
       metodoPago: 'tarjeta',
       promoCode: 'TEST',

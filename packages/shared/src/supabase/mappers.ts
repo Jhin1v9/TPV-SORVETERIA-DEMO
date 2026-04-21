@@ -3,8 +3,12 @@ import type {
   CategoriaId,
   DemoStateSnapshot,
   DiaVenda,
+  ItemPedido,
   LocalizedText,
+  OpcaoPersonalizacao,
   Pedido,
+  Product,
+  ProductCategory,
   Sabor,
   SaborCategoria,
   Topping,
@@ -52,6 +56,60 @@ function normalizeTopping(row: AnyRecord): Topping {
   };
 }
 
+function normalizeProductCategory(row: AnyRecord): ProductCategory {
+  return {
+    id: String(row.id),
+    nome: row.nome as LocalizedText,
+    emoji: String(row.emoji ?? '🍨'),
+    displayOrder: Number(row.display_order ?? 0),
+    active: Boolean(row.active ?? true),
+  };
+}
+
+function normalizeProduct(row: AnyRecord): Product {
+  return {
+    id: String(row.id),
+    nome: row.nome as LocalizedText,
+    descricao: row.descricao as LocalizedText | undefined,
+    badge: row.badge as LocalizedText | undefined,
+    preco: row.preco != null ? Number(row.preco) : undefined,
+    precoBase: row.preco_base != null ? Number(row.preco_base) : undefined,
+    imagem: String(row.imagem),
+    categoriaId: String(row.categoria_id),
+    emEstoque: Boolean(row.em_estoque ?? true),
+    alergenos: (row.alergenos as Array<{ alergeno: string; nivel: string }> | null)?.map((a) => ({
+      alergeno: a.alergeno as import('../types').Alergeno,
+      nivel: a.nivel as 'contem' | 'pode_conter',
+    })) ?? [],
+    isPersonalizavel: Boolean(row.is_personalizavel ?? false),
+    opcoes: (row.opcoes as Record<string, unknown> | null) ?? {},
+    limites: (row.limites as Record<string, number> | null) ?? undefined,
+    active: Boolean(row.active ?? true),
+    displayOrder: Number(row.display_order ?? 0),
+  };
+}
+
+function normalizeSelections(raw: unknown): Record<string, OpcaoPersonalizacao[]> | undefined {
+  if (!raw || typeof raw !== 'object') return undefined;
+  const obj = raw as Record<string, unknown>;
+  const result: Record<string, OpcaoPersonalizacao[]> = {};
+  for (const key of Object.keys(obj)) {
+    const arr = obj[key];
+    if (Array.isArray(arr)) {
+      result[key] = arr.map((item: AnyRecord) => ({
+        id: String(item.id ?? ''),
+        nome: (item.nome as LocalizedText) ?? { ca: '', es: '', pt: '', en: '' },
+        preco: Number(item.preco ?? 0),
+        tipo: String(item.tipo ?? 'extra') as OpcaoPersonalizacao['tipo'],
+        imagem: item.imagem ? String(item.imagem) : undefined,
+        emoji: item.emoji ? String(item.emoji) : undefined,
+        flavorRef: item.flavor_ref ? String(item.flavor_ref) : undefined,
+      }));
+    }
+  }
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
 function buildSalesHistory(orders: Pedido[]): DiaVenda[] {
   const grouped = new Map<string, { total: number; pedidos: number }>();
 
@@ -74,11 +132,13 @@ function buildSalesHistory(orders: Pedido[]): DiaVenda[] {
 }
 
 export function buildSnapshotFromSupabase(data: {
-  categories: AnyRecord[];
+  categories?: AnyRecord[];
   flavors: AnyRecord[];
   toppings: AnyRecord[];
   settings: AnyRecord | null;
   orders: AnyRecord[];
+  product_categories?: AnyRecord[];
+  products?: AnyRecord[];
 }): DemoStateSnapshot {
   const pedidos: Pedido[] = data.orders.map((row) => ({
     id: String(row.id),
@@ -95,22 +155,40 @@ export function buildSnapshotFromSupabase(data: {
     verifactuQr: row.verifactu_qr ? String(row.verifactu_qr) : null,
     clienteTelefone: row.customer_phone ? String(row.customer_phone) : null,
     origem: ((row.origem as string) || 'tpv') as Pedido['origem'],
+    nomeUsuario: row.nome_usuario ? String(row.nome_usuario) : null,
     itens: ((row.order_items as AnyRecord[] | null) ?? [])
       .sort((left, right) => Number(left.sort_order ?? 0) - Number(right.sort_order ?? 0))
-      .map((item) => ({
-        id: String(item.id),
-        categoriaSku: String(item.category_sku) as Pedido['itens'][number]['categoriaSku'],
-        categoriaNome: String(item.category_name),
-        sabores: ((item.flavors as AnyRecord[] | null) ?? []).map(normalizeFlavor),
-        toppings: ((item.toppings as AnyRecord[] | null) ?? []).map(normalizeTopping),
-        precoUnitario: Number(item.unit_price),
-        quantidade: Number(item.quantity),
-        notas: item.notes ? String(item.notes) : undefined,
-      })),
+      .map((item): ItemPedido => {
+        const itemType = String(item.item_type ?? 'legacy') as ItemPedido['itemType'];
+        const productSnapshot = item.product_snapshot
+          ? normalizeProduct(item.product_snapshot as AnyRecord)
+          : undefined;
+        const selections = item.selections
+          ? normalizeSelections(item.selections)
+          : undefined;
+
+        return {
+          id: String(item.id),
+          itemType,
+          productId: item.product_id ? String(item.product_id) : undefined,
+          productName: item.product_name ? String(item.product_name) : undefined,
+          productSnapshot,
+          selections,
+          categoriaSku: String(item.category_sku ?? item.product_id ?? ''),
+          categoriaNome: String(item.category_name ?? item.product_name ?? ''),
+          sabores: ((item.flavors as AnyRecord[] | null) ?? []).map(normalizeFlavor),
+          toppings: ((item.toppings as AnyRecord[] | null) ?? []).map(normalizeTopping),
+          precoUnitario: Number(item.unit_price),
+          quantidade: Number(item.quantity),
+          notas: item.notes ? String(item.notes) : undefined,
+        };
+      }),
   }));
 
   return {
-    categorias: data.categories.map(normalizeCategory),
+    categorias: (data.categories ?? []).map(normalizeCategory),
+    productCategories: (data.product_categories ?? []).map(normalizeProductCategory),
+    products: (data.products ?? []).map(normalizeProduct),
     sabores: data.flavors.map(normalizeFlavor),
     toppings: data.toppings.map(normalizeTopping),
     pedidos,

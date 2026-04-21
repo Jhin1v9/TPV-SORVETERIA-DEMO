@@ -34,7 +34,7 @@ export { cn } from './lib/utils.ts';
 // Realtime
 export * from './realtime/client.ts';
 export * from './realtime/bootstrap.ts';
-export * from './realtime/useRealtimeSync.ts';
+export { useRealtimeSync } from './hooks/useRealtimeSync.ts';
 
 // Supabase
 export * from './supabase/client.ts';

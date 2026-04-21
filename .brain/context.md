@@ -10,47 +10,67 @@
 - ✅ Kiosk: compila e builda (redesign glassmorphism completo)
 - ✅ Admin: compila e builda
 - ✅ KDS: compila e builda
-- ✅ Tests: 27 E2E passando
+- ✅ Tests: 73 unitários passando (4 suites)
+- ⚠️ E2E: 4 suites do Playwright (não rodadas pelo vitest — requerem servidor)
 
 ### Supabase
 - URL: https://jmvikjujftidgcezmlfc.supabase.co
-- Anon Key: configurada em todos os 4 vercel.json
-- **RPCs EXISTEM e FUNCIONAM** - testado via API:
-  - `create_demo_order` ✅
+- Schema definitivo: `supabase/schema-expanded.sql` (auto-contido)
+- Tabelas: `categories` (legado), `product_categories`, `products`, `flavors`, `toppings`, `orders`, `order_items`, `customers`, `store_settings`, `inventory_log`
+- RPCs funcionais:
+  - `create_order` ✅ (suporta formato novo `product` + legado `categoria`)
+  - `create_demo_order` ✅ (delega para `create_order`)
   - `update_order_status` ✅
   - `adjust_flavor_stock` ✅
-  - `reset_demo_data` ✅ (com warning UPDATE requires WHERE)
-- Tabelas existem com seed data
-- Realtime publication configurada
-- Sem necessidade de `supabase db push` (schema já está no servidor)
+  - `set_flavor_availability` ✅
+  - `reset_demo_data` ✅
+  - `upsert_store_settings` ✅
+  - `get_products_by_category` ✅
+  - `update_product_stock` ✅
+  - `upsert_customer` ✅
+- Realtime publication configurada para todas as tabelas
 
-### Kiosk Redesign (Concluído)
-Todas as telas do kiosk foram redesenhadas com glassmorphism escuro (#0a0a0f):
-
-1. **HolaScreen** - Tela de boas-vindas com gradient orbs, floating emojis, seletor de idioma (ca/es/pt/en), CTA grande
-2. **CardapioScreen** - NOVA tela com cardápio real (13 categorias: copas, gofres, acai, helados, conos, etc.) usando dados de `produtosLocal.ts`
-3. **PersonalizacaoScreen** - NOVA tela para produtos customizáveis (tamanhos, sabores, toppings, frutas, extras) com limites e cálculo de preço dinâmico
-4. **CarrinhoScreen** - Redesign glassmorphism com resumo, IVA, total, botão pagar verde
-5. **PagamentoScreen** - Redesign glassmorphism com tabs (tarjeta/efectivo/bizum), visual de cartão, QR code
-6. **ConfirmacaoScreen** - Redesign glassmorphism com confetti, número do pedido grande, QR Verifactu, timer auto-reset
+### Modelo de Dados (Novo)
+- **Produtos fixos**: `copa-bahia`, `copa-oreo`, `cafe`, etc. — preço fixo, sem personalização
+- **Produtos personalizáveis**: `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` (tamanhos, sabores, toppings, frutas, extras) e `limites`
+- **Pedidos**: armazenam `product_snapshot` JSONB imutável + `selections` JSONB
+- **Estoque**: sabores artesanais com `stock_buckets` + `inventory_log` para auditoria
+- **Compatibilidade**: campos legados (`category_sku`, `category_name`, `flavors`, `toppings`) populados automaticamente pela RPC para KDS/Admin legado
 
 ### Fluxo do Kiosk
 Hola → Cardapio → [Personalizacao opcional] → Carrinho → Pagamento → Confirmação → Reset
 
-### Mapeamento de Categorias (Novo → Legacy RPC)
-O KioskApp.tsx mapeia produtos do cardápio real para categorias legadas do Supabase:
-- copas/gofres/acai/batidos → copo500
-- helados/granizados/orxata/cafes → copo300
-- conos → cone
-- souffle/banana-split/tarrinas-nata/para-llevar → pote1l
+### Fluxo do Cliente PWA
+Cardápio → [PersonalizacaoDrawer opcional] → (fly-to-cart animation) → Tab Carrinho → Pagamento → Confirmação
 
-Isso permite que pedidos do novo cardápio cheguem ao KDS/Admin via Supabase.
+### Cliente PWA — UX Mobile
+- ✅ **Fly-to-cart animation**: quando adiciona produto, uma miniatura voa do botão até o ícone do carrinho na tab bar
+- ✅ **Badge bounce**: o contador do carrinho dá um bounce spring quando incrementa
+- ✅ **Não abre drawer automaticamente**: o carrinho só abre quando clica na tab "carrinho"
+- ✅ **PersonalizacaoDrawer**: produtos personalizáveis abrem drawer de seleção de opções
 
-### Admin Updates
-- EstoquePage: remove cards antigos (copo300/500/cone/pote1l), adiciona stats gerais (sabores activos, baldes totais, porciones, stock bajo)
+### KDS / Admin — Renderização de Pedidos
+- ✅ KDS renderiza `productName` + `selections` quando `itemType === 'product'`
+- ✅ Admin renderiza `productName` + `selections` no modal de detalhes e no CSV export
+- ✅ Legado (`itemType === 'legacy'`) continua funcionando como antes
 
-### Pendente
+### Auris Bug Detector
+- ✅ Integrado nos 4 apps via `TPVBugDetectorProvider`
+- ✅ Botão flutuante 🐛 no canto inferior direito
+- ✅ Atalho: `Ctrl+Shift+D`
+- ✅ Guest mode ativado
+
+### Apps Atualizados
+- **Kiosk**: usa `CartItem` nativo, envia pedidos no formato novo para Supabase
+- **Cliente PWA**: usa `CartItem` nativo, fly-to-cart, PersonalizacaoDrawer, sem drawer automático
+- **KDS**: renderiza produtos do novo modelo (productName + selections)
+- **Admin**: renderiza produtos do novo modelo no modal e CSV
+
+### Assets
+- Imagens dos produtos em `public/assets/demo/` (categorias) e `public/assets/sabores/` (sabores reais)
+- Todas as imagens dos produtos no catálogo apontam para assets locais (não mais Unsplash)
+
+### Pendente / Próximos Passos
 - [ ] Deploy para Vercel (4 apps)
 - [ ] Testar fluxo end-to-end no kiosk deployado
-- [ ] Adicionar imagens reais dos produtos (atualmente usando Unsplash)
-- [ ] Verificar se `reset_demo_data` precisa de fix no WHERE clause
+- [ ] Adicionar imagens reais individuais de cada produto (atualmente usando imagens de categoria como placeholder)

@@ -178,7 +178,7 @@ function ProdutoCard({
   onPersonalizar: () => void;
   locale: string;
 }) {
-  const nome = produto.nome[locale] || produto.nome.es;
+  const nome = produto.nome[locale as keyof typeof produto.nome] || produto.nome.es;
   const preco = 'preco' in produto ? produto.preco : produto.precoBase;
   const personalizavel = isProdutoPersonalizavel(produto);
   const categoriaInfo = categoriasLocal.find((c) => c.id === produto.categoria);
@@ -205,7 +205,7 @@ function ProdutoCard({
         />
         {/* Category badge */}
         <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-white/80 text-sm font-medium">
-          {categoriaInfo?.emoji} {categoriaInfo?.nome[locale] || categoriaInfo?.nome.es}
+          {categoriaInfo?.emoji} {categoriaInfo?.nome[locale as keyof typeof categoriaInfo.nome] || categoriaInfo?.nome.es}
         </div>
       </div>
 
@@ -214,7 +214,7 @@ function ProdutoCard({
         <h3 className="font-bold text-white text-lg leading-tight mb-1">{nome}</h3>
         {produto.descricao && (
           <p className="text-white/40 text-sm line-clamp-2 mb-3">
-            {produto.descricao[locale] || produto.descricao.es}
+            {produto.descricao[locale as keyof typeof produto.descricao] || produto.descricao.es}
           </p>
         )}
 

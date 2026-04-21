@@ -1,24 +1,33 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trash2, CreditCard } from 'lucide-react';
-
-interface CartItem {
-  produto: { id: string; nome: Record<string, string>; imagem: string };
-  quantidade: number;
-  precoUnitario: number;
-  selecoes?: Record<string, unknown>;
-}
+import { useStore } from '@tpv/shared/stores/useStore';
 
 interface CarrinhoScreenProps {
-  cart: CartItem[];
   onBack: () => void;
   onPay: () => void;
   onRemove: (index: number) => void;
   total: number;
 }
 
-export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }: CarrinhoScreenProps) {
+export default function CarrinhoScreen({ onBack, onPay, onRemove, total }: CarrinhoScreenProps) {
+  const { carrinho, locale } = useStore();
   const iva = total * 0.1;
   const totalConIva = total + iva;
+
+  const formatSelections = (selections?: Record<string, unknown[]>) => {
+    if (!selections) return null;
+    const parts: string[] = [];
+    Object.entries(selections).forEach(([, items]) => {
+      if (items.length > 0) {
+        const label = items.map((i: unknown) => {
+          const item = i as { emoji?: string; nome: Record<string, string> };
+          return `${item.emoji ?? ''} ${item.nome[locale as keyof typeof item.nome] || item.nome.es}`;
+        }).join(', ');
+        parts.push(label);
+      }
+    });
+    return parts.length > 0 ? parts.join(' · ') : null;
+  };
 
   return (
     <div className="h-full flex flex-col bg-[#0a0a0f]">
@@ -34,7 +43,7 @@ export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }:
 
       {/* Items */}
       <div className="flex-1 px-6 py-4 overflow-auto">
-        {cart.length === 0 ? (
+        {carrinho.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-white/30">
             <span className="text-6xl mb-4">🛒</span>
             <p className="text-xl font-medium">Carrito vacío</p>
@@ -42,7 +51,7 @@ export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }:
         ) : (
           <div className="space-y-3">
             <AnimatePresence>
-              {cart.map((item, idx) => (
+              {carrinho.map((item, idx) => (
                 <motion.div
                   key={idx}
                   layout
@@ -51,13 +60,16 @@ export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }:
                   exit={{ opacity: 0, x: 20, height: 0 }}
                   className="bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-white/5"
                 >
-                  <img src={item.produto.imagem} alt={item.produto.nome.es} className="w-16 h-16 rounded-xl object-cover" />
+                  <img src={item.product.imagem} alt={item.product.nome.es} className="w-16 h-16 rounded-xl object-cover" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-white text-lg">{item.produto.nome.es}</p>
-                    <p className="text-white/40 text-sm">{item.quantidade}x €{item.precoUnitario.toFixed(2)}</p>
+                    <p className="font-semibold text-white text-lg">{item.product.nome.es}</p>
+                    {formatSelections(item.selections) && (
+                      <p className="text-white/40 text-sm truncate">{formatSelections(item.selections)}</p>
+                    )}
+                    <p className="text-white/40 text-sm">{item.quantity}x €{item.unitPrice.toFixed(2)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-mono font-bold text-white text-lg">€{(item.quantidade * item.precoUnitario).toFixed(2)}</p>
+                    <p className="font-mono font-bold text-white text-lg">€{(item.quantity * item.unitPrice).toFixed(2)}</p>
                     <button onClick={() => onRemove(idx)} className="text-red-400 hover:text-red-300 text-sm mt-1 flex items-center gap-1">
                       <Trash2 size={14} /> Eliminar
                     </button>
@@ -70,7 +82,7 @@ export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }:
       </div>
 
       {/* Footer totals */}
-      {cart.length > 0 && (
+      {carrinho.length > 0 && (
         <div className="px-6 py-4 bg-white/5 border-t border-white/10">
           <div className="space-y-2 mb-4">
             <div className="flex justify-between text-white/50 text-lg">

@@ -1,11 +1,10 @@
 import { createBootstrapSnapshot } from './bootstrap';
 import { calculateCheckoutSummary, type CheckoutState } from '../utils/pricing';
-import { calcularPrecoItem } from '../utils/calculos';
 import { buildSnapshotFromSupabase } from '../supabase/mappers';
 import { getSupabaseProjectLabel, hasSupabaseConfig, supabase } from '../supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
-  CarrinhoItem,
+  CartItem,
   DemoStateSnapshot,
   EstablishmentSettings,
   MetodoPago,
@@ -72,7 +71,7 @@ function applyStandaloneMutation(mutator: (snapshot: DemoStateSnapshot) => DemoS
 }
 
 function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
-  cart: CarrinhoItem[];
+  cart: CartItem[];
   metodoPago: MetodoPago;
   checkout: CheckoutState;
 }) {
@@ -82,12 +81,17 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
 
   const itens = payload.cart.map((item, index) => ({
     id: `item-${nextOrderNumber}-${index + 1}`,
-    categoriaSku: item.categoria.id,
-    categoriaNome: item.categoria.nome.es,
-    sabores: item.sabores,
-    toppings: item.toppings,
-    precoUnitario: calcularPrecoItem(item.categoria, item.sabores, item.toppings),
-    quantidade: 1,
+    itemType: 'product' as const,
+    productId: item.product.id,
+    productName: item.product.nome.es,
+    productSnapshot: item.product,
+    selections: item.selections,
+    categoriaSku: item.product.categoriaId,
+    categoriaNome: item.product.nome.es,
+    sabores: [],
+    toppings: [],
+    precoUnitario: item.unitPrice,
+    quantidade: item.quantity,
   }));
 
   const pedido: Pedido = {
@@ -115,20 +119,20 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
 
   const updatedSnapshot = applyStandaloneMutation((current) => {
     const sabores = current.sabores.map((sabor) => {
-      const usage = payload.cart.reduce((consumption, item) => {
-        if (!item.sabores.some((selected) => selected.id === sabor.id)) {
-          return consumption;
-        }
-
-        const totalByContainer = item.categoria.id === 'copo500'
+      let usage = 0;
+      for (const item of payload.cart) {
+        if (!item.product.isPersonalizavel || !item.selections?.sabores) continue;
+        const selectedFlavors = item.selections.sabores.filter((s) => s.flavorRef === sabor.id || s.id === sabor.id);
+        if (selectedFlavors.length === 0) continue;
+        const totalByContainer = item.product.categoriaId === 'copas'
           ? 0.1
-          : item.categoria.id === 'copo300'
+          : item.product.categoriaId === 'helados'
             ? 0.052
-            : item.categoria.id === 'cone'
+            : item.product.categoriaId === 'conos'
               ? 0.031
-              : 0.2;
-        return consumption + totalByContainer / item.sabores.length;
-      }, 0);
+              : 0.1;
+        usage += totalByContainer / item.selections.sabores.length;
+      }
 
       return usage === 0
         ? sabor
@@ -154,19 +158,23 @@ async function fetchSupabaseSnapshot() {
     throw new Error('Supabase client not configured');
   }
 
-  const [categoriesResult, flavorsResult, toppingsResult, settingsResult, ordersResult] = await Promise.all([
+  const [categoriesResult, productCategoriesResult, productsResult, flavorsResult, toppingsResult, settingsResult, ordersResult] = await Promise.all([
     supabase.from('categories').select('*').order('display_order', { ascending: true }),
+    supabase.from('product_categories').select('*').order('display_order', { ascending: true }),
+    supabase.from('products').select('*').order('display_order', { ascending: true }),
     supabase.from('flavors').select('*').order('id', { ascending: true }),
     supabase.from('toppings').select('*').order('id', { ascending: true }),
     supabase.from('store_settings').select('*').eq('store_key', 'main').maybeSingle(),
     supabase
       .from('orders')
-      .select('id, numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, verifactu_qr, customer_phone, order_items(id, category_sku, category_name, flavors, toppings, unit_price, quantity, notes, sort_order)')
+      .select('id, numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, verifactu_qr, customer_phone, origem, nome_usuario, order_items(id, sort_order, item_type, product_id, product_name, product_snapshot, selections, category_sku, category_name, flavors, toppings, unit_price, quantity, notes)')
       .order('numero_sequencial', { ascending: false }),
   ]);
 
   const possibleErrors = [
     categoriesResult.error,
+    productCategoriesResult.error,
+    productsResult.error,
     flavorsResult.error,
     toppingsResult.error,
     settingsResult.error,
@@ -179,6 +187,8 @@ async function fetchSupabaseSnapshot() {
 
   return buildSnapshotFromSupabase({
     categories: categoriesResult.data ?? [],
+    product_categories: productCategoriesResult.data ?? [],
+    products: productsResult.data ?? [],
     flavors: flavorsResult.data ?? [],
     toppings: toppingsResult.data ?? [],
     settings: settingsResult.data,
@@ -439,7 +449,7 @@ export function subscribeRealtimeSession(
 }
 
 export async function createRemoteOrder(payload: {
-  cart: CarrinhoItem[];
+  cart: CartItem[];
   metodoPago: MetodoPago;
   checkout: CheckoutState;
 }) {
@@ -447,8 +457,16 @@ export async function createRemoteOrder(payload: {
     return buildStandaloneOrder(getStandaloneSnapshot(), payload);
   }
 
-  const result = await supabase.rpc('create_demo_order', {
-    cart_payload: payload.cart,
+  const result = await supabase.rpc('create_order', {
+    cart_payload: payload.cart.map((item) => ({
+      product_id: item.product.id,
+      product: item.product,
+      product_snapshot: item.product,
+      selections: item.selections,
+      quantity: item.quantity,
+      unit_price: item.unitPrice,
+      notes: item.notes,
+    })),
     payment_method_input: payload.metodoPago,
     checkout_payload: payload.checkout,
   });

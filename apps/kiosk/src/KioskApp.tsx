@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
-import type { Produto, ProdutoPersonalizavel, ProdutoFixo } from '@tpv/shared/types';
-import { isProdutoPersonalizavel } from '@tpv/shared/types';
+import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
+import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
 import HolaScreen from './screens/HolaScreen';
 import CardapioScreen from './screens/CardapioScreen';
 import PersonalizacaoScreen from './screens/PersonalizacaoScreen';
@@ -13,17 +13,9 @@ import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
 
 type KioskScreen = 'hola' | 'cardapio' | 'personalizacao' | 'carrinho' | 'pagamento' | 'confirmacao';
 
-interface CartItem {
-  produto: Produto;
-  quantidade: number;
-  selecoes?: Record<string, unknown>;
-  precoUnitario: number;
-}
-
 export default function KioskApp() {
   const { setScreen: _setScreen, setCurrentPedido, clearCarrinho, resetKiosk, connectionStatus, locale } = useStore();
   const [screen, setScreen] = useState<KioskScreen>('hola');
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paymentError, setPaymentError] = useState('');
@@ -34,11 +26,11 @@ export default function KioskApp() {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
       if (screen !== 'hola' && screen !== 'confirmacao') {
-        setCart([]);
+        clearCarrinho();
         setScreen('hola');
       }
     }, 60000);
-  }, [screen]);
+  }, [screen, clearCarrinho]);
 
   useEffect(() => {
     resetInactivityTimer();
@@ -51,22 +43,17 @@ export default function KioskApp() {
     };
   }, [resetInactivityTimer]);
 
-  const cartCount = cart.reduce((sum, item) => sum + item.quantidade, 0);
-  const cartTotal = cart.reduce((sum, item) => sum + item.precoUnitario * item.quantidade, 0);
+  const { carrinho, addToCarrinho, removeFromCarrinho } = useStore();
+  const cartCount = carrinho.reduce((sum, item) => sum + item.quantity, 0);
+  const cartTotal = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
-  const handleAddToCart = (produto: Produto, quantidade: number, selecoes?: Record<string, unknown>) => {
+  const handleAddToCart = (produto: Produto, quantidade: number) => {
     const preco = 'preco' in produto ? produto.preco : produto.precoBase;
-    setCart((prev) => {
-      // Se já existe o mesmo produto, incrementa quantidade
-      const existe = prev.find((item) => item.produto.id === produto.id);
-      if (existe) {
-        return prev.map((item) =>
-          item.produto.id === produto.id
-            ? { ...item, quantidade: item.quantidade + quantidade }
-            : item
-        );
-      }
-      return [...prev, { produto, quantidade, selecoes, precoUnitario: preco }];
+    const product = normalizeProdutoToProduct(produto);
+    addToCarrinho({
+      product,
+      quantity: quantidade,
+      unitPrice: preco,
     });
   };
 
@@ -79,9 +66,18 @@ export default function KioskApp() {
 
   const handleAddPersonalizado = (produto: ProdutoPersonalizavel, selecoes: Record<string, unknown>) => {
     let preco = produto.precoBase;
-    Object.values(selecoes).forEach((lista: unknown) => {
+    const selections: Record<string, import('@tpv/shared/types').OpcaoPersonalizacao[]> = {};
+
+    Object.entries(selecoes).forEach(([key, lista]) => {
       if (Array.isArray(lista)) {
-        lista.forEach((o: { preco?: number; tipo?: string }) => {
+        selections[key] = lista.map((o: { id?: string; nome?: Record<string, string>; preco?: number; tipo?: string; emoji?: string }) => ({
+          id: o.id ?? '',
+          nome: (o.nome ?? { ca: '', es: '', pt: '', en: '' }) as unknown as import('@tpv/shared/types').LocalizedText,
+          preco: o.preco ?? 0,
+          tipo: (o.tipo ?? key) as import('@tpv/shared/types').OpcaoPersonalizacao['tipo'],
+          emoji: o.emoji,
+        }));
+        lista.forEach((o: { tipo?: string; preco?: number }) => {
           if (o.tipo === 'tamanho' && o.preco !== undefined) {
             preco = o.preco;
           } else if (o.preco) {
@@ -91,40 +87,19 @@ export default function KioskApp() {
       }
     });
 
-    setCart((prev) => {
-      const existe = prev.find((item) => item.produto.id === produto.id);
-      if (existe) {
-        return prev.map((item) =>
-          item.produto.id === produto.id
-            ? { ...item, quantidade: item.quantidade + 1 }
-            : item
-        );
-      }
-      return [...prev, { produto, quantidade: 1, selecoes, precoUnitario: preco }];
+    const product = normalizeProdutoToProduct(produto);
+    addToCarrinho({
+      product,
+      quantity: 1,
+      selections,
+      unitPrice: preco,
     });
     setProdutoPersonalizando(null);
     setScreen('cardapio');
   };
 
   const handleRemoveFromCart = (index: number) => {
-    setCart((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  // Mapeia categorias do novo cardápio para categorias legadas do Supabase
-  const categoriaMap: Record<string, string> = {
-    copas: 'copo500',
-    gofres: 'copo500',
-    souffle: 'pote1l',
-    'banana-split': 'pote1l',
-    acai: 'copo500',
-    helados: 'copo300',
-    conos: 'cone',
-    granizados: 'copo300',
-    batidos: 'copo500',
-    orxata: 'copo300',
-    cafes: 'copo300',
-    'tarrinas-nata': 'pote1l',
-    'para-llevar': 'pote1l',
+    removeFromCarrinho(index);
   };
 
   const handlePayment = async (metodo: string) => {
@@ -132,30 +107,8 @@ export default function KioskApp() {
     setPaymentBusy(true);
 
     try {
-      const { sabores } = useStore.getState();
-      const saborFallback = sabores.find((s) => s.disponivel) || { id: 'crema_catalana', nome: { es: 'Crema Catalana' }, categoria: 'cremoso', corHex: '#FFF8E7', imagemUrl: '', precoExtra: 0, stockBaldes: 1, alertaStock: 1, disponivel: true };
-
-      // Converte carrinho do novo cardápio para formato legado da RPC
-      const legacyCart = cart.map((item) => {
-        const catLegacy = categoriaMap[item.produto.categoria] || 'copo500';
-        return {
-          categoria: {
-            id: catLegacy,
-            nome: item.produto.nome,
-            precoBase: item.precoUnitario,
-            maxSabores: 3,
-            corHex: '#FF6B9D',
-            ativo: true,
-            ordem: 0,
-            imagem: item.produto.imagem,
-          },
-          sabores: [saborFallback],
-          toppings: [],
-        };
-      });
-
       const response = await createRemoteOrder({
-        cart: legacyCart as any,
+        cart: carrinho,
         metodoPago: metodo as 'tarjeta' | 'efectivo' | 'bizum',
         checkout: {
           promoCode: '',
@@ -164,12 +117,13 @@ export default function KioskApp() {
           coffeeAdded: false,
           coffeePrice: 1.5,
           notificationPhone: '',
+          origem: 'kiosk',
         },
       });
 
       useStore.getState().hydrateRemoteState(response.snapshot);
       setCurrentPedido(response.pedido);
-      setCart([]);
+      clearCarrinho();
       setScreen('confirmacao');
     } catch (error) {
       setPaymentError(error instanceof Error ? error.message : 'No se pudo registrar el pedido');
@@ -179,7 +133,7 @@ export default function KioskApp() {
   };
 
   const handleReset = () => {
-    setCart([]);
+    clearCarrinho();
     setProdutoPersonalizando(null);
     resetKiosk();
     setScreen('hola');
@@ -235,7 +189,6 @@ export default function KioskApp() {
         {screen === 'carrinho' && (
           <motion.div key="carrinho" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
             <CarrinhoScreen
-              cart={cart}
               onBack={() => setScreen('cardapio')}
               onPay={() => setScreen('pagamento')}
               onRemove={handleRemoveFromCart}

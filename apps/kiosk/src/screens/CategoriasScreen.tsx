@@ -1,40 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
-import { t } from '@tpv/shared/i18n';
 import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
-import type { Produto, ProdutoPersonalizavel, ProdutoFixo, OpcaoPersonalizacao, Categoria, Sabor } from '@tpv/shared/types';
-import { isProdutoPersonalizavel } from '@tpv/shared/types';
-
-/* ------------------------------------------------------------------ */
-/*  Helpers: adapt new products → old CarrinhoItem shape              */
-/* ------------------------------------------------------------------ */
-function makeFakeCategoria(produto: ProdutoFixo): Categoria {
-  return {
-    id: 'copo500',
-    nome: produto.nome,
-    precoBase: produto.preco,
-    maxSabores: 1,
-    corHex: '#FF6B9D',
-    ativo: true,
-    ordem: 0,
-    imagem: produto.imagem,
-  };
-}
-
-function makeFakeSabor(produto: ProdutoFixo): Sabor {
-  return {
-    id: produto.id,
-    nome: produto.nome,
-    categoria: 'cremoso',
-    corHex: '#FF6B9D',
-    imagemUrl: produto.imagem,
-    precoExtra: 0,
-    stockBaldes: 100,
-    alertaStock: 10,
-    disponivel: true,
-  };
-}
+import type { ProdutoPersonalizavel, ProdutoFixo, OpcaoPersonalizacao } from '@tpv/shared/types';
+import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
 
 /* ------------------------------------------------------------------ */
 /*  Personalize Modal                                                 */
@@ -193,10 +162,8 @@ function PersonalizeModal({
 /* ------------------------------------------------------------------ */
 export default function CategoriasScreen({
   onBack,
-  onSelectCategoria,
 }: {
   onBack: () => void;
-  onSelectCategoria: (c: Categoria) => void;
 }) {
   const { locale, carrinho, addToCarrinho, setScreen } = useStore();
   const [activeCat, setActiveCat] = useState<string>('todos');
@@ -213,17 +180,13 @@ export default function CategoriasScreen({
     return todosProdutos.filter((p) => p.categoria === activeCat);
   }, [activeCat]);
 
-  const totalCarrinho = carrinho.reduce((sum, item) => {
-    const base = item.categoria.precoBase;
-    const extras = item.sabores.reduce((s, sab) => s + (sab.precoExtra || 0), 0) + item.toppings.reduce((s, top) => s + top.preco, 0);
-    return sum + base + extras;
-  }, 0);
+  const totalCarrinho = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
   const handleAddFixo = (produto: ProdutoFixo) => {
     addToCarrinho({
-      categoria: makeFakeCategoria(produto),
-      sabores: [makeFakeSabor(produto)],
-      toppings: [],
+      product: normalizeProdutoToProduct(produto),
+      quantity: 1,
+      unitPrice: produto.preco,
     });
     setAddedId(produto.id);
     setTimeout(() => setAddedId(null), 800);
@@ -231,28 +194,11 @@ export default function CategoriasScreen({
 
   const handleAddPersonalizado = (precoFinal: number, opcoes: Record<string, OpcaoPersonalizacao[]>) => {
     if (!personalizando) return;
-    const fakeCat: Categoria = {
-      id: 'copo500',
-      nome: personalizando.nome,
-      precoBase: precoFinal,
-      maxSabores: 1,
-      corHex: '#FF6B9D',
-      ativo: true,
-      ordem: 0,
-      imagem: personalizando.imagem,
-    };
-    const todosSabores: Sabor[] = [];
-    const todosToppings = Object.values(opcoes).flat().map((o) => ({
-      id: o.id,
-      nome: o.nome,
-      preco: o.preco,
-      categoria: 'decoracion' as const,
-      emoji: o.emoji,
-    }));
     addToCarrinho({
-      categoria: fakeCat,
-      sabores: todosSabores,
-      toppings: todosToppings,
+      product: normalizeProdutoToProduct(personalizando),
+      quantity: 1,
+      selections: opcoes,
+      unitPrice: precoFinal,
     });
     setPersonalizando(null);
     setAddedId(personalizando.id);

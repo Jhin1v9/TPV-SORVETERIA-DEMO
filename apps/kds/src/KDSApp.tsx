@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
+import { useRealtimeSync } from '@tpv/shared';
 import { updateRemoteOrderStatus } from '@tpv/shared/realtime/client';
 import { generateOrderNumber } from '@tpv/shared/utils/calculos';
 import { t } from '@tpv/shared/i18n';
@@ -80,12 +81,40 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
         {pedido.itens.map((item) => (
           <div key={item.id} className="text-white/80 text-sm">
             <span className="font-semibold">{item.quantidade}x</span>{' '}
-            {item.categoriaNome}
-            <span className="text-white/50"> - {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</span>
-            {item.toppings.length > 0 && (
-              <span className="text-[#FFD700]/70 text-xs block ml-4">
-                + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
-              </span>
+            {item.productName || item.categoriaNome}
+            {/* Legado: sabores/toppings */}
+            {item.itemType === 'legacy' && (
+              <>
+                <span className="text-white/50"> - {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(', ')}</span>
+                {item.toppings.length > 0 && (
+                  <span className="text-[#FFD700]/70 text-xs block ml-4">
+                    + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
+                  </span>
+                )}
+              </>
+            )}
+            {/* Novo: selections */}
+            {item.itemType === 'product' && item.selections && (
+              <div className="ml-4 space-y-0.5">
+                {Object.entries(item.selections).map(([selKey, opts]) => {
+                  if (!Array.isArray(opts) || opts.length === 0) return null;
+                  const label = selKey === 'tamanhos' ? 'Tamaño'
+                    : selKey === 'sabores' ? 'Sabores'
+                    : selKey === 'toppings' ? 'Toppings'
+                    : selKey === 'frutas' ? 'Frutas'
+                    : selKey === 'extras' ? 'Extras'
+                    : selKey.charAt(0).toUpperCase() + selKey.slice(1);
+                  return (
+                    <span key={selKey} className="text-white/50 text-xs block">
+                      {label}: {opts.map((o) => o.nome?.[locale] || o.nome?.es || o.id).join(', ')}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {/* Produto fixo sem selections — mostra notas se houver */}
+            {item.itemType === 'product' && !item.selections && item.notas && (
+              <span className="text-white/40 text-xs block ml-4">{item.notas}</span>
             )}
           </div>
         ))}
@@ -111,6 +140,7 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
 }
 
 export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
+  useRealtimeSync();
   const { pedidos, hydrateRemoteState, locale } = useStore();
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());

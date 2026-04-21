@@ -8,6 +8,8 @@ export type PedidoStatus = 'pendiente' | 'preparando' | 'listo' | 'entregado' | 
 
 export type MetodoPago = 'tarjeta' | 'efectivo' | 'bizum' | 'pendiente';
 
+export type OrigemPedido = 'tpv' | 'kiosk' | 'pwa';
+
 export type ToppingCategoria = 'cobertura' | 'crema' | 'crocante' | 'decoracion' | 'mix-in';
 
 export interface LocalizedText {
@@ -52,7 +54,15 @@ export interface Topping {
 
 export interface ItemPedido {
   id: string;
-  categoriaSku: CategoriaId;
+  // Novo modelo de produtos
+  itemType?: 'product' | 'legacy';
+  productId?: string;
+  productName?: string;
+  productSnapshot?: Product;
+  selections?: Record<string, OpcaoPersonalizacao[]>;
+
+  // Legado (mantido para compatibilidade)
+  categoriaSku: CategoriaId | string;
   categoriaNome: string;
   sabores: Sabor[];
   toppings: Topping[];
@@ -76,14 +86,24 @@ export interface Pedido {
   verifactuQr: string | null;
   clienteTelefone: string | null;
   itens: ItemPedido[];
-  origem?: 'tpv' | 'pwa';
+  origem?: OrigemPedido;
   nomeUsuario?: string | null;
 }
 
+// ─── Formato legado de carrinho (deprecated, mantido para compatibilidade) ───
 export interface CarrinhoItem {
   categoria: Categoria;
   sabores: Sabor[];
   toppings: Topping[];
+}
+
+// ─── Formato novo de carrinho (produtos reais) ───
+export interface CartItem {
+  product: Product;
+  quantity: number;
+  selections?: Record<string, OpcaoPersonalizacao[]>;
+  unitPrice: number;
+  notes?: string;
 }
 
 export interface EstoqueMovimentacao {
@@ -122,6 +142,8 @@ export interface EstablishmentSettings {
 
 export interface DemoStateSnapshot {
   categorias: Categoria[];
+  productCategories: ProductCategory[];
+  products: Product[];
   sabores: Sabor[];
   toppings: Topping[];
   pedidos: Pedido[];
@@ -220,6 +242,7 @@ export interface OpcaoPersonalizacao {
   tipo: 'tamanho' | 'topping' | 'fruta' | 'extra' | 'sabor';
   imagem?: string;
   emoji?: string;
+  flavorRef?: string; // referência ao id do sabor no estoque
 }
 
 // Produto personalizável (ex: Açaí, Helado à carta)
@@ -227,6 +250,7 @@ export interface ProdutoPersonalizavel {
   id: string;
   nome: LocalizedText;
   descricao?: LocalizedText;
+  badge?: LocalizedText;
   precoBase: number;
   imagem: string;
   categoria: ProdutoCategoria;
@@ -254,6 +278,111 @@ export type Produto = ProdutoFixo | ProdutoPersonalizavel;
 // Helper type guard
 export function isProdutoPersonalizavel(p: Produto): p is ProdutoPersonalizavel {
   return 'precoBase' in p && 'opcoes' in p;
+}
+
+// ─── Tipos para o banco de dados (mapeamento do Supabase) ───
+
+export interface ProductCategory {
+  id: string;
+  nome: LocalizedText;
+  emoji: string;
+  displayOrder: number;
+  active: boolean;
+}
+
+export interface Product {
+  id: string;
+  nome: LocalizedText;
+  descricao?: LocalizedText;
+  badge?: LocalizedText;
+  preco?: number;
+  precoBase?: number;
+  imagem: string;
+  categoriaId: string;
+  emEstoque: boolean;
+  alergenos: AvisoAlergeno[];
+  isPersonalizavel: boolean;
+  opcoes: {
+    tamanhos?: OpcaoPersonalizacao[];
+    sabores?: OpcaoPersonalizacao[];
+    toppings?: OpcaoPersonalizacao[];
+    frutas?: OpcaoPersonalizacao[];
+    extras?: OpcaoPersonalizacao[];
+  };
+  limites?: {
+    maxToppings?: number;
+    maxFrutas?: number;
+    maxSabores?: number;
+  };
+  active: boolean;
+  displayOrder: number;
+}
+
+// Helper: converte Produto (TipoScript local) para Product (formato Supabase)
+export function normalizeProdutoToProduct(p: Produto): Product {
+  if (isProdutoPersonalizavel(p)) {
+    return {
+      id: p.id,
+      nome: p.nome,
+      descricao: p.descricao,
+      badge: p.badge,
+      precoBase: p.precoBase,
+      imagem: p.imagem,
+      categoriaId: p.categoria,
+      emEstoque: p.emEstoque,
+      alergenos: p.alergenos,
+      isPersonalizavel: true,
+      opcoes: p.opcoes,
+      limites: p.limites,
+      active: true,
+      displayOrder: 0,
+    };
+  }
+  return {
+    id: p.id,
+    nome: p.nome,
+    descricao: p.descricao,
+    badge: p.badge,
+    preco: p.preco,
+    imagem: p.imagem,
+    categoriaId: p.categoria,
+    emEstoque: p.emEstoque,
+    alergenos: p.alergenos,
+    isPersonalizavel: false,
+    opcoes: {},
+    active: true,
+    displayOrder: 0,
+  };
+}
+
+// Helper: converte Product (Supabase) para Produto (TipoScript local)
+export function normalizeProductToProduto(p: Product): Produto {
+  if (p.isPersonalizavel) {
+    return {
+      id: p.id,
+      nome: p.nome,
+      descricao: p.descricao,
+      badge: p.badge,
+      precoBase: p.precoBase ?? 0,
+      imagem: p.imagem,
+      categoria: p.categoriaId as ProdutoCategoria,
+      emEstoque: p.emEstoque,
+      alergenos: p.alergenos,
+      opcoes: p.opcoes,
+      limites: p.limites,
+    };
+  }
+  return {
+    id: p.id,
+    nome: p.nome,
+    descricao: p.descricao,
+    badge: p.badge,
+    preco: p.preco ?? 0,
+    imagem: p.imagem,
+    categoria: p.categoriaId as ProdutoCategoria,
+    emEstoque: p.emEstoque,
+    alergenos: p.alergenos,
+  };
 }
 
 // Nota: Modelo kiosk (Categoria, Sabor, Topping) definido no topo do arquivo

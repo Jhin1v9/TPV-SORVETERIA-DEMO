@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import type { Locale } from '@tpv/shared/types';
 import { IceCream, ChevronRight } from 'lucide-react';

@@ -17,11 +17,7 @@ export default function CarrinhoPage() {
   const [showConfirmacao, setShowConfirmacao] = useState(false);
   const [ultimoPedido, setUltimoPedido] = useState<{ numero: number; total: number; metodo: string } | null>(null);
 
-  const total = carrinho.reduce((sum, item) => {
-    const base = item.categoria.precoBase;
-    const extras = item.sabores.reduce((s, sabor) => s + sabor.precoExtra, 0) + item.toppings.reduce((s, t) => s + t.preco, 0);
-    return sum + base + extras;
-  }, 0);
+  const total = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
   const handleRemove = (index: number) => {
     removeFromCarrinho(index);
@@ -51,6 +47,7 @@ export default function CarrinhoPage() {
           coffeeAdded: false,
           coffeePrice: 1.5,
           notificationPhone: data.bizum?.telefono || '',
+          origem: 'pwa',
         },
       });
 
@@ -118,10 +115,11 @@ export default function CarrinhoPage() {
                     className="bg-white rounded-2xl p-4 shadow-sm border border-black/5 flex justify-between items-start overflow-hidden"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-800">{item.categoria.nome[locale] || item.categoria.nome.es}</p>
-                      <p className="text-sm text-gray-500 truncate">{item.sabores.map((s) => s.nome[locale] || s.nome.es).join(', ')}</p>
-                      {item.toppings.length > 0 && (
-                        <p className="text-xs text-gray-400 mt-1 truncate">+ {item.toppings.map((t) => t.nome[locale] || t.nome.es).join(', ')}</p>
+                      <p className="font-semibold text-gray-800">{item.product.nome[locale] || item.product.nome.es}</p>
+                      {item.selections && Object.values(item.selections).some((arr) => arr.length > 0) && (
+                        <p className="text-sm text-gray-500 truncate">
+                          {Object.values(item.selections).flat().map((s) => s.nome[locale] || s.nome.es).join(', ')}
+                        </p>
                       )}
                     </div>
                     <motion.button
