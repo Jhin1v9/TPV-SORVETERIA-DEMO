@@ -527,6 +527,42 @@ export const produtosPersonalizaveis: ProdutoPersonalizavel[] = [
       sabores: opcoesSaborGranizado,
     },
   },
+
+  // Para llevar: Potes de Gelado
+  {
+    id: 'llevar-pote-500ml',
+    nome: t('Helado Llevar (½ litro)', 'Gelat Emportar (½ litre)', 'Sorvete Levar (½ litro)', 'Ice Cream To Go (½ liter)'),
+    descricao: t('½ litro de helado artesanal para llevar', '½ litre de gelat artesà per emportar', '½ litro de sorvete artesanal para levar', '½ liter of artisan ice cream to go'),
+    precoBase: 9.00,
+    imagem: '/assets/demo/categoria-pote1l.jpg',
+    alergenos: [{ alergeno: 'leite', nivel: 'contem' }, { alergeno: 'soja', nivel: 'pode_conter' }, { alergeno: 'frutos_casca_rija', nivel: 'pode_conter' }],
+    categoria: 'para-llevar',
+    emEstoque: true,
+    opcoes: {
+      tamanhos: [
+        { id: 'llp-500', nome: t('½ litro (hasta 3 sabores)', '½ litre (fins a 3 sabors)', '½ litro (até 3 sabores)', '½ liter (up to 3 flavors)'), preco: 9.00, tipo: 'tamanho' },
+      ],
+      sabores: opcoesSaborHelado,
+    },
+    limites: { maxSabores: 3 },
+  },
+  {
+    id: 'llevar-pote-1l',
+    nome: t('Helado Llevar (1 litro)', 'Gelat Emportar (1 litre)', 'Sorvete Levar (1 litro)', 'Ice Cream To Go (1 liter)'),
+    descricao: t('1 litro de helado artesanal para llevar', '1 litre de gelat artesà per emportar', '1 litro de sorvete artesanal para levar', '1 liter of artisan ice cream to go'),
+    precoBase: 16.00,
+    imagem: '/assets/demo/categoria-pote1l.jpg',
+    alergenos: [{ alergeno: 'leite', nivel: 'contem' }, { alergeno: 'soja', nivel: 'pode_conter' }, { alergeno: 'frutos_casca_rija', nivel: 'pode_conter' }],
+    categoria: 'para-llevar',
+    emEstoque: true,
+    opcoes: {
+      tamanhos: [
+        { id: 'llp-1l', nome: t('1 litro (hasta 3 sabores)', '1 litre (fins a 3 sabors)', '1 litro (até 3 sabores)', '1 liter (up to 3 flavors)'), preco: 16.00, tipo: 'tamanho' },
+      ],
+      sabores: opcoesSaborHelado,
+    },
+    limites: { maxSabores: 3 },
+  },
 ];
 
 // ===========================
