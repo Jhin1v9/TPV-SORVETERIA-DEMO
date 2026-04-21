@@ -324,7 +324,7 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
                   <p className="text-xs opacity-80">Paga en el mostrador al recoger</p>
                 </div>
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-3">
-                  <p className="text-amber-700 text-xs font-medium">💡 {t('cashTip', locale)}</p>
+                  <p className="text-amber-700 text-xs font-medium">💡 {t('cashTip', locale, { amount: totalConIva.toFixed(2) })}</p>
                 </div>
               </motion.div>
             )}

@@ -1,15 +1,15 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
-import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
+import type { Produto } from '@tpv/shared/types';
 import { normalizeProdutoToProduct, isProdutoPersonalizavel } from '@tpv/shared/types';
 import { t } from '@tpv/shared/i18n';
 import OptimizedImage from '@tpv/shared/components/OptimizedImage';
 import SkeletonCard from '@tpv/shared/components/SkeletonCard';
 import AlergenoBadge from '@tpv/shared/components/AlergenoBadge';
 import { useClienteToast } from '../hooks/useClienteToast';
-import PersonalizacaoDrawer from '../components/PersonalizacaoDrawer';
+import ProductDetailModal from '../components/ProductDetailModal';
 
 interface FlyingItem {
   id: string;
@@ -24,7 +24,17 @@ export default function CardapioPage() {
   const [search, setSearch] = useState('');
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [loading, setLoading] = useState(false);
-  const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
+  const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
+
+  // Listener para sugestões do ProductDetailModal
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<Produto>;
+      setProdutoSelecionado(customEvent.detail);
+    };
+    window.addEventListener('openProductDetail', handler);
+    return () => window.removeEventListener('openProductDetail', handler);
+  }, []);
   const [flyingItems, setFlyingItems] = useState<FlyingItem[]>([]);
 
   const handleCategoriaChange = (catId: string) => {
@@ -123,7 +133,7 @@ export default function CardapioPage() {
                   key={produto.id}
                   produto={produto}
                   index={index}
-                  onPersonalizar={(p) => setProdutoPersonalizando(p)}
+                  onSelect={(p) => setProdutoSelecionado(p)}
                   onFlyToCart={triggerFly}
                 />
               ))}
@@ -132,9 +142,9 @@ export default function CardapioPage() {
         )}
       </AnimatePresence>
 
-      <PersonalizacaoDrawer
-        produto={produtoPersonalizando}
-        onClose={() => setProdutoPersonalizando(null)}
+      <ProductDetailModal
+        produto={produtoSelecionado}
+        onClose={() => setProdutoSelecionado(null)}
       />
 
       {/* Empty State */}
@@ -198,12 +208,12 @@ function FlyToCartParticle({ item }: { item: FlyingItem }) {
 function ProdutoCard({
   produto,
   index,
-  onPersonalizar,
+  onSelect,
   onFlyToCart,
 }: {
   produto: Produto;
   index: number;
-  onPersonalizar?: (p: ProdutoPersonalizavel) => void;
+  onSelect?: (p: Produto) => void;
   onFlyToCart?: (image: string, emoji: string, x: number, y: number) => void;
 }) {
   const { locale, addToCarrinho, perfilUsuario, temAlergiaA } = useStore();
@@ -220,11 +230,12 @@ function ProdutoCard({
 
   const categoriaEmoji = categoriasLocal.find((c) => c.id === produto.categoria)?.emoji || '🍨';
 
+  const handleCardClick = () => {
+    onSelect?.(produto);
+  };
+
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (isPersonalizavel) {
-      onPersonalizar?.(produto);
-      return;
-    }
+    e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     onFlyToCart?.(produto.imagem, categoriaEmoji, rect.left + rect.width / 2, rect.top + rect.height / 2);
 
@@ -248,7 +259,8 @@ function ProdutoCard({
       transition={{ delay: index * 0.05, duration: 0.3 }}
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.97 }}
-      className={`rounded-2xl overflow-hidden shadow-sm border-2 transition-colors ${
+      onClick={handleCardClick}
+      className={`rounded-2xl overflow-hidden shadow-sm border-2 transition-colors cursor-pointer ${
         alergenosConflito.length > 0
           ? 'bg-amber-50 border-amber-300'
           : 'bg-white border-black/5'
