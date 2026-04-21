@@ -1,172 +1,101 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '@tpv/shared/stores/useStore';
-import { t } from '@tpv/shared/i18n';
-import { calcularPrecoItem } from '@tpv/shared/utils/calculos';
-import { calculateCheckoutSummary } from '@tpv/shared/utils/pricing';
+import { ArrowLeft, Trash2, CreditCard } from 'lucide-react';
 
-export default function CarrinhoScreen({ onBack, onPay }: { onBack: () => void; onPay: () => void }) {
-  const {
-    locale,
-    carrinho,
-    removeFromCarrinho,
-    promoCode,
-    setPromoCode,
-    promoApplied,
-    applyPromoCode,
-    coffeeAdded,
-    setCoffeeAdded,
-    promoDiscountRate,
-    coffeePrice,
-  } = useStore();
-  const summary = calculateCheckoutSummary(carrinho, {
-    promoCode,
-    promoApplied,
-    promoDiscountRate,
-    coffeeAdded,
-    coffeePrice,
-    notificationPhone: '',
-  });
-  const showCoffeeUpsell = summary.itemsSubtotal > 5;
+interface CartItem {
+  produto: { id: string; nome: Record<string, string>; imagem: string };
+  quantidade: number;
+  precoUnitario: number;
+  selecoes?: Record<string, unknown>;
+}
+
+interface CarrinhoScreenProps {
+  cart: CartItem[];
+  onBack: () => void;
+  onPay: () => void;
+  onRemove: (index: number) => void;
+  total: number;
+}
+
+export default function CarrinhoScreen({ cart, onBack, onPay, onRemove, total }: CarrinhoScreenProps) {
+  const iva = total * 0.1;
+  const totalConIva = total + iva;
 
   return (
-    <div className="h-full flex flex-col bg-[#FAFAFA]">
-      <div className="flex items-center justify-between px-8 py-7">
-        <motion.button onClick={onBack} className="flex items-center gap-2 text-gray-500 hover:text-gray-700" whileTap={{ scale: 0.95 }}>
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-          </svg>
-          <span className="text-base font-medium">{t('back', locale)}</span>
+    <div className="h-full flex flex-col bg-[#0a0a0f]">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+        <motion.button onClick={onBack} whileTap={{ scale: 0.95 }} className="flex items-center gap-2 text-white/60 hover:text-white">
+          <ArrowLeft size={20} />
+          <span className="text-lg font-medium">Seguir comprando</span>
         </motion.button>
-
-        <h1 className="font-display text-3xl font-bold text-gray-800">{t('yourOrder', locale)}</h1>
-
-        <div className="w-20" />
+        <span className="font-display font-bold text-white text-xl">Tu pedido</span>
+        <div className="w-32" />
       </div>
 
-      <div className="flex-1 px-8 pb-4 overflow-auto">
-        <div className="space-y-3">
-          <AnimatePresence>
-            {carrinho.map((item, idx) => {
-              const preco = calcularPrecoItem(item.categoria, item.sabores, item.toppings);
-              const stableKey = `${item.categoria.id}-${item.sabores.map((sabor) => sabor.id).join('-')}-${item.toppings.map((topping) => topping.id).join('-')}-${idx}`;
-              return (
+      {/* Items */}
+      <div className="flex-1 px-6 py-4 overflow-auto">
+        {cart.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-white/30">
+            <span className="text-6xl mb-4">🛒</span>
+            <p className="text-xl font-medium">Carrito vacío</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            <AnimatePresence>
+              {cart.map((item, idx) => (
                 <motion.div
-                  key={stableKey}
+                  key={idx}
                   layout
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20, height: 0 }}
-                  className="bg-white rounded-2xl p-6 shadow-sm flex items-center gap-4"
+                  className="bg-white/5 rounded-2xl p-4 flex items-center gap-4 border border-white/5"
                 >
-                  <div className="w-14 h-14 rounded-xl flex items-center justify-center text-white font-bold flex-shrink-0" style={{ backgroundColor: item.categoria.corHex }}>
-                    {item.sabores.length}x
-                  </div>
-
+                  <img src={item.produto.imagem} alt={item.produto.nome.es} className="w-16 h-16 rounded-xl object-cover" />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800">{item.categoria.nome[locale]}</p>
-                    <p className="text-base text-gray-400 truncate">
-                      {item.sabores.map((sabor) => sabor.nome[locale] || sabor.nome.es).join(' + ')}
-                    </p>
-                    {item.toppings.length > 0 && (
-                      <p className="text-sm text-[#FF6B9D]">
-                        + {item.toppings.map((topping) => topping.nome[locale] || topping.nome.es).join(', ')}
-                      </p>
-                    )}
+                    <p className="font-semibold text-white text-lg">{item.produto.nome.es}</p>
+                    <p className="text-white/40 text-sm">{item.quantidade}x €{item.precoUnitario.toFixed(2)}</p>
                   </div>
-
-                  <div className="text-right flex-shrink-0">
-                    <p className="font-mono font-bold text-gray-800">EUR {preco.toFixed(2)}</p>
-                    <button onClick={() => removeFromCarrinho(idx)} className="text-red-400 hover:text-red-600 text-sm mt-1">
-                      Eliminar
+                  <div className="text-right">
+                    <p className="font-mono font-bold text-white text-lg">€{(item.quantidade * item.precoUnitario).toFixed(2)}</p>
+                    <button onClick={() => onRemove(idx)} className="text-red-400 hover:text-red-300 text-sm mt-1 flex items-center gap-1">
+                      <Trash2 size={14} /> Eliminar
                     </button>
                   </div>
                 </motion.div>
-              );
-            })}
-          </AnimatePresence>
-        </div>
-
-        <AnimatePresence>
-          {showCoffeeUpsell && !coffeeAdded && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mt-4 bg-gradient-to-r from-[#6F4E37] to-[#8B6914] rounded-2xl p-6 text-white flex items-center gap-4"
-            >
-              <div className="text-4xl">Cafe</div>
-              <div className="flex-1">
-                <p className="font-semibold text-lg">{t('addCoffee', locale)}</p>
-                <p className="text-sm text-white/70">Extra integrado ao pedido real da demo</p>
-              </div>
-              <button onClick={() => setCoffeeAdded(true)} className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-base font-semibold transition-colors">
-                Anadir
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="mt-4 bg-white rounded-2xl p-6 shadow-sm">
-          <p className="text-base font-medium text-gray-700 mb-2">{t('promoCode', locale)}</p>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={promoCode}
-              onChange={(event) => setPromoCode(event.target.value)}
-              placeholder="SABADELL20"
-              className="flex-1 h-14 px-4 rounded-xl border-2 border-gray-100 focus:border-[#FF6B9D] outline-none text-base"
-            />
-            <button onClick={applyPromoCode} className="h-14 px-6 rounded-xl bg-gray-100 hover:bg-gray-200 font-semibold text-base transition-colors">
-              {t('apply', locale)}
-            </button>
+              ))}
+            </AnimatePresence>
           </div>
-          {promoApplied && (
-            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-green-500 text-base mt-2">
-              Descuento 20% aplicado (-EUR {summary.descuento.toFixed(2)})
-            </motion.p>
-          )}
-        </div>
+        )}
       </div>
 
-      <div className="px-8 py-5 bg-white border-t border-gray-100">
-        <div className="space-y-2 mb-4">
-          <div className="flex justify-between text-gray-500 text-lg">
-            <span>Base productos</span>
-            <span className="font-mono">EUR {summary.itemsSubtotal.toFixed(2)}</span>
-          </div>
-          {summary.extras > 0 && (
-            <div className="flex justify-between text-gray-500 text-lg">
-              <span>Cafe</span>
-              <span className="font-mono">EUR {summary.extras.toFixed(2)}</span>
+      {/* Footer totals */}
+      {cart.length > 0 && (
+        <div className="px-6 py-4 bg-white/5 border-t border-white/10">
+          <div className="space-y-2 mb-4">
+            <div className="flex justify-between text-white/50 text-lg">
+              <span>Subtotal</span>
+              <span className="font-mono">€{total.toFixed(2)}</span>
             </div>
-          )}
-          {summary.descuento > 0 && (
-            <div className="flex justify-between text-green-500 text-lg">
-              <span>Descuento</span>
-              <span className="font-mono">-EUR {summary.descuento.toFixed(2)}</span>
+            <div className="flex justify-between text-white/50 text-lg">
+              <span>IVA (10%)</span>
+              <span className="font-mono">€{iva.toFixed(2)}</span>
             </div>
-          )}
-          <div className="flex justify-between text-gray-500 text-lg">
-            <span>{t('iva', locale)}</span>
-            <span className="font-mono">EUR {summary.iva.toFixed(2)}</span>
+            <div className="flex justify-between text-2xl font-bold text-white pt-2 border-t border-white/10">
+              <span>Total</span>
+              <span className="font-mono text-[#FF6B9D]">€{totalConIva.toFixed(2)}</span>
+            </div>
           </div>
-          <div className="flex justify-between text-2xl font-bold pt-2 border-t border-gray-100">
-            <span>{t('total', locale)}</span>
-            <span className="font-mono text-[#FF6B9D]">EUR {summary.total.toFixed(2)}</span>
-          </div>
+          <motion.button
+            onClick={onPay}
+            whileTap={{ scale: 0.97 }}
+            className="w-full py-5 rounded-2xl bg-gradient-to-r from-[#4CAF50] to-[#66BB6A] text-white font-bold text-2xl flex items-center justify-center gap-3 shadow-lg"
+          >
+            <CreditCard size={28} />
+            Pagar €{totalConIva.toFixed(2)}
+          </motion.button>
         </div>
-
-        <motion.button
-          onClick={onPay}
-          className="w-full h-20 rounded-2xl bg-[#4CAF50] text-white font-display font-bold text-2xl flex items-center justify-center gap-3 shadow-lg hover:bg-[#43A047] transition-colors"
-          whileTap={{ scale: 0.98 }}
-        >
-          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-          </svg>
-          {t('pay', locale, { amount: summary.total.toFixed(2) })}
-        </motion.button>
-      </div>
+      )}
     </div>
   );
 }

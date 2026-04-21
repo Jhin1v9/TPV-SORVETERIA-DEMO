@@ -1,5 +1,9 @@
 {
   "buildCommand": "npm run build:cliente",
   "outputDirectory": "dist/cliente",
-  "framework": "vite"
+  "framework": "vite",
+  "env": {
+    "VITE_SUPABASE_URL": "https://jmvikjujftidgcezmlfc.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_oSg8rtPqfJnPCrl_Axw-_g_rRvugcnV"
+  }
 }

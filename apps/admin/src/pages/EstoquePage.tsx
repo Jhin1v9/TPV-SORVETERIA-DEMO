@@ -2,21 +2,23 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { updateRemoteFlavorStock } from '@tpv/shared/realtime/client';
 import { useStore } from '@tpv/shared/stores/useStore';
-import { calcularPorcoesAll } from '@tpv/shared/utils/calculos';
 import type { Sabor } from '@tpv/shared/types';
+import { Package, AlertTriangle, CheckCircle } from 'lucide-react';
 
-function StockCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: string }) {
-  const isLow = value < 10;
+function StatCard({ label, value, color, icon }: { label: string; value: number; color: string; icon: React.ReactNode }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className={`bg-white rounded-2xl p-5 shadow-sm border-2 transition-all ${isLow ? 'border-red-300 animate-pulse' : 'border-transparent'}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100"
+    >
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-2xl" style={{ backgroundColor: `${color}20` }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}15`, color }}>
           {icon}
         </div>
         <span className="text-sm text-gray-500">{label}</span>
       </div>
-      <p className={`font-mono text-3xl font-bold ${isLow ? 'text-red-500' : 'text-gray-800'}`}>{value}</p>
-      <p className="text-xs text-gray-400 mt-1">porciones</p>
+      <p className="font-mono text-3xl font-bold text-gray-800">{value}</p>
     </motion.div>
   );
 }
@@ -24,38 +26,57 @@ function StockCard({ label, value, color, icon }: { label: string; value: number
 export default function EstoquePage() {
   const { sabores } = useStore();
   const [baldeInput, setBaldeInput] = useState(5);
-  const porcoes = calcularPorcoesAll(baldeInput);
-  const lowStockSabores = sabores.filter((sabor) => sabor.stockBaldes <= sabor.alertaStock);
+  const lowStockSabores = sabores.filter((s) => s.stockBaldes <= s.alertaStock);
+  const disponiveis = sabores.filter((s) => s.disponivel).length;
+  const totalBaldes = sabores.reduce((sum, s) => sum + s.stockBaldes, 0);
+
+  // Estimativa de porções (média 500ml por porção)
+  const porcoesEstimadas = Math.floor((totalBaldes * 5000) / 500);
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Calculadora de Stock</h1>
+      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Stock de Gelats</h1>
 
-      <div className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+      {/* Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Sabores activos" value={disponiveis} color="#4CAF50" icon={<CheckCircle size={20} />} />
+        <StatCard label="Baldes totales" value={Math.round(totalBaldes * 10) / 10} color="#2196F3" icon={<Package size={20} />} />
+        <StatCard label="Porciones est." value={porcoesEstimadas} color="#FF6B9D" icon={<Package size={20} />} />
+        <StatCard label="Stock bajo" value={lowStockSabores.length} color={lowStockSabores.length > 0 ? '#F44336' : '#4CAF50'} icon={<AlertTriangle size={20} />} />
+      </div>
+
+      {/* Simulador */}
+      <div className="bg-white rounded-2xl p-6 shadow-sm mb-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-gray-500">Baldes de 5L en stock</span>
+          <span className="text-gray-500">Simulador: Baldes de 5L en stock</span>
           <span className="font-mono text-3xl font-bold text-[#FF6B9D]">{baldeInput.toFixed(1)}</span>
         </div>
-        <input type="range" min="0" max="20" step="0.5" value={baldeInput} onChange={(event) => setBaldeInput(Number(event.target.value))} className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#FF6B9D]" />
+        <input
+          type="range"
+          min="0"
+          max="20"
+          step="0.5"
+          value={baldeInput}
+          onChange={(e) => setBaldeInput(Number(e.target.value))}
+          className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer accent-[#FF6B9D]"
+        />
+        <p className="text-sm text-gray-400 mt-2">≈ {Math.floor((baldeInput * 5000) / 500)} porciones de 500ml</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StockCard label="Copo 300ml" value={porcoes.copo300} color="#4ECDC4" icon="300" />
-        <StockCard label="Copo 500ml" value={porcoes.copo500} color="#FF6B9D" icon="500" />
-        <StockCard label="Cones" value={porcoes.cone} color="#D2691E" icon="C" />
-        <StockCard label="Potes 1L" value={porcoes.pote1l} color="#98D8C8" icon="1L" />
-      </div>
-
-      <h2 className="font-display text-xl font-bold text-gray-800 mb-4">Stock por sabor</h2>
-
+      {/* Alerta */}
       {lowStockSabores.length > 0 && (
         <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4">
-          <p className="font-semibold text-red-700">Alerta de stock bajo</p>
-          <p className="text-red-500 text-sm">{lowStockSabores.length} sabores necesitan reposicion.</p>
+          <p className="font-semibold text-red-700 flex items-center gap-2">
+            <AlertTriangle size={16} />
+            Alerta de stock bajo
+          </p>
+          <p className="text-red-500 text-sm">{lowStockSabores.length} sabores necesitan reposición.</p>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      {/* Tabla */}
+      <h2 className="font-display text-xl font-bold text-gray-800 mb-4">Stock por sabor</h2>
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -87,9 +108,7 @@ function FlavorRow({ sabor }: { sabor: Sabor }) {
 
   async function handleAdjust() {
     const delta = Number.parseFloat(adjust);
-    if (Number.isNaN(delta)) {
-      return;
-    }
+    if (Number.isNaN(delta)) return;
     setSaving(true);
     try {
       const response = await updateRemoteFlavorStock(sabor.id, delta);
@@ -118,13 +137,24 @@ function FlavorRow({ sabor }: { sabor: Sabor }) {
       <td className="px-5 py-4">
         <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full ${isLow ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
           <span className={`w-1.5 h-1.5 rounded-full ${isLow ? 'bg-red-500' : 'bg-green-500'}`} />
-          {isLow ? 'Critico' : 'OK'}
+          {isLow ? 'Crítico' : 'OK'}
         </span>
       </td>
       <td className="px-5 py-4">
         <div className="flex items-center gap-2">
-          <input type="number" step="0.5" placeholder="+/-" value={adjust} onChange={(event) => setAdjust(event.target.value)} className="w-20 h-8 px-2 rounded-lg border border-gray-200 text-sm text-center" />
-          <button onClick={handleAdjust} disabled={saving} className="h-8 px-3 rounded-lg bg-[#FF6B9D] text-white text-xs font-bold hover:bg-[#FF5A8F] transition-colors disabled:opacity-60">
+          <input
+            type="number"
+            step="0.5"
+            placeholder="+/-"
+            value={adjust}
+            onChange={(e) => setAdjust(e.target.value)}
+            className="w-20 h-8 px-2 rounded-lg border border-gray-200 text-sm text-center"
+          />
+          <button
+            onClick={handleAdjust}
+            disabled={saving}
+            className="h-8 px-3 rounded-lg bg-[#FF6B9D] text-white text-xs font-bold hover:bg-[#FF5A8F] transition-colors disabled:opacity-60"
+          >
             {saving ? '...' : 'Ajustar'}
           </button>
         </div>
