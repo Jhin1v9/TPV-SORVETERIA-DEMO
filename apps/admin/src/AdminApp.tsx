@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
+import { useRealtimeSync } from '@tpv/shared';
 import { t } from '@tpv/shared/i18n';
 import type { Locale } from '@tpv/shared/types';
 import LoginScreen from './pages/LoginScreen';
@@ -54,6 +55,7 @@ function useNavItems(locale: Locale) {
 }
 
 export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
+  useRealtimeSync();
   const { isAdminLogged, setAdminLogged, locale } = useStore();
   const [currentPage, setCurrentPage] = useState<AdminPage>('analytics');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

@@ -1,4 +1,4 @@
-import { categorias, sabores, toppings, pedidosMock, diasVenda, establishmentMock } from '../data/mockData';
+import { categorias, sabores, toppings, diasVenda, establishmentMock } from '../data/mockData';
 import { categoriasCardapio, todosProdutos } from '../data/produtosLocal';
 import { normalizeProdutoToProduct } from '../types';
 import type { DemoStateSnapshot } from '../types';
@@ -16,10 +16,10 @@ export function createBootstrapSnapshot(): DemoStateSnapshot {
     products: todosProdutos.map(normalizeProdutoToProduct),
     sabores,
     toppings,
-    pedidos: pedidosMock,
+    pedidos: [],
     vendasHistorico: diasVenda,
     establishment: establishmentMock,
-    lastOrderNumber: Math.max(0, ...pedidosMock.map((pedido) => pedido.numeroSequencial)),
+    lastOrderNumber: 0,
     updatedAt: new Date().toISOString(),
   };
 }

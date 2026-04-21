@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
+import { useRealtimeSync } from '@tpv/shared';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
 import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
 import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
@@ -14,6 +15,7 @@ import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
 type KioskScreen = 'hola' | 'cardapio' | 'personalizacao' | 'carrinho' | 'pagamento' | 'confirmacao';
 
 export default function KioskApp() {
+  useRealtimeSync();
   const { setScreen: _setScreen, setCurrentPedido, clearCarrinho, resetKiosk, connectionStatus, locale } = useStore();
   const [screen, setScreen] = useState<KioskScreen>('hola');
   const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
