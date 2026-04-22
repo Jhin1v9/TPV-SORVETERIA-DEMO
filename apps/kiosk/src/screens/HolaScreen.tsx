@@ -2,11 +2,12 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import type { Locale } from '@tpv/shared/types';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, LogIn } from 'lucide-react';
 import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
 
 interface HolaScreenProps {
   onSelectLang: () => void;
+  onLogin: () => void;
 }
 
 const languages: { locale: Locale; label: string; flag: string }[] = [
@@ -16,13 +17,18 @@ const languages: { locale: Locale; label: string; flag: string }[] = [
   { locale: 'en', label: 'English', flag: '🇬🇧' },
 ];
 
-export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
+export default function HolaScreen({ onSelectLang, onLogin }: HolaScreenProps) {
   const { setLocale } = useStore();
   const [selectedLang, setSelectedLang] = useState<number>(0);
 
   const handleStart = () => {
     setLocale(languages[selectedLang].locale);
     onSelectLang();
+  };
+
+  const handleLogin = () => {
+    setLocale(languages[selectedLang].locale);
+    onLogin();
   };
 
   return (
@@ -123,20 +129,35 @@ export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
           ))}
         </motion.div>
 
-        {/* Big CTA Button */}
-        <motion.button
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={handleStart}
-          className="w-full max-w-md py-6 rounded-3xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-display font-bold text-3xl shadow-2xl shadow-[#2D8A4E]/40 flex items-center justify-center gap-4"
-        >
-          <span>🍦</span>
-          Comenzar Pedido
-          <ChevronRight size={32} />
-        </motion.button>
+        {/* Main CTA Buttons */}
+        <div className="w-full max-w-md space-y-3">
+          <motion.button
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleStart}
+            className="w-full py-6 rounded-3xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-display font-bold text-3xl shadow-2xl shadow-[#2D8A4E]/40 flex items-center justify-center gap-4"
+          >
+            <span>🍦</span>
+            Comenzar Pedido
+            <ChevronRight size={32} />
+          </motion.button>
+
+          <motion.button
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.8 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={handleLogin}
+            className="w-full py-4 rounded-2xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors flex items-center justify-center gap-3 font-semibold text-xl"
+          >
+            <LogIn size={24} />
+            Tengo la app Tropicale
+          </motion.button>
+        </div>
 
         {/* Footer */}
         <motion.p

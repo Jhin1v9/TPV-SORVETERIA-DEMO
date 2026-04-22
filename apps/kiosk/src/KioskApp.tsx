@@ -170,7 +170,10 @@ export default function KioskApp() {
       <AnimatePresence mode="wait">
         {screen === 'hola' && (
           <motion.div key="hola" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
-            <HolaScreen onSelectLang={() => setScreen('login')} />
+            <HolaScreen
+              onSelectLang={() => setScreen('cardapio')}
+              onLogin={() => setScreen('login')}
+            />
           </motion.div>
         )}
         {screen === 'login' && (
