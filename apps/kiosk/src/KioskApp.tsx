@@ -6,6 +6,7 @@ import { createRemoteOrder } from '@tpv/shared/realtime/client';
 import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
 import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
 import HolaScreen from './screens/HolaScreen';
+import LoginKioskScreen from './screens/LoginKioskScreen';
 import CardapioScreen from './screens/CardapioScreen';
 import PersonalizacaoScreen from './screens/PersonalizacaoScreen';
 import CarrinhoScreen from './screens/CarrinhoScreen';
@@ -13,7 +14,7 @@ import PagamentoScreen from './screens/PagamentoScreen';
 import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
 import CodigoAppScreen from './screens/CodigoAppScreen';
 
-type KioskScreen = 'hola' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
+type KioskScreen = 'hola' | 'login' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
 
 export default function KioskApp() {
   useRealtimeSync();
@@ -169,7 +170,19 @@ export default function KioskApp() {
       <AnimatePresence mode="wait">
         {screen === 'hola' && (
           <motion.div key="hola" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
-            <HolaScreen onSelectLang={() => setScreen('cardapio')} />
+            <HolaScreen onSelectLang={() => setScreen('login')} />
+          </motion.div>
+        )}
+        {screen === 'login' && (
+          <motion.div key="login" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
+            <LoginKioskScreen
+              onLogin={(id, nome) => {
+                setLinkedCustomerId(id);
+                setLinkedCustomerName(nome);
+                setScreen('cardapio');
+              }}
+              onSkip={() => setScreen('cardapio')}
+            />
           </motion.div>
         )}
         {screen === 'cardapio' && (

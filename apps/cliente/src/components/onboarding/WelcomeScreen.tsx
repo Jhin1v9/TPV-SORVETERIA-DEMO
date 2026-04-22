@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { IceCream, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
+import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -55,9 +56,9 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#FF6B9D] to-[#FFA07A] flex items-center justify-center mb-8 shadow-2xl shadow-[#FF6B9D]/30"
+          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center mb-8 shadow-2xl shadow-[#2D8A4E]/30"
         >
-          <IceCream size={48} className="text-white" />
+          <TropicaleLogo size={52} className="text-white" />
         </motion.div>
 
         <motion.h1
@@ -67,7 +68,7 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           className="text-4xl font-bold text-white mb-3 tracking-tight"
         >
           Heladería{' '}
-          <span className="bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-[#4CAF50] to-[#FF8C42] bg-clip-text text-transparent">
             Tropicale
           </span>
         </motion.h1>
@@ -98,7 +99,7 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onStart}
-          className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-lg shadow-lg shadow-[#FF6B9D]/40 hover:shadow-xl hover:shadow-[#FF6B9D]/50 transition-shadow"
+          className="relative w-full py-4 rounded-2xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-bold text-lg shadow-lg shadow-[#2D8A4E]/40 hover:shadow-xl hover:shadow-[#2D8A4E]/50 transition-shadow"
         >
           <motion.span
             animate={{ opacity: [1, 0.7, 1] }}

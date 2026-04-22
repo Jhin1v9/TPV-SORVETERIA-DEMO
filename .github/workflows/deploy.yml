@@ -1,0 +1,61 @@
+name: Deploy All Apps to Vercel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all apps
+        run: |
+          npm run build:cliente
+          npm run build:kiosk
+          npm run build:admin
+          npm run build:kds
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy Cliente
+        run: |
+          mkdir -p dist/cliente/.vercel
+          cp apps/cliente/.vercel/project.json dist/cliente/.vercel/project.json
+          cd dist/cliente
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Kiosk
+        run: |
+          mkdir -p dist/kiosk/.vercel
+          cp apps/kiosk/.vercel/project.json dist/kiosk/.vercel/project.json
+          cd dist/kiosk
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy Admin
+        run: |
+          mkdir -p dist/admin/.vercel
+          cp apps/admin/.vercel/project.json dist/admin/.vercel/project.json
+          cd dist/admin
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy KDS
+        run: |
+          mkdir -p dist/kds/.vercel
+          cp apps/kds/.vercel/project.json dist/kds/.vercel/project.json
+          cd dist/kds
+          vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}

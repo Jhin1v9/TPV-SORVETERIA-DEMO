@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import type { Locale } from '@tpv/shared/types';
-import { IceCream, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
+import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
 
 interface HolaScreenProps {
   onSelectLang: () => void;
@@ -31,12 +32,12 @@ export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
           transition={{ duration: 8, repeat: Infinity }}
-          className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-[#FF6B9D]/30 to-transparent blur-3xl"
+          className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-[#2D8A4E]/30 to-transparent blur-3xl"
         />
         <motion.div
           animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
           transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-          className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-[#FFA07A]/30 to-transparent blur-3xl"
+          className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full bg-gradient-to-tl from-[#FF8C42]/30 to-transparent blur-3xl"
         />
       </div>
 
@@ -74,8 +75,8 @@ export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
           transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }}
           className="mb-6"
         >
-          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-[#FF6B9D] to-[#FFA07A] flex items-center justify-center shadow-2xl shadow-[#FF6B9D]/30">
-            <IceCream size={64} className="text-white" />
+          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center shadow-2xl shadow-[#2D8A4E]/30">
+            <TropicaleLogo size={68} className="text-white" />
           </div>
         </motion.div>
 
@@ -130,7 +131,7 @@ export default function HolaScreen({ onSelectLang }: HolaScreenProps) {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           onClick={handleStart}
-          className="w-full max-w-md py-6 rounded-3xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-display font-bold text-3xl shadow-2xl shadow-[#FF6B9D]/40 flex items-center justify-center gap-4"
+          className="w-full max-w-md py-6 rounded-3xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-display font-bold text-3xl shadow-2xl shadow-[#2D8A4E]/40 flex items-center justify-center gap-4"
         >
           <span>🍦</span>
           Comenzar Pedido

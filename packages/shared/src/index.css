@@ -73,3 +73,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Bug Detector pulse animation */
+@keyframes bug-detector-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 12px rgba(45, 138, 78, 0.4);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(45, 138, 78, 0.4), 0 0 0 8px rgba(45, 138, 78, 0.15);
+  }
+}
