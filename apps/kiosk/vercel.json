@@ -1,4 +1,5 @@
 {
+  "installCommand": "cd ../.. && npm install",
   "buildCommand": "cd ../.. && npm run build:kiosk",
   "outputDirectory": "dist/kiosk",
   "framework": "vite",
