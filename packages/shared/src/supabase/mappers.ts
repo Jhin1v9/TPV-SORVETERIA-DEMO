@@ -154,6 +154,7 @@ export function buildSnapshotFromSupabase(data: {
     iva: Number(row.iva),
     verifactuQr: row.verifactu_qr ? String(row.verifactu_qr) : null,
     clienteTelefone: row.customer_phone ? String(row.customer_phone) : null,
+    customerId: row.customer_id ? String(row.customer_id) : null,
     origem: ((row.origem as string) || 'tpv') as Pedido['origem'],
     nomeUsuario: row.nome_usuario ? String(row.nome_usuario) : null,
     itens: ((row.order_items as AnyRecord[] | null) ?? [])

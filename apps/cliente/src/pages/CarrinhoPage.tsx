@@ -7,7 +7,11 @@ import { createRemoteOrder } from '@tpv/shared/realtime/client';
 import { PagamentoModal, ProcessandoPagamento, ConfirmacaoPedido } from '../components/pagamento';
 import type { PagamentoData } from '../components/pagamento';
 
-export default function CarrinhoPage() {
+interface CarrinhoPageProps {
+  onNavigateToTab?: (tab: 'cardapio' | 'carrinho' | 'pedidos' | 'config') => void;
+}
+
+export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
   const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario } = useStore();
   const toast = useClienteToast();
 
@@ -48,6 +52,7 @@ export default function CarrinhoPage() {
           coffeePrice: 1.5,
           notificationPhone: data.bizum?.telefono || perfilUsuario?.telefone || '',
           origem: 'pwa',
+          customerId: perfilUsuario?.id || undefined,
         },
       });
 
@@ -70,6 +75,11 @@ export default function CarrinhoPage() {
 
   const handleConfirmacaoClose = () => {
     setShowConfirmacao(false);
+  };
+
+  const handleTrackOrder = () => {
+    setShowConfirmacao(false);
+    onNavigateToTab?.('pedidos');
   };
 
   return (
@@ -194,6 +204,7 @@ export default function CarrinhoPage() {
             total={ultimoPedido.total}
             metodo={ultimoPedido.metodo as any}
             onClose={handleConfirmacaoClose}
+            onTrackOrder={handleTrackOrder}
           />
         )}
       </AnimatePresence>

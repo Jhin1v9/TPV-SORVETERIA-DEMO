@@ -113,6 +113,7 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
       establecimiento: snapshot.establishment.name,
     }),
     clienteTelefone: payload.checkout.notificationPhone || null,
+    customerId: null,
     origem: 'tpv',
     itens,
   };
@@ -485,6 +486,39 @@ export async function createRemoteOrder(payload: {
   return { pedido, snapshot };
 }
 
+export async function generateKioskCode(customerId: string): Promise<string> {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
+    const code = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+    return code;
+  }
+  const result = await supabase.rpc('generate_kiosk_code', {
+    customer_id_input: customerId,
+  });
+  if (result.error || !result.data) {
+    throw result.error ?? new Error('Unable to generate kiosk code');
+  }
+  return result.data;
+}
+
+export async function validateKioskCode(code: string): Promise<{ customerId: string; nome: string | null }> {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
+    return { customerId: '', nome: null };
+  }
+  const result = await supabase.rpc('validate_kiosk_code', {
+    code_input: code,
+  });
+  if (result.error || !result.data) {
+    throw result.error ?? new Error('Código inválido o expirado');
+  }
+  const customerId = result.data as string;
+  const { data: customer } = await supabase
+    .from('customers')
+    .select('nome')
+    .eq('id', customerId)
+    .single();
+  return { customerId, nome: customer?.nome ?? null };
+}
+
 export async function updateRemoteOrderStatus(pedidoId: string, status: PedidoStatus) {
   if (getRuntimeMode() === 'standalone' || !supabase) {
     const snapshot = applyStandaloneMutation((current) => ({
@@ -529,6 +563,46 @@ export async function updateRemoteFlavorStock(flavorId: string, delta: number) {
     throw result.error;
   }
   return { snapshot: await fetchSupabaseSnapshot() };
+}
+
+export async function updateRemoteProductAvailability(productId: string, emEstoque: boolean) {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
+    const snapshot = applyStandaloneMutation((current) => ({
+      ...current,
+      products: current.products.map((p) => p.id === productId ? { ...p, emEstoque } : p),
+    }));
+    return { snapshot };
+  }
+
+  const result = await supabase.rpc('set_product_availability', {
+    product_id_input: productId,
+    available_input: emEstoque,
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  return { snapshot: await fetchSupabaseSnapshot() };
+}
+
+export async function upsertRemoteCustomer(payload: {
+  nome: string;
+  telefone: string;
+  email?: string;
+  alergias?: string[];
+}): Promise<string> {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
+    return crypto.randomUUID();
+  }
+  const result = await supabase.rpc('upsert_customer', {
+    nome_input: payload.nome,
+    telefone_input: payload.telefone,
+    email_input: payload.email || null,
+    alergias_input: payload.alergias || [],
+  });
+  if (result.error || !result.data) {
+    throw result.error ?? new Error('Unable to upsert customer');
+  }
+  return result.data as string;
 }
 
 export async function updateRemoteFlavorAvailability(flavorId: string, disponivel: boolean) {

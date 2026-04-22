@@ -5,10 +5,13 @@ import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
 import { clearAllUsers } from '@tpv/shared/lib/authMock';
 import type { Locale, PerfilUsuario } from '@tpv/shared/types';
 import { LogOut, Trash2 } from 'lucide-react';
+import { upsertRemoteCustomer } from '@tpv/shared/realtime/client';
+import MeuCodigo from '../components/MeuCodigo';
 
 export default function ConfigPage() {
   const { locale, setLocale, perfilUsuario, setPerfilUsuario } = useStore();
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [nome, setNome] = useState(perfilUsuario?.nome || '');
   const [email, setEmail] = useState(perfilUsuario?.email || '');
   const [telefone, setTelefone] = useState(perfilUsuario?.telefone || '');
@@ -16,9 +19,25 @@ export default function ConfigPage() {
 
   const { logout } = useStore();
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    let customerId = perfilUsuario?.id || crypto.randomUUID();
+
+    // Sincroniza com Supabase para obter customer_id real
+    try {
+      customerId = await upsertRemoteCustomer({
+        nome: nome || 'Cliente',
+        telefone: telefone || '',
+        email: email || '',
+        alergias: alergias,
+      });
+    } catch {
+      // standalone mode — mantém id local
+    }
+
     const perfil: PerfilUsuario = {
-      id: perfilUsuario?.id || crypto.randomUUID(),
+      id: customerId,
       nome: nome || 'Cliente',
       email: email || '',
       telefone: telefone || '',
@@ -26,7 +45,9 @@ export default function ConfigPage() {
       alergias,
       criadoEm: perfilUsuario?.criadoEm || new Date().toISOString(),
     };
+
     setPerfilUsuario(perfil);
+    setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -105,6 +126,9 @@ export default function ConfigPage() {
         </div>
       </div>
 
+      {/* Kiosk Code */}
+      <MeuCodigo />
+
       {/* Allergens - OBRIGATÓRIO */}
       <AlergenoSelector
         locale={locale}
@@ -116,16 +140,16 @@ export default function ConfigPage() {
       {/* Save */}
       <button
         onClick={handleSave}
-        disabled={!nome || !email || !telefone}
+        disabled={!nome || !email || !telefone || saving}
         className={`w-full py-4 rounded-2xl font-bold text-white transition-all ${
           saved
             ? 'bg-emerald-500'
-            : !nome || !email || !telefone
+            : !nome || !email || !telefone || saving
             ? 'bg-gray-300 cursor-not-allowed'
             : 'bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] shadow-lg hover:shadow-xl'
         }`}
       >
-        {saved ? '✓ Guardado' : t('save', locale)}
+        {saving ? 'Guardando...' : saved ? '✓ Guardado' : t('save', locale)}
       </button>
 
       {/* Session actions */}

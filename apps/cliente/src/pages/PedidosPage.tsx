@@ -96,9 +96,11 @@ export default function PedidosPage() {
   const [tab, setTab] = useState<PedidoTab>('ativos');
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
 
-  const meusPedidos = perfilUsuario?.telefone
-    ? pedidos.filter((p) => p.clienteTelefone === perfilUsuario.telefone)
-    : [];
+  const meusPedidos = perfilUsuario?.id
+    ? pedidos.filter((p) => p.customerId === perfilUsuario.id || p.clienteTelefone === perfilUsuario.telefone)
+    : perfilUsuario?.telefone
+      ? pedidos.filter((p) => p.clienteTelefone === perfilUsuario.telefone)
+      : [];
 
   const pedidosAtivos = meusPedidos.filter(
     (p) => p.status !== 'entregado' && p.status !== 'cancelado'

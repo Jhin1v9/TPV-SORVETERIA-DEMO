@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:kiosk",
+  "buildCommand": "cd ../.. && npm run build:kiosk",
   "outputDirectory": "dist/kiosk",
   "framework": "vite",
   "env": {

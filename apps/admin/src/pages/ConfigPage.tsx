@@ -27,7 +27,10 @@ export default function ConfigPage() {
     window.setTimeout(() => setSaved(false), 1800);
   }
 
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
   async function handleResetDemo() {
+    setShowResetConfirm(false);
     setResetting(true);
     try {
       const response = await resetRemoteDemo();
@@ -54,9 +57,9 @@ export default function ConfigPage() {
             <p className="text-sm text-gray-500">Servidor actual: {getDemoServerUrl()}</p>
           </div>
           <button
-            onClick={handleResetDemo}
+            onClick={() => setShowResetConfirm(true)}
             disabled={resetting}
-            className="h-11 px-5 rounded-xl bg-[#2D3436] text-white font-semibold disabled:opacity-60"
+            className="h-11 px-5 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-60 hover:bg-red-700 transition-colors"
           >
             {resetting ? 'Reiniciando...' : 'Reset Demo'}
           </button>
@@ -64,6 +67,42 @@ export default function ConfigPage() {
         <p className="text-sm text-gray-500">
           Este reset restaura pedidos, stock, disponibilidad y ajustes para comenzar una nueva presentacion limpia.
         </p>
+
+        {/* Confirmación de Reset */}
+        {showResetConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setShowResetConfirm(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3 className="font-display text-xl font-bold text-red-600 mb-2">⚠️ ¿Estás seguro?</h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Esta acción borrará <strong>todos los pedidos reales</strong>, restablecerá el stock y eliminará los ajustes actuales. Esta acción no se puede deshacer.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 h-11 rounded-xl bg-gray-100 text-gray-700 font-semibold hover:bg-gray-200 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleResetDemo}
+                  className="flex-1 h-11 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors"
+                >
+                  Sí, borrar todo
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </motion.div>
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-6 shadow-sm mb-6">

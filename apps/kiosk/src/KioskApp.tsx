@@ -11,8 +11,9 @@ import PersonalizacaoScreen from './screens/PersonalizacaoScreen';
 import CarrinhoScreen from './screens/CarrinhoScreen';
 import PagamentoScreen from './screens/PagamentoScreen';
 import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
+import CodigoAppScreen from './screens/CodigoAppScreen';
 
-type KioskScreen = 'hola' | 'cardapio' | 'personalizacao' | 'carrinho' | 'pagamento' | 'confirmacao';
+type KioskScreen = 'hola' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
 
 export default function KioskApp() {
   useRealtimeSync();
@@ -21,6 +22,8 @@ export default function KioskApp() {
   const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paymentError, setPaymentError] = useState('');
+  const [linkedCustomerId, setLinkedCustomerId] = useState<string | null>(null);
+  const [linkedCustomerName, setLinkedCustomerName] = useState<string | null>(null);
   const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Inactivity timeout
@@ -120,6 +123,7 @@ export default function KioskApp() {
           coffeePrice: 1.5,
           notificationPhone: '',
           origem: 'kiosk',
+          customerId: linkedCustomerId || undefined,
         },
       });
 
@@ -137,6 +141,8 @@ export default function KioskApp() {
   const handleReset = () => {
     clearCarrinho();
     setProdutoPersonalizando(null);
+    setLinkedCustomerId(null);
+    setLinkedCustomerName(null);
     resetKiosk();
     setScreen('hola');
   };
@@ -193,8 +199,22 @@ export default function KioskApp() {
             <CarrinhoScreen
               onBack={() => setScreen('cardapio')}
               onPay={() => setScreen('pagamento')}
+              onCodigo={() => setScreen('codigo')}
               onRemove={handleRemoveFromCart}
               total={cartTotal}
+              linkedCustomerName={linkedCustomerName}
+            />
+          </motion.div>
+        )}
+        {screen === 'codigo' && (
+          <motion.div key="codigo" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
+            <CodigoAppScreen
+              onBack={() => setScreen('carrinho')}
+              onVinculado={(id, nome) => {
+                setLinkedCustomerId(id);
+                setLinkedCustomerName(nome);
+                setScreen('carrinho');
+              }}
             />
           </motion.div>
         )}

@@ -13,6 +13,7 @@ export interface CheckoutState {
   notificationPhone: string;
   origem?: 'tpv' | 'kiosk' | 'pwa';
   nomeUsuario?: string;
+  customerId?: string;
 }
 
 export interface CheckoutSummary {
@@ -31,6 +32,7 @@ export const defaultCheckoutState: CheckoutState = {
   coffeeAdded: false,
   coffeePrice: DEMO_COFFEE_PRICE,
   notificationPhone: '',
+  customerId: undefined,
 };
 
 export function calculateCheckoutSummary(carrinho: CartItem[], checkout: CheckoutState): CheckoutSummary {

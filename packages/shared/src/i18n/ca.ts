@@ -204,6 +204,7 @@ export default {
   showAtCounter: 'Mostra al taulell',
   qrCodeDesc: 'Escaneja aquest codi en recollir',
   trackMyOrder: 'Seguir la meva comanda',
+  customize: 'Personalitzar',
   pickupAt: 'Recollir a',
   consumoTitle: 'On ho gaudiràs?',
   consumoSubtitle: 'Així podem preparar la teva comanda de la millor manera.',

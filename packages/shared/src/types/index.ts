@@ -105,6 +105,7 @@ export interface Pedido {
   iva: number;
   verifactuQr: string | null;
   clienteTelefone: string | null;
+  customerId: string | null;
   itens: ItemPedido[];
   origem?: OrigemPedido;
   nomeUsuario?: string | null;

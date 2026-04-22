@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
@@ -26,15 +26,6 @@ export default function CardapioPage() {
   const [loading, setLoading] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
 
-  // Listener para sugestões do ProductDetailModal
-  useEffect(() => {
-    const handler = (e: Event) => {
-      const customEvent = e as CustomEvent<Produto>;
-      setProdutoSelecionado(customEvent.detail);
-    };
-    window.addEventListener('openProductDetail', handler);
-    return () => window.removeEventListener('openProductDetail', handler);
-  }, []);
   const [flyingItems, setFlyingItems] = useState<FlyingItem[]>([]);
 
   const handleCategoriaChange = (catId: string) => {
@@ -142,10 +133,13 @@ export default function CardapioPage() {
         )}
       </AnimatePresence>
 
-      <ProductDetailModal
-        produto={produtoSelecionado}
-        onClose={() => setProdutoSelecionado(null)}
-      />
+      {produtoSelecionado && (
+        <ProductDetailModal
+          key={`modal-${produtoSelecionado.id}`}
+          produto={produtoSelecionado}
+          onClose={() => setProdutoSelecionado(null)}
+        />
+      )}
 
       {/* Empty State */}
       <AnimatePresence>
@@ -280,41 +274,51 @@ function ProdutoCard({
         <p className="text-[#FF6B9D] font-bold text-sm mt-1">
           €{preco.toFixed(2)}{isPersonalizavel ? '+' : ''}
         </p>
-        <motion.button
-          onClick={handleAdd}
-          whileTap={{ scale: 0.95 }}
-          className={`w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 ${
-            added
-              ? 'bg-emerald-500 text-white'
-              : 'bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white'
-          }`}
-        >
-          <AnimatePresence mode="wait">
-            {added ? (
-              <motion.span
-                key="check"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-                className="flex items-center gap-1"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-                {t('success', locale)}
-              </motion.span>
-            ) : (
-              <motion.span
-                key="add"
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                exit={{ scale: 0 }}
-              >
-                {t('addToCart', locale)}
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
+        {isPersonalizavel ? (
+          <motion.button
+            onClick={handleCardClick}
+            whileTap={{ scale: 0.95 }}
+            className="w-full mt-2 py-2 rounded-xl text-xs font-bold bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white transition-all duration-300 flex items-center justify-center gap-1"
+          >
+            {t('customize', locale) || 'Personalizar'} ✨
+          </motion.button>
+        ) : (
+          <motion.button
+            onClick={handleAdd}
+            whileTap={{ scale: 0.95 }}
+            className={`w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 ${
+              added
+                ? 'bg-emerald-500 text-white'
+                : 'bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white'
+            }`}
+          >
+            <AnimatePresence mode="wait">
+              {added ? (
+                <motion.span
+                  key="check"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="flex items-center gap-1"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  {t('success', locale)}
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="add"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                >
+                  {t('addToCart', locale)}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.button>
+        )}
       </div>
     </motion.div>
   );

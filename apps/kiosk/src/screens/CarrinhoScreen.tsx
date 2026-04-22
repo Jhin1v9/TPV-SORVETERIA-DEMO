@@ -1,15 +1,17 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Trash2, CreditCard } from 'lucide-react';
+import { ArrowLeft, Trash2, CreditCard, Smartphone, User } from 'lucide-react';
 import { useStore } from '@tpv/shared/stores/useStore';
 
 interface CarrinhoScreenProps {
   onBack: () => void;
   onPay: () => void;
+  onCodigo: () => void;
   onRemove: (index: number) => void;
   total: number;
+  linkedCustomerName?: string | null;
 }
 
-export default function CarrinhoScreen({ onBack, onPay, onRemove, total }: CarrinhoScreenProps) {
+export default function CarrinhoScreen({ onBack, onPay, onCodigo, onRemove, total, linkedCustomerName }: CarrinhoScreenProps) {
   const { carrinho, locale } = useStore();
   const iva = total * 0.1;
   const totalConIva = total + iva;
@@ -83,8 +85,25 @@ export default function CarrinhoScreen({ onBack, onPay, onRemove, total }: Carri
 
       {/* Footer totals */}
       {carrinho.length > 0 && (
-        <div className="px-6 py-4 bg-white/5 border-t border-white/10">
-          <div className="space-y-2 mb-4">
+        <div className="px-6 py-4 bg-white/5 border-t border-white/10 space-y-3">
+          {/* Vinculación app */}
+          {linkedCustomerName ? (
+            <div className="flex items-center gap-2 text-emerald-400 bg-emerald-500/10 rounded-xl px-4 py-3 border border-emerald-500/20">
+              <User size={18} />
+              <span className="font-medium">Pedido vinculado a <strong>{linkedCustomerName}</strong></span>
+            </div>
+          ) : (
+            <motion.button
+              onClick={onCodigo}
+              whileTap={{ scale: 0.97 }}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors"
+            >
+              <Smartphone size={18} />
+              <span className="font-medium">¿Tienes la app Tropicale?</span>
+            </motion.button>
+          )}
+
+          <div className="space-y-2">
             <div className="flex justify-between text-white/50 text-lg">
               <span>Subtotal</span>
               <span className="font-mono">€{total.toFixed(2)}</span>

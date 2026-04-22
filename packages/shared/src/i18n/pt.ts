@@ -204,6 +204,7 @@ export default {
   showAtCounter: 'Mostrar no balcão',
   qrCodeDesc: 'Escaneia este código ao recolher',
   trackMyOrder: 'Seguir o meu pedido',
+  customize: 'Personalizar',
   pickupAt: 'Recolher em',
   consumoTitle: 'Onde vais desfrutar?',
   consumoSubtitle: 'Assim podemos preparar o teu pedido da melhor forma.',

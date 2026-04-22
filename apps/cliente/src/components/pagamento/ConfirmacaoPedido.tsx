@@ -9,9 +9,10 @@ interface ConfirmacaoPedidoProps {
   total: number;
   metodo: MetodoPagamento;
   onClose: () => void;
+  onTrackOrder?: () => void;
 }
 
-export default function ConfirmacaoPedido({ numeroPedido, total, metodo, onClose }: ConfirmacaoPedidoProps) {
+export default function ConfirmacaoPedido({ numeroPedido, total, metodo, onClose, onTrackOrder }: ConfirmacaoPedidoProps) {
   const { locale } = useStore();
 
   const metodoInfo = {
@@ -171,7 +172,10 @@ export default function ConfirmacaoPedido({ numeroPedido, total, metodo, onClose
         transition={{ delay: 1.3 }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        onClick={onClose}
+        onClick={() => {
+          if (onTrackOrder) onTrackOrder();
+          else onClose();
+        }}
         className="w-full max-w-sm sm:max-w-md py-4 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
       >
         {t('trackMyOrder', locale)}

@@ -204,6 +204,7 @@ export default {
   showAtCounter: 'Show at counter',
   qrCodeDesc: 'Scan this code when picking up',
   trackMyOrder: 'Track my order',
+  customize: 'Customize',
   pickupAt: 'Pick up at',
   consumoTitle: 'Where will you enjoy it?',
   consumoSubtitle: 'This helps us prepare your order the best way.',

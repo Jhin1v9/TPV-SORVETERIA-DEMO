@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:cliente",
+  "buildCommand": "cd ../.. && npm run build:cliente",
   "outputDirectory": "dist/cliente",
   "framework": "vite",
   "env": {

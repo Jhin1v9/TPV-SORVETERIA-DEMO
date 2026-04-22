@@ -155,6 +155,16 @@ create table if not exists public.inventory_log (
   created_at timestamptz not null default now()
 );
 
+-- ─── 10. CÓDIGOS KIOSK (login rápido PWA ↔ Kiosk) ────────────────
+create table if not exists public.kiosk_codes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null,
+  customer_id uuid not null references public.customers(id) on delete cascade,
+  expires_at timestamptz not null,
+  used_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
 -- ═══════════════════════════════════════════════════════════════════
 -- ÍNDICES
 -- ═══════════════════════════════════════════════════════════════════
@@ -169,6 +179,9 @@ create index if not exists idx_orders_created on public.orders(created_at);
 create index if not exists idx_order_items_order on public.order_items(order_id);
 create index if not exists idx_inventory_flavor on public.inventory_log(flavor_id);
 create index if not exists idx_customers_phone on public.customers(telefone);
+create unique index if not exists idx_kiosk_codes_code on public.kiosk_codes(code);
+create index if not exists idx_kiosk_codes_customer on public.kiosk_codes(customer_id);
+create index if not exists idx_kiosk_codes_expires on public.kiosk_codes(expires_at);
 
 -- ═══════════════════════════════════════════════════════════════════
 -- RLS (Row Level Security)
@@ -184,6 +197,7 @@ alter table public.customers enable row level security;
 alter table public.orders enable row level security;
 alter table public.order_items enable row level security;
 alter table public.inventory_log enable row level security;
+alter table public.kiosk_codes enable row level security;
 
 drop policy if exists product_categories_read on public.product_categories;
 create policy product_categories_read on public.product_categories for select to anon, authenticated using (true);
@@ -226,6 +240,15 @@ create policy order_items_insert on public.order_items for insert to anon, authe
 
 drop policy if exists inventory_log_read on public.inventory_log;
 create policy inventory_log_read on public.inventory_log for select to anon, authenticated using (true);
+
+drop policy if exists kiosk_codes_read on public.kiosk_codes;
+create policy kiosk_codes_read on public.kiosk_codes for select to anon, authenticated using (true);
+
+drop policy if exists kiosk_codes_insert on public.kiosk_codes;
+create policy kiosk_codes_insert on public.kiosk_codes for insert to anon, authenticated with check (true);
+
+drop policy if exists kiosk_codes_update on public.kiosk_codes;
+create policy kiosk_codes_update on public.kiosk_codes for update to anon, authenticated using (true);
 
 
 -- ═══════════════════════════════════════════════════════════════════
@@ -373,6 +396,7 @@ declare
   order_origem text := coalesce(checkout_payload->>'origem', 'tpv');
   order_nome_usuario text := nullif(checkout_payload->>'nomeUsuario', '');
   order_customer_phone text := nullif(checkout_payload->>'notificationPhone', '');
+  order_customer_id uuid := nullif(checkout_payload->>'customerId', '')::uuid;
   flavor_count integer;
   consumption numeric(10,3);
   selection_sabor jsonb;
@@ -455,6 +479,7 @@ begin
     total,
     iva,
     customer_phone,
+    customer_id,
     origem,
     nome_usuario
   )
@@ -467,6 +492,7 @@ begin
     grand_total,
     iva_total,
     order_customer_phone,
+    order_customer_id,
     order_origem,
     order_nome_usuario
   )
@@ -994,6 +1020,73 @@ grant execute on function public.debit_flavor_stock(text, numeric, uuid, text) t
 grant execute on function public.calculate_flavor_consumption(text, integer) to anon, authenticated;
 
 -- ═══════════════════════════════════════════════════════════════════
+-- RPCs KIOSK CODES
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Gera um código de 5 dígitos para vincular pedido kiosk ao perfil PWA
+create or replace function public.generate_kiosk_code(customer_id_input uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_code text;
+  code_exists boolean;
+begin
+  -- Invalida códigos antigos do mesmo customer
+  update public.kiosk_codes
+  set used_at = now()
+  where customer_id = customer_id_input and used_at is null;
+
+  -- Gera código único de 5 dígitos
+  loop
+    new_code := lpad(floor(random() * 100000)::text, 5, '0');
+    select exists(select 1 from public.kiosk_codes where code = new_code and used_at is null and expires_at > now())
+    into code_exists;
+    exit when not code_exists;
+  end loop;
+
+  insert into public.kiosk_codes (code, customer_id, expires_at)
+  values (new_code, customer_id_input, now() + interval '5 minutes');
+
+  return new_code;
+end;
+$$;
+
+-- Valida um código de kiosk e retorna o customer_id
+create or replace function public.validate_kiosk_code(code_input text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_id uuid;
+begin
+  select id into matched_id
+  from public.kiosk_codes
+  where code = code_input
+    and used_at is null
+    and expires_at > now()
+  for update skip locked;
+
+  if matched_id is null then
+    raise exception 'Código inválido ou expirado';
+  end if;
+
+  update public.kiosk_codes
+  set used_at = now()
+  where id = matched_id;
+
+  return (select customer_id from public.kiosk_codes where id = matched_id);
+end;
+$$;
+
+grant execute on function public.generate_kiosk_code(uuid) to anon, authenticated;
+grant execute on function public.validate_kiosk_code(text) to anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
 -- REALTIME
 -- ═══════════════════════════════════════════════════════════════════
 
@@ -1009,6 +1102,7 @@ begin
   begin alter publication supabase_realtime add table public.orders; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.order_items; exception when duplicate_object then null; end;
   begin alter publication supabase_realtime add table public.inventory_log; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.kiosk_codes; exception when duplicate_object then null; end;
 end $$;
 
 -- Inicializa dados

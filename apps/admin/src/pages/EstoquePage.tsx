@@ -35,7 +35,7 @@ export default function EstoquePage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Stock de Gelats</h1>
+      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Sabores / Matéria Prima</h1>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

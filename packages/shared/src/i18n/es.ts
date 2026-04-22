@@ -204,6 +204,7 @@ export default {
   showAtCounter: 'Muestra en el mostrador',
   qrCodeDesc: 'Escanea este código al recoger',
   trackMyOrder: 'Seguir mi pedido',
+  customize: 'Personalizar',
   pickupAt: 'Recoger en',
   consumoTitle: '¿Dónde lo disfrutarás?',
   consumoSubtitle: 'Así podemos preparar tu pedido de la mejor manera.',

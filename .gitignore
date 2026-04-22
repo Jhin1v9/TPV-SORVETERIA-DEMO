@@ -7,3 +7,5 @@ server/data/current-state.json
 .playwright-mcp/
 e2e-report/
 test-results/
+
+.vercel

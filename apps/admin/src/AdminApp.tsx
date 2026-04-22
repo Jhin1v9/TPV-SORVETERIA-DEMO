@@ -6,17 +6,27 @@ import { t } from '@tpv/shared/i18n';
 import type { Locale } from '@tpv/shared/types';
 import LoginScreen from './pages/LoginScreen';
 import EstoquePage from './pages/EstoquePage';
+import ProdutosPage from './pages/ProdutosPage';
 import PedidosPage from './pages/PedidosPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ConfigPage from './pages/ConfigPage';
 
-type AdminPage = 'estoque' | 'pedidos' | 'analytics' | 'config';
+type AdminPage = 'produtos' | 'estoque' | 'pedidos' | 'analytics' | 'config';
 
 function useNavItems(locale: Locale) {
   return [
     {
+      id: 'produtos' as const,
+      label: 'Productos',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+      ),
+    },
+    {
       id: 'estoque' as const,
-      label: t('stock', locale),
+      label: 'Sabores',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -143,6 +153,11 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
       <div className="flex-1 overflow-auto">
         <div className="p-8">
           <AnimatePresence mode="wait">
+            {currentPage === 'produtos' && (
+              <motion.div key="produtos" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                <ProdutosPage />
+              </motion.div>
+            )}
             {currentPage === 'estoque' && (
               <motion.div key="estoque" variants={pageVariants} initial="initial" animate="animate" exit="exit">
                 <EstoquePage />

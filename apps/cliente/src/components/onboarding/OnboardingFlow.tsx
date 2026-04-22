@@ -1,5 +1,4 @@
 import { AnimatePresence } from 'framer-motion';
-import { useOnboarding } from '../../hooks/useOnboarding';
 import WelcomeScreen from './WelcomeScreen';
 import QuickRegister from './QuickRegister';
 import ConsumoPreferenceStep from './ConsumoPreferenceStep';
@@ -8,11 +7,25 @@ import InteractiveTutorial from './InteractiveTutorial';
 import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
+import type { OnboardingStep } from '../../hooks/useOnboarding';
 
-export default function OnboardingFlow() {
-  const { step, goToStep, skipOnboarding, nextTutorialStep, returningUser } = useOnboarding();
+interface OnboardingFlowProps {
+  step: OnboardingStep;
+  returningUser: { nome: string } | null;
+  onGoToStep: (step: OnboardingStep) => void;
+  onSkip: () => void;
+  onTutorialComplete: () => void;
+}
+
+export default function OnboardingFlow({
+  step,
+  returningUser,
+  onGoToStep,
+  onSkip,
+  onTutorialComplete,
+}: OnboardingFlowProps) {
   const { locale, perfilUsuario, setPerfilUsuario } = useStore();
   const [alergias, setAlergias] = useState(perfilUsuario?.alergias || []);
 
@@ -31,8 +44,7 @@ export default function OnboardingFlow() {
         alergias,
       });
     }
-    goToStep('tutorial');
-    nextTutorialStep();
+    onGoToStep('tutorial');
   };
 
   return (
@@ -41,32 +53,32 @@ export default function OnboardingFlow() {
         <ReturningUserScreen
           key="returning"
           userName={returningUser.nome}
-          onContinue={skipOnboarding}
-          onNewAccount={() => goToStep('welcome')}
+          onContinue={onSkip}
+          onNewAccount={() => onGoToStep('welcome')}
         />
       )}
 
       {step === 'welcome' && (
         <WelcomeScreen
           key="welcome"
-          onStart={() => goToStep('register')}
-          onSkip={skipOnboarding}
+          onStart={() => onGoToStep('register')}
+          onSkip={onSkip}
         />
       )}
 
       {step === 'register' && (
         <QuickRegister
           key="register"
-          onComplete={() => goToStep('consumo')}
-          onBack={() => goToStep('welcome')}
+          onComplete={() => onGoToStep('consumo')}
+          onBack={() => onGoToStep('welcome')}
         />
       )}
 
       {step === 'consumo' && (
         <ConsumoPreferenceStep
           key="consumo"
-          onComplete={() => goToStep('allergy')}
-          onBack={() => goToStep('register')}
+          onComplete={() => onGoToStep('allergy')}
+          onBack={() => onGoToStep('register')}
         />
       )}
 
@@ -74,8 +86,8 @@ export default function OnboardingFlow() {
         <InteractiveTutorial
           key="tutorial"
           locale={locale}
-          onComplete={skipOnboarding}
-          onSkip={skipOnboarding}
+          onComplete={onTutorialComplete}
+          onSkip={onTutorialComplete}
         />
       )}
 
@@ -90,7 +102,7 @@ export default function OnboardingFlow() {
           <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full">
             <div className="flex items-center justify-between mb-6">
               <button
-                onClick={() => goToStep('register')}
+                onClick={() => onGoToStep('consumo')}
                 className="text-white/40 text-sm hover:text-white transition-colors flex items-center gap-1"
               >
                 <ArrowLeft size={14} /> {t.back}
@@ -148,19 +160,6 @@ export default function OnboardingFlow() {
                 {t.next} <ArrowRight size={18} />
               </button>
             </motion.div>
-
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="text-white/30 text-xs mt-4 flex items-center justify-center gap-1"
-            >
-              <ShieldCheck size={12} />
-              {locale === 'ca' ? 'Informació confidencial' :
-               locale === 'pt' ? 'Informação confidencial' :
-               locale === 'en' ? 'Confidential information' :
-               'Información confidencial'}
-            </motion.p>
           </div>
         </motion.div>
       )}

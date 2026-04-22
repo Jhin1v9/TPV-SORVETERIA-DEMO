@@ -42,15 +42,15 @@ export default function CardapioScreen({
   };
 
   const handleAdd = (produto: Produto) => {
-    const qtd = getQuantidade(produto.id);
-    if (qtd > 0) {
-      onAddToCart(produto, qtd);
-      setQuantidades((prev) => ({ ...prev, [produto.id]: 0 }));
-    } else if (isProdutoPersonalizavel(produto)) {
+    if (isProdutoPersonalizavel(produto)) {
       onPersonalizar(produto);
-    } else {
-      onAddToCart(produto, 1);
+      return;
     }
+    // Produto fixo: adiciona quantidade selecionada (ou 1 se nenhuma)
+    const qtd = getQuantidade(produto.id);
+    const quantidadeFinal = qtd > 0 ? qtd : 1;
+    onAddToCart(produto, quantidadeFinal);
+    setQuantidades((prev) => ({ ...prev, [produto.id]: 0 }));
   };
 
   return (
@@ -251,8 +251,7 @@ function ProdutoCard({
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={onAdd}
-                disabled={quantidade === 0}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2 disabled:opacity-40"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2"
               >
                 <Plus size={18} /> Añadir
               </motion.button>

@@ -18,7 +18,7 @@
 - Schema definitivo: `supabase/schema-expanded.sql` (auto-contido)
 - Tabelas: `categories` (legado), `product_categories`, `products`, `flavors`, `toppings`, `orders`, `order_items`, `customers`, `store_settings`, `inventory_log`
 - RPCs funcionais:
-  - `create_order` ✅ (suporta formato novo `product` + legado `categoria`)
+  - `create_order` ✅ (suporta formato novo `product` + legado `categoria`, agora com `customer_id`)
   - `create_demo_order` ✅ (delega para `create_order`)
   - `update_order_status` ✅
   - `adjust_flavor_stock` ✅
@@ -28,13 +28,16 @@
   - `get_products_by_category` ✅
   - `update_product_stock` ✅
   - `upsert_customer` ✅
-- Realtime publication configurada para todas as tabelas
+  - `generate_kiosk_code` ✅ (novo — gera código de 5 dígitos para login kiosk)
+  - `validate_kiosk_code` ✅ (novo — valida código e retorna customer_id)
+- Realtime publication configurada para todas as tabelas (incluindo `kiosk_codes`)
 
 ### Modelo de Dados (Novo)
 - **Produtos fixos**: `copa-bahia`, `copa-oreo`, `cafe`, etc. — preço fixo, sem personalização
 - **Produtos personalizáveis**: `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` (tamanhos, sabores, toppings, frutas, extras) e `limites`
-- **Pedidos**: armazenam `product_snapshot` JSONB imutável + `selections` JSONB
+- **Pedidos**: armazenam `product_snapshot` JSONB imutável + `selections` JSONB, agora com `customer_id` FK
 - **Estoque**: sabores artesanais com `stock_buckets` + `inventory_log` para auditoria
+- **Kiosk Codes**: nova tabela `kiosk_codes` para login rápido PWA ↔ Kiosk (código 5 dígitos, TTL 5 min)
 - **Compatibilidade**: campos legados (`category_sku`, `category_name`, `flavors`, `toppings`) populados automaticamente pela RPC para KDS/Admin legado
 
 ### Fluxo do Kiosk
@@ -71,6 +74,8 @@ Cardápio → [PersonalizacaoDrawer opcional] → (fly-to-cart animation) → Ta
 - Todas as imagens dos produtos no catálogo apontam para assets locais (não mais Unsplash)
 
 ### Pendente / Próximos Passos
+- [x] Aplicar migration SQL no Supabase remoto (tabela `kiosk_codes` + RPCs) — ✅ Aplicado em 2026-04-21
+- [x] Testar RPCs no Supabase remoto — ✅ generate_kiosk_code, validate_kiosk_code, create_order com customer_id — todas funcionando
 - [ ] Deploy para Vercel (4 apps)
 - [ ] Testar fluxo end-to-end no kiosk deployado
 - [ ] Adicionar imagens reais individuais de cada produto (atualmente usando imagens de categoria como placeholder)

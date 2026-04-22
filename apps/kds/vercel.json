@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:kds",
+  "buildCommand": "cd ../.. && npm run build:kds",
   "outputDirectory": "dist/kds",
   "framework": "vite",
   "env": {
