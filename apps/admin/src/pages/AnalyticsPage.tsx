@@ -24,7 +24,7 @@ function getDayKey(date: Date) {
   ].join('-');
 }
 
-export default function AnalyticsPage() {
+export default function AnálisisPage() {
   const { pedidos } = useStore();
   const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | 'today'>('7d');
 

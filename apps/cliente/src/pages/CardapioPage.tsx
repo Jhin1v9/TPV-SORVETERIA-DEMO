@@ -10,6 +10,7 @@ import SkeletonCard from '@tpv/shared/components/SkeletonCard';
 import AlergenoBadge from '@tpv/shared/components/AlergenoBadge';
 import { useClienteToast } from '../hooks/useClienteToast';
 import ProductDetailModal from '../components/ProductDetailModal';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 interface FlyingItem {
   id: string;
@@ -134,11 +135,13 @@ export default function CardapioPage() {
       </AnimatePresence>
 
       {produtoSelecionado && (
-        <ProductDetailModal
-          key={`modal-${produtoSelecionado.id}`}
-          produto={produtoSelecionado}
-          onClose={() => setProdutoSelecionado(null)}
-        />
+        <ErrorBoundary key={`eb-${produtoSelecionado.id}`}>
+          <ProductDetailModal
+            key={`modal-${produtoSelecionado.id}`}
+            produto={produtoSelecionado}
+            onClose={() => setProdutoSelecionado(null)}
+          />
+        </ErrorBoundary>
       )}
 
       {/* Empty State */}

@@ -1,0 +1,295 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Supabase" [ref=e9] [cursor=pointer]:
+              - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+              - img "Supabase" [ref=e10]
+            - generic [ref=e11]:
+              - img [ref=e252]
+              - generic [ref=e254]:
+                - link "Jhin1v9's Org Free" [ref=e255] [cursor=pointer]:
+                  - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+                  - img [ref=e256]
+                  - generic [ref=e266]: Jhin1v9's Org
+                  - generic [ref=e267]: Free
+                - button [ref=e268] [cursor=pointer]:
+                  - img [ref=e270]
+              - generic [ref=e12]:
+                - img [ref=e14]
+                - generic [ref=e16]:
+                  - link "Sorveteria demo" [ref=e17] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                    - img [ref=e18]
+                    - generic "Sorveteria demo" [ref=e21]
+                  - button [ref=e22] [cursor=pointer]:
+                    - img [ref=e24]
+                - img [ref=e28]
+                - generic [ref=e273]:
+                  - link "main Production" [ref=e274] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                    - generic "main" [ref=e275]
+                    - generic [ref=e276]: Production
+                  - button [ref=e277] [cursor=pointer]:
+                    - img [ref=e279]
+            - button "Connect" [ref=e32] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e36]: Connect
+          - generic [ref=e37]:
+            - generic [ref=e39] [cursor=pointer]: Feedback
+            - generic [ref=e40]:
+              - button "Search..." [ref=e41] [cursor=pointer]:
+                - generic [ref=e42]:
+                  - img [ref=e43]
+                  - paragraph [ref=e46]: Search...
+                - generic [ref=e48]: Ctrl K
+              - button [ref=e49] [cursor=pointer]:
+                - img [ref=e51]
+              - button [ref=e55] [cursor=pointer]:
+                - img [ref=e57]
+              - button [ref=e59] [cursor=pointer]:
+                - img [ref=e61]
+              - button [ref=e63] [cursor=pointer]:
+                - img [ref=e67]
+            - link "Upgrade to Pro" [ref=e282] [cursor=pointer]:
+              - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing?panel=subscriptionPlan&source=headerUpgradeCta
+              - generic [ref=e283]: Upgrade to Pro
+            - button "Jhin1v9" [ref=e70] [cursor=pointer]:
+              - img "Jhin1v9" [ref=e72]
+      - generic [ref=e73]:
+        - generic [ref=e77]:
+          - list [ref=e80]:
+            - generic [ref=e81]:
+              - listitem [ref=e82]:
+                - link "Project Overview" [ref=e83] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                  - img [ref=e84]
+                  - generic: Project Overview
+              - listitem [ref=e86]:
+                - link "Table Editor" [ref=e87] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/editor
+                  - img [ref=e88]
+                  - generic: Table Editor
+              - listitem [ref=e90]:
+                - link "SQL Editor" [ref=e91] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/sql
+                  - img [ref=e92]
+                  - generic: SQL Editor
+            - generic [ref=e94]:
+              - listitem [ref=e95]:
+                - link "Database" [ref=e96] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/database/schemas
+                  - img [ref=e97]
+                  - generic: Database
+              - listitem [ref=e101]:
+                - link "Authentication" [ref=e102] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/auth/users
+                  - img [ref=e103]
+                  - generic: Authentication
+              - listitem [ref=e105]:
+                - link "Storage" [ref=e106] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/storage/files
+                  - img [ref=e107]
+                  - generic: Storage
+              - listitem [ref=e109]:
+                - link "Edge Functions" [ref=e110] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/functions
+                  - img [ref=e111]
+                  - generic: Edge Functions
+              - listitem [ref=e116]:
+                - link "Realtime" [ref=e117] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/realtime/inspector
+                  - img [ref=e118]
+                  - generic: Realtime
+            - generic [ref=e120]:
+              - listitem [ref=e122]:
+                - link "Advisors" [ref=e123] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/advisors/security
+                  - img [ref=e124]
+                  - generic: Advisors
+              - listitem [ref=e126]:
+                - link "Observability" [ref=e127] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/observability
+                  - img [ref=e128]
+                  - generic: Observability
+              - listitem [ref=e136]:
+                - link "Logs" [ref=e137] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/logs/explorer
+                  - img [ref=e138]
+                  - generic: Logs
+              - listitem [ref=e139]:
+                - link "Integrations" [ref=e140] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                  - img [ref=e141]
+                  - generic: Integrations
+            - listitem [ref=e145]:
+              - link "Project Settings" [ref=e146] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/general
+                - img [ref=e147]
+                - generic: Project Settings
+          - button [ref=e152] [cursor=pointer]:
+            - img [ref=e154]
+        - generic [ref=e161]:
+          - generic [ref=e165]:
+            - heading "Integrations" [level=4] [ref=e167]
+            - generic [ref=e168]:
+              - generic [ref=e169]:
+                - generic [ref=e171]: Explore
+                - generic [ref=e172]:
+                  - link "All" [disabled] [ref=e173] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                    - menuitem "All" [disabled] [ref=e174]:
+                      - generic "All" [ref=e177]:
+                        - generic [ref=e178]: All
+                  - link "Wrappers" [disabled] [ref=e179] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations?category=wrapper
+                    - menuitem "Wrappers" [disabled] [ref=e180]:
+                      - generic "Wrappers" [ref=e183]:
+                        - generic [ref=e184]: Wrappers
+                  - link "Postgres Modules" [disabled] [ref=e185] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations?category=postgres_extension
+                    - menuitem "Postgres Modules" [disabled] [ref=e186]:
+                      - generic "Postgres Modules" [ref=e189]:
+                        - generic [ref=e190]: Postgres Modules
+              - generic [ref=e191]:
+                - generic [ref=e193]: Installed
+                - generic [ref=e284]:
+                  - link "Data API" [disabled] [ref=e285] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/overview
+                    - menuitem "Data API" [disabled] [ref=e286]:
+                      - img [ref=e289]
+                      - generic "Data API" [ref=e295]:
+                        - generic [ref=e296]: Data API
+                  - link "GraphiQL GraphQL" [disabled] [ref=e297] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/graphiql/overview
+                    - menuitem "GraphiQL GraphQL" [disabled] [ref=e298]:
+                      - img "GraphiQL" [ref=e301]
+                      - generic "GraphQL" [ref=e304]:
+                        - generic [ref=e305]: GraphQL
+                  - link "Vault beta" [disabled] [ref=e306] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/vault/overview
+                    - menuitem "Vault beta" [disabled] [ref=e307]:
+                      - img [ref=e310]
+                      - generic "Vault" [ref=e323]:
+                        - generic [ref=e324]: Vault
+                        - generic [ref=e325]: beta
+          - separator [disabled] [ref=e198]:
+            - img [ref=e200]
+          - main [ref=e209]:
+            - generic [ref=e210]:
+              - navigation "breadcrumb" [ref=e212]:
+                - list [ref=e213]:
+                  - listitem [ref=e214]:
+                    - link "Integrations" [ref=e215] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                  - listitem [ref=e216]:
+                    - img [ref=e217]
+                  - listitem [ref=e219]:
+                    - link "Data API" [disabled] [ref=e220]
+              - generic [ref=e222]:
+                - img [ref=e225]
+                - generic [ref=e229]:
+                  - heading "Data API" [level=1] [ref=e230]
+                  - generic [ref=e231]: Auto-generate an API directly from your database schema
+              - navigation [ref=e328]:
+                - menu [ref=e329]:
+                  - listitem [ref=e330]:
+                    - link "Overview" [ref=e331] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/overview
+                  - listitem [ref=e332]:
+                    - link "Settings" [ref=e333] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/settings
+                  - listitem [ref=e334]:
+                    - link "Docs" [ref=e335] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/docs
+            - generic [ref=e339]:
+              - generic [ref=e340]:
+                - generic [ref=e341]:
+                  - generic [ref=e342]:
+                    - generic [ref=e344]:
+                      - button "2 of 2 schemas exposed" [ref=e346] [cursor=pointer]:
+                        - paragraph [ref=e349]: 2 of 2 schemas exposed
+                        - img [ref=e351]
+                      - generic [ref=e354]:
+                        - generic [ref=e356]: Exposed schemas
+                        - paragraph [ref=e357]: Select schemas to include in the Data API. Schemas must be included before tables can be exposed.
+                    - generic [ref=e359]:
+                      - button "11 of 11 tables exposed" [ref=e361] [cursor=pointer]:
+                        - paragraph [ref=e364]: 11 of 11 tables exposed
+                        - img [ref=e366]
+                      - generic [ref=e369]:
+                        - generic [ref=e371]: Exposed tables
+                        - paragraph [ref=e372]: Toggle Data API access for individual tables.
+                    - generic [ref=e374]:
+                      - button "17 of 17 functions exposed" [ref=e376] [cursor=pointer]:
+                        - paragraph [ref=e379]: 17 of 17 functions exposed
+                        - img [ref=e381]
+                      - generic [ref=e384]:
+                        - generic [ref=e386]: Exposed functions
+                        - paragraph [ref=e387]: Toggle Data API access for individual functions.
+                    - generic [ref=e390]:
+                      - generic [ref=e392]:
+                        - switch [checked] [ref=e393] [cursor=pointer]
+                        - checkbox [checked]
+                      - generic [ref=e394]:
+                        - generic [ref=e396]: Automatically expose new tables and functions
+                        - generic [ref=e397]: Grants privileges to Data API roles by default, exposing new tables and functions. We recommend disabling this to control access manually.
+                  - generic [ref=e401]:
+                    - combobox [ref=e405] [cursor=pointer]:
+                      - generic [ref=e406]:
+                        - generic [ref=e407]:
+                          - text: public
+                          - img [ref=e409]
+                        - generic [ref=e412]:
+                          - text: extensions
+                          - img [ref=e414]
+                        - combobox [expanded] [ref=e418]
+                    - generic [ref=e419]:
+                      - generic [ref=e421]: Extra search path
+                      - generic [ref=e422]: Extra schemas to add to the search path of every request.
+                  - generic [ref=e426]:
+                    - group [ref=e428]:
+                      - spinbutton [ref=e429]: "1000"
+                      - group [ref=e430]:
+                        - generic [ref=e431]: rows
+                    - generic [ref=e432]:
+                      - generic [ref=e434]: Max rows
+                      - generic [ref=e435]: The maximum number of rows returned from a view, table, or function. Limits payload size for accidental or malicious requests.
+                  - generic [ref=e439]:
+                    - group [ref=e441]:
+                      - spinbutton [ref=e442]
+                      - group [ref=e443]:
+                        - generic [ref=e444]: connections
+                    - generic [ref=e445]:
+                      - generic [ref=e447]: Pool size
+                      - generic [ref=e448]: Number of maximum connections to keep open in the Data API server's database pool. Unset to let it be configured automatically based on compute size.
+                - generic [ref=e451]:
+                  - button "Cancel" [disabled]:
+                    - generic: Cancel
+                  - button "Save" [disabled]:
+                    - generic: Save
+              - generic [ref=e455]:
+                - button "Harden Data API" [ref=e458] [cursor=pointer]:
+                  - img [ref=e460]
+                  - generic [ref=e463]: Harden Data API
+                - generic [ref=e464]:
+                  - generic [ref=e466]: Harden Data API
+                  - paragraph [ref=e467]: Expose a custom schema instead of the public schema
+    - region "Notifications alt+T":
+      - list
+      - list:
+        - status [ref=e239]:
+          - generic [ref=e240]:
+            - paragraph [ref=e242]:
+              - text: We use cookies to collect data and improve our services.
+              - link "Learn more" [ref=e243] [cursor=pointer]:
+                - /url: https://supabase.com/privacy#8-cookies-and-similar-technologies-used-on-our-european-services
+            - generic [ref=e244]:
+              - button "Accept" [ref=e245] [cursor=pointer]:
+                - generic [ref=e246]: Accept
+              - button "Opt out" [ref=e247] [cursor=pointer]:
+                - generic [ref=e248]: Opt out
+              - button "Privacy settings" [ref=e249] [cursor=pointer]
+  - alert [ref=e250]: Integrations | Supabase

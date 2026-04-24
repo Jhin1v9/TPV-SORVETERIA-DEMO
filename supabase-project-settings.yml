@@ -1,0 +1,331 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link "Supabase" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+            - img "Supabase" [ref=e10]
+          - generic [ref=e11]:
+            - img [ref=e252]
+            - generic [ref=e254]:
+              - link "Jhin1v9's Org Free" [ref=e255] [cursor=pointer]:
+                - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+                - img [ref=e256]
+                - generic [ref=e266]: Jhin1v9's Org
+                - generic [ref=e267]: Free
+              - button [ref=e268] [cursor=pointer]:
+                - img [ref=e270]
+            - generic [ref=e12]:
+              - img [ref=e14]
+              - generic [ref=e16]:
+                - link "Sorveteria demo" [ref=e17] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                  - img [ref=e18]
+                  - generic "Sorveteria demo" [ref=e21]
+                - button [ref=e22] [cursor=pointer]:
+                  - img [ref=e24]
+              - img [ref=e28]
+              - generic [ref=e273]:
+                - link "main Production" [ref=e274] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                  - generic "main" [ref=e275]
+                  - generic [ref=e276]: Production
+                - button [ref=e277] [cursor=pointer]:
+                  - img [ref=e279]
+          - button "Connect" [ref=e32] [cursor=pointer]:
+            - img [ref=e34]
+            - generic [ref=e36]: Connect
+        - generic [ref=e37]:
+          - generic [ref=e39] [cursor=pointer]: Feedback
+          - generic [ref=e40]:
+            - button "Search..." [ref=e41] [cursor=pointer]:
+              - generic [ref=e42]:
+                - img [ref=e43]
+                - paragraph [ref=e46]: Search...
+              - generic [ref=e48]: Ctrl K
+            - button [ref=e49] [cursor=pointer]:
+              - img [ref=e51]
+            - button [ref=e55] [cursor=pointer]:
+              - img [ref=e57]
+            - button [ref=e59] [cursor=pointer]:
+              - img [ref=e61]
+            - button [ref=e63] [cursor=pointer]:
+              - img [ref=e67]
+          - link "Upgrade to Pro" [ref=e282] [cursor=pointer]:
+            - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing?panel=subscriptionPlan&source=headerUpgradeCta
+            - generic [ref=e283]: Upgrade to Pro
+          - button "Jhin1v9" [ref=e70] [cursor=pointer]:
+            - img "Jhin1v9" [ref=e72]
+    - generic [ref=e73]:
+      - generic [ref=e77]:
+        - list [ref=e80]:
+          - generic [ref=e81]:
+            - listitem [ref=e82]:
+              - link "Project Overview" [ref=e83] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                - img [ref=e84]
+                - generic: Project Overview
+            - listitem [ref=e86]:
+              - link "Table Editor" [ref=e87] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/editor
+                - img [ref=e88]
+                - generic: Table Editor
+            - listitem [ref=e90]:
+              - link "SQL Editor" [ref=e91] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/sql
+                - img [ref=e92]
+                - generic: SQL Editor
+          - generic [ref=e94]:
+            - listitem [ref=e95]:
+              - link "Database" [ref=e96] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/database/schemas
+                - img [ref=e97]
+                - generic: Database
+            - listitem [ref=e101]:
+              - link "Authentication" [ref=e102] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/auth/users
+                - img [ref=e103]
+                - generic: Authentication
+            - listitem [ref=e105]:
+              - link "Storage" [ref=e106] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/storage/files
+                - img [ref=e107]
+                - generic: Storage
+            - listitem [ref=e109]:
+              - link "Edge Functions" [ref=e110] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/functions
+                - img [ref=e111]
+                - generic: Edge Functions
+            - listitem [ref=e116]:
+              - link "Realtime" [ref=e117] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/realtime/inspector
+                - img [ref=e118]
+                - generic: Realtime
+          - generic [ref=e120]:
+            - listitem [ref=e122]:
+              - link "Advisors" [ref=e123] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/advisors/security
+                - img [ref=e124]
+                - generic: Advisors
+            - listitem [ref=e126]:
+              - link "Observability" [ref=e127] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/observability
+                - img [ref=e128]
+                - generic: Observability
+            - listitem [ref=e136]:
+              - link "Logs" [ref=e137] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/logs/explorer
+                - img [ref=e138]
+                - generic: Logs
+            - listitem [ref=e139]:
+              - link "Integrations" [ref=e140] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                - img [ref=e141]
+                - generic: Integrations
+          - listitem [ref=e145]:
+            - link "Project Settings" [active] [ref=e146] [cursor=pointer]:
+              - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/general
+              - img [ref=e147]
+              - generic: Project Settings
+        - button [ref=e152] [cursor=pointer]:
+          - img [ref=e154]
+      - generic [ref=e482]:
+        - generic [ref=e486]:
+          - heading "Settings" [level=4] [ref=e488]
+          - menu "Sidebar" [disabled] [ref=e491]:
+            - list [ref=e492]:
+              - generic [ref=e495]:
+                - generic [ref=e499]: Configuration
+                - generic [ref=e500]:
+                  - link "General" [disabled] [ref=e501] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/general
+                    - menuitem "General" [disabled] [ref=e502]:
+                      - generic "General" [ref=e505]:
+                        - generic [ref=e506]: General
+                  - link "Compute and Disk" [disabled] [ref=e507] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/compute-and-disk
+                    - menuitem "Compute and Disk" [disabled] [ref=e508]:
+                      - generic "Compute and Disk" [ref=e511]:
+                        - generic [ref=e512]: Compute and Disk
+                  - link "Infrastructure" [disabled] [ref=e513] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/infrastructure
+                    - menuitem "Infrastructure" [disabled] [ref=e514]:
+                      - generic "Infrastructure" [ref=e517]:
+                        - generic [ref=e518]: Infrastructure
+                  - link "Integrations" [disabled] [ref=e519] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/integrations
+                    - menuitem "Integrations" [disabled] [ref=e520]:
+                      - generic "Integrations" [ref=e523]:
+                        - generic [ref=e524]: Integrations
+                  - link "API Keys" [disabled] [ref=e525] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/api-keys
+                    - menuitem "API Keys" [disabled] [ref=e526]:
+                      - generic "API Keys" [ref=e529]:
+                        - generic [ref=e530]: API Keys
+                  - link "JWT Keys" [disabled] [ref=e531] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/jwt
+                    - menuitem "JWT Keys" [disabled] [ref=e532]:
+                      - generic "JWT Keys" [ref=e535]:
+                        - generic [ref=e536]: JWT Keys
+                  - link "Log Drains" [disabled] [ref=e537] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/log-drains
+                    - menuitem "Log Drains" [disabled] [ref=e538]:
+                      - generic "Log Drains" [ref=e541]:
+                        - generic [ref=e542]: Log Drains
+                  - link "Add-ons" [disabled] [ref=e543] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/addons
+                    - menuitem "Add-ons" [disabled] [ref=e544]:
+                      - generic "Add-ons" [ref=e547]:
+                        - generic [ref=e548]: Add-ons
+              - generic [ref=e552]:
+                - generic [ref=e556]: Integrations
+                - generic [ref=e557]:
+                  - link "Data API" [disabled] [ref=e558] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/overview
+                    - menuitem "Data API" [disabled] [ref=e559]:
+                      - generic [ref=e561]:
+                        - generic "Data API" [ref=e562]:
+                          - generic [ref=e563]: Data API
+                        - img [ref=e565]
+                  - link "Vault Beta" [disabled] [ref=e568] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/vault/overview
+                    - menuitem "Vault Beta" [disabled] [ref=e569]:
+                      - generic [ref=e571]:
+                        - generic "Vault" [ref=e572]:
+                          - generic [ref=e573]: Vault
+                          - generic [ref=e574]: Beta
+                        - img [ref=e576]
+              - generic [ref=e582]:
+                - generic [ref=e586]: Billing
+                - generic [ref=e587]:
+                  - link "Subscription" [disabled] [ref=e588] [cursor=pointer]:
+                    - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing
+                    - menuitem "Subscription" [disabled] [ref=e589]:
+                      - generic [ref=e591]:
+                        - generic "Subscription" [ref=e592]:
+                          - generic [ref=e593]: Subscription
+                        - img [ref=e595]
+                  - link "Usage" [disabled] [ref=e598] [cursor=pointer]:
+                    - /url: /dashboard/org/gvejpcojsuiufnzykgnw/usage?projectRef=jmvikjujftidgcezmlfc
+                    - menuitem "Usage" [disabled] [ref=e599]:
+                      - generic [ref=e601]:
+                        - generic "Usage" [ref=e602]:
+                          - generic [ref=e603]: Usage
+                        - img [ref=e605]
+        - separator [disabled] [ref=e608]:
+          - img [ref=e610]
+        - main [ref=e619]:
+          - generic [ref=e623]:
+            - heading "Project Settings" [level=1] [ref=e624]
+            - generic [ref=e625]: General configuration, domains, ownership, and lifecycle
+          - generic [ref=e626]:
+            - generic [ref=e627]:
+              - heading "General settings" [level=2] [ref=e631]
+              - generic [ref=e634]:
+                - generic [ref=e637]:
+                  - textbox [ref=e639]: Sorveteria demo
+                  - generic [ref=e640]:
+                    - generic [ref=e642]: Project name
+                    - generic [ref=e643]: Displayed throughout the dashboard.
+                - generic [ref=e646]:
+                  - group [ref=e648]:
+                    - textbox [ref=e649]: jmvikjujftidgcezmlfc
+                    - group [ref=e650]:
+                      - button "Copy" [ref=e651] [cursor=pointer]:
+                        - img [ref=e653]
+                        - generic [ref=e656]: Copy
+                  - generic [ref=e657]:
+                    - generic [ref=e659]: Project ID
+                    - generic [ref=e660]: Reference used in APIs and URLs.
+                - generic [ref=e661]:
+                  - button "Save changes" [disabled]:
+                    - generic: Save changes
+            - generic [ref=e662]:
+              - heading "Project access" [level=2] [ref=e666]
+              - generic [ref=e668]:
+                - generic [ref=e670]:
+                  - generic [ref=e671]:
+                    - paragraph [ref=e672]: Organization-wide access
+                    - paragraph [ref=e673]: All 1 organization members can access this project.
+                  - link "Manage members" [ref=e674] [cursor=pointer]:
+                    - /url: /dashboard/org/gvejpcojsuiufnzykgnw/team
+                    - generic [ref=e675]: Manage members
+                - table [ref=e679]:
+                  - rowgroup [ref=e680]:
+                    - row "Member Role" [ref=e681]:
+                      - columnheader "Member" [ref=e682]
+                      - columnheader "Role" [ref=e683]
+                  - rowgroup [ref=e684]:
+                    - row "abnerr2002@icloud.com You Owner" [ref=e685]:
+                      - cell "abnerr2002@icloud.com You" [ref=e686]:
+                        - generic [ref=e687]:
+                          - paragraph [ref=e688]: abnerr2002@icloud.com
+                          - generic [ref=e689]: You
+                      - cell "Owner" [ref=e690]
+            - generic [ref=e691]:
+              - generic [ref=e694]:
+                - heading "Project availability" [level=2] [ref=e695]
+                - generic [ref=e696]: Restart or pause your project when performing maintenance
+              - generic [ref=e698]:
+                - generic [ref=e700]:
+                  - generic [ref=e701]:
+                    - paragraph [ref=e702]: Restart project
+                    - paragraph [ref=e704]: Your project will not be available for a few minutes.
+                  - generic [ref=e705]:
+                    - button "Restart project" [ref=e706] [cursor=pointer]:
+                      - generic [ref=e707]: Restart project
+                    - button [ref=e708] [cursor=pointer]:
+                      - img [ref=e710]
+                - generic [ref=e713]:
+                  - generic [ref=e714]:
+                    - paragraph [ref=e715]: Pause project
+                    - paragraph [ref=e717]: Your project will not be accessible while it is paused.
+                  - button "Pause project" [ref=e718] [cursor=pointer]:
+                    - img [ref=e720]
+                    - generic [ref=e723]: Pause project
+            - generic [ref=e724]:
+              - heading "Project usage" [level=2] [ref=e728]
+              - generic [ref=e732]:
+                - generic [ref=e733]:
+                  - img [ref=e734]
+                  - generic [ref=e735]:
+                    - paragraph [ref=e736]: Project usage statistics have been moved
+                    - paragraph [ref=e737]: You may view your project's usage under your organization's settings
+                - link "View project usage" [ref=e738] [cursor=pointer]:
+                  - /url: /dashboard/org/gvejpcojsuiufnzykgnw/usage?projectRef=jmvikjujftidgcezmlfc
+                  - generic [ref=e739]: View project usage
+            - generic [ref=e740]:
+              - generic [ref=e743]:
+                - heading "Custom domains" [level=2] [ref=e744]
+                - generic [ref=e745]: Present a branded experience to your users
+              - alert [ref=e747]:
+                - img [ref=e748]
+                - generic [ref=e750]:
+                  - generic [ref=e751]:
+                    - heading "Custom domains are a Pro Plan add-on" [level=5] [ref=e752]
+                    - paragraph [ref=e754]: Paid Plans come with free vanity subdomains or Custom Domains for an additional $10/month per domain.
+                  - link "Upgrade to Pro" [ref=e756] [cursor=pointer]:
+                    - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing?panel=subscriptionPlan&source=customDomain
+                    - generic [ref=e757]: Upgrade to Pro
+            - generic [ref=e758]:
+              - heading "Transfer project" [level=2] [ref=e762]
+              - generic [ref=e766]:
+                - generic [ref=e767]:
+                  - img [ref=e768]
+                  - generic [ref=e773]:
+                    - paragraph [ref=e774]: Transfer project to another organization
+                    - paragraph [ref=e775]: To transfer projects, the owner must be a member of both the source and target organizations.
+                - button "Transfer project" [ref=e777] [cursor=pointer]:
+                  - generic [ref=e778]: Transfer project
+            - generic [ref=e779]:
+              - generic [ref=e782]:
+                - heading "Delete project" [level=2] [ref=e783]
+                - generic [ref=e784]: Permanently remove your project and its database
+              - alert [ref=e786]:
+                - img [ref=e787]
+                - heading "Deleting this project will also remove your database." [level=5] [ref=e789]
+                - paragraph [ref=e791]: Make sure you have made a backup if you want to keep your data.
+                - button "Delete project" [ref=e793] [cursor=pointer]:
+                  - generic [ref=e794]: Delete project
+  - alert [ref=e250]: General | Settings | Sorveteria demo | Jhin1v9's Org | Supabase

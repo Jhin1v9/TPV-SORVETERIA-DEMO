@@ -56,22 +56,26 @@ from origin 'https://cliente-pearl.vercel.app' has been blocked by CORS policy
 
 ### BUG-003 — Cliente PWA: Tela branca ao abrir modal (WSOD)
 **Data:** 2026-04-21
-**Status:** 🔴 OPEN (investigando)
+**Status:** ✅ FIXED (2026-04-24)
 **Severidade:** 🔴 Crítica
 **Persona:** Surgeon
-**Sintoma:** Ao clicar em qualquer produto no cardápio, a tela fica completamente branca (white screen of death).
-**Causa Raiz:** MÚLTIPLAS causas prováveis (ver `DIAGNOSTICO_BUGS.md`):
-1. `scrollRef.current` acessado antes do DOM montar
-2. `AnimatePresence` aninhado sem `mode="wait"` ou `key`
-3. Cast forçado `produto.opcoes as Record<string, OpcaoPersonalizacao[]>` pode falhar em runtime
-4. Possível loop infinito de renderização se `produto` é recriado
-5. Import `todosProdutos` pode estar undefined por circular dependency
-**Fix:** PENDENTE — Adicionar Error Boundary no `ProductDetailModal`, simplificar useEffect, adicionar `key` ao AnimatePresence.
+**Sintoma:** Ao clicar em qualquer produto no cardápio, a tela ficava completamente branca (white screen of death).
+**Causa Raiz:** Múltiplas causas potenciais:
+1. `scrollRef.current?.scrollTo` com `behavior: 'instant'` não suportado em todos os browsers
+2. Cast forçado `produto.opcoes as Record<string, OpcaoPersonalizacao[]>` falhava se `opcoes` fosse null/undefined
+3. Falta de Error Boundary permitia que qualquer erro de runtime quebrasse toda a tela
+**Fix:**
+- Adicionado `ErrorBoundary` em `apps/cliente/src/components/ErrorBoundary.tsx`
+- `ProductDetailModal` envolvido com `<ErrorBoundary>` no `CardapioPage.tsx`
+- Guard null-check adicionado em `scrollRef.current` antes de chamar `scrollTo`
+- Guard null-check adicionado em `produto.opcoes` antes de cast (`Array.isArray` check)
+- Build passa ✅
 **Lição:**
 - 🧠 Build passando ≠ runtime seguro. TypeScript não protege de tudo.
 - 🧠 Modais complexos precisam de Error Boundaries
 - 🧠 `useEffect` com refs precisa de guards null-check
-**Links:** [[DIAGNOSTICO_BUGS.md — Seção 1]]
+- 🧠 Casts forçados (`as`) são mentiras para o compilador — sempre validar em runtime
+**Links:** `apps/cliente/src/components/ProductDetailModal.tsx`, `apps/cliente/src/components/ErrorBoundary.tsx`
 
 ---
 

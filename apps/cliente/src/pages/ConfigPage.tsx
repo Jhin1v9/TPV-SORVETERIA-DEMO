@@ -75,19 +75,27 @@ export default function ConfigPage() {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-black/5">
         <h3 className="font-semibold text-gray-800 mb-3">{t('language', locale)}</h3>
         <div className="grid grid-cols-2 gap-2">
-          {locales.map((loc) => (
-            <button
-              key={loc}
-              onClick={() => setLocale(loc)}
-              className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
-                locale === loc
-                  ? 'bg-[#FF6B9D] text-white'
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              {getLocaleName(loc)}
-            </button>
-          ))}
+          {locales.map((loc) => {
+            const flagSrc =
+              loc === 'es' ? '/assets/flags/es.svg' :
+              loc === 'ca' ? '/assets/flags/es-ct.svg' :
+              loc === 'pt' ? '/assets/flags/br.svg' :
+              '/assets/flags/gb.svg';
+            return (
+              <button
+                key={loc}
+                onClick={() => setLocale(loc)}
+                className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors flex items-center gap-2.5 ${
+                  locale === loc
+                    ? 'bg-[#FF6B9D] text-white'
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <img src={flagSrc} alt={loc} className="w-6 h-4 rounded object-cover shadow-sm" />
+                {getLocaleName(loc)}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -101,7 +109,7 @@ export default function ConfigPage() {
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             className="w-full bg-gray-50 rounded-xl px-3 py-2 text-sm border border-black/5 focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/30"
-            placeholder="Seu nome"
+            placeholder="Tu nombre"
           />
         </div>
         <div>
@@ -111,7 +119,7 @@ export default function ConfigPage() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full bg-gray-50 rounded-xl px-3 py-2 text-sm border border-black/5 focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/30"
-            placeholder="seu@email.com"
+            placeholder="tu@email.com"
           />
         </div>
         <div>

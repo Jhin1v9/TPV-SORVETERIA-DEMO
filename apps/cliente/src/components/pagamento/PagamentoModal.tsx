@@ -1,10 +1,10 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CreditCard, Smartphone, Banknote, ChevronRight, ShieldCheck, Lock } from 'lucide-react';
+import { X, CreditCard, Smartphone, Banknote, ChevronRight, ShieldCheck, Lock, Wallet, Apple } from 'lucide-react';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
 
-export type MetodoPagamento = 'tarjeta' | 'bizum' | 'efectivo';
+export type MetodoPagamento = 'tarjeta' | 'bizum' | 'efectivo' | 'apple_pay' | 'google_pay';
 
 export interface PagamentoData {
   metodo: MetodoPagamento;
@@ -17,15 +17,28 @@ export interface PagamentoData {
   bizum?: {
     telefono: string;
   };
+  /** Usado para Stripe, Apple Pay, Google Pay */
+  stripeClientSecret?: string;
+  stripePaymentIntentId?: string;
 }
 
 interface PagamentoModalProps {
   total: number;
   onClose: () => void;
   onSubmit: (data: PagamentoData) => void;
+  /** Se true, mostra opções de Stripe (Apple Pay, Google Pay, cartão) */
+  stripeEnabled?: boolean;
+  /** Se true, está em modo kiosk físico (TPV) */
+  isPhysicalKiosk?: boolean;
 }
 
-export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoModalProps) {
+export default function PagamentoModal({
+  total,
+  onClose,
+  onSubmit,
+  stripeEnabled = false,
+  isPhysicalKiosk = false,
+}: PagamentoModalProps) {
   const { locale } = useStore();
   const [metodo, setMetodo] = useState<MetodoPagamento>('tarjeta');
   const [tarjetaNumero, setTarjetaNumero] = useState('');
@@ -37,6 +50,10 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
 
   const iva = total * 0.10;
   const totalConIva = total + iva;
+
+  // Detecta se o navegador suporta Apple Pay ou Google Pay
+  const canUseApplePay = typeof window !== 'undefined' && /iPhone|iPad|iPod|Mac/.test(navigator.userAgent);
+  const canUseGooglePay = typeof window !== 'undefined' && /Android/.test(navigator.userAgent);
 
   const validate = useCallback((): boolean => {
     const errs: Record<string, string> = {};
@@ -55,6 +72,13 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
 
   const handleSubmit = () => {
     if (!validate()) return;
+
+    // Se kiosk físico + tarjeta → envia sem dados manuais (TPV físico lê o cartão)
+    if (isPhysicalKiosk && metodo === 'tarjeta') {
+      onSubmit({ metodo: 'tarjeta' });
+      return;
+    }
+
     const data: PagamentoData = {
       metodo,
       ...(metodo === 'tarjeta' && {
@@ -83,14 +107,112 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
     return digits;
   };
 
+  // Se for kiosk físico, mostra tela especial para TPV
+  if (isPhysicalKiosk) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center"
+        onClick={onClose}
+      >
+        <motion.div
+          initial={{ y: '100%' }}
+          animate={{ y: 0 }}
+          exit={{ y: '100%' }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-display font-bold text-xl">{t('payment', locale)}</h2>
+            <button onClick={onClose} className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <X size={18} className="text-gray-500" />
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-4 mb-4 border border-pink-100">
+            <div className="flex justify-between">
+              <span className="font-bold text-gray-800">{t('total', locale)}</span>
+              <span className="font-bold text-xl text-[#FF6B9D]">€{totalConIva.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSubmit({ metodo: 'tarjeta' })}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-pink-400 bg-pink-50 text-left"
+            >
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white">
+                <CreditCard size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{t('payCard', locale)}</p>
+                <p className="text-xs text-gray-500">{t('tapPhysicalTpv', locale)}</p>
+              </div>
+              <ChevronRight size={18} className="text-gray-300" />
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSubmit({ metodo: 'bizum' })}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-100 hover:border-gray-200 text-left"
+            >
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white">
+                <Smartphone size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{t('payBizum', locale)}</p>
+                <p className="text-xs text-gray-500">Bizum</p>
+              </div>
+              <ChevronRight size={18} className="text-gray-300" />
+            </motion.button>
+
+            <motion.button
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSubmit({ metodo: 'efectivo' })}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-gray-100 hover:border-gray-200 text-left"
+            >
+              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white">
+                <Banknote size={20} />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm">{t('payCash', locale)}</p>
+                <p className="text-xs text-gray-500">{t('payOnPickup', locale)}</p>
+              </div>
+              <ChevronRight size={18} className="text-gray-300" />
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
+    );
+  }
+
+  // Modo normal (PWA ou kiosk web)
   const metodos = [
     {
       id: 'tarjeta' as MetodoPagamento,
       icon: <CreditCard size={20} />,
       label: t('payCard', locale),
-      sublabel: 'Visa, Mastercard',
+      sublabel: stripeEnabled ? 'Stripe · Visa · Mastercard' : 'Visa, Mastercard',
       gradient: 'from-blue-500 to-indigo-600',
     },
+    ...(canUseApplePay ? [{
+      id: 'apple_pay' as MetodoPagamento,
+      icon: <Apple size={20} />,
+      label: 'Apple Pay',
+      sublabel: 'Pago rápido con Face ID',
+      gradient: 'from-gray-800 to-black' as const,
+    }] : []),
+    ...(canUseGooglePay ? [{
+      id: 'google_pay' as MetodoPagamento,
+      icon: <Wallet size={20} />,
+      label: 'Google Pay',
+      sublabel: 'Pago rápido con tu móvil',
+      gradient: 'from-blue-600 to-cyan-500' as const,
+    }] : []),
     {
       id: 'bizum' as MetodoPagamento,
       icon: <Smartphone size={20} />,
@@ -186,7 +308,7 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
 
           {/* Form dinâmico por método */}
           <AnimatePresence mode="wait">
-            {metodo === 'tarjeta' && (
+            {(metodo === 'tarjeta' || metodo === 'apple_pay' || metodo === 'google_pay') && (
               <motion.div
                 key="tarjeta"
                 initial={{ opacity: 0, height: 0 }}
@@ -194,88 +316,100 @@ export default function PagamentoModal({ total, onClose, onSubmit }: PagamentoMo
                 exit={{ opacity: 0, height: 0 }}
                 className="space-y-3"
               >
-                {/* Card preview */}
-                <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-5 text-white shadow-xl mb-2">
-                  <div className="flex justify-between items-start mb-6">
-                    <CreditCard size={28} className="opacity-80" />
-                    <div className="flex gap-1">
-                      <div className="w-8 h-5 bg-yellow-400/80 rounded-sm" />
-                      <div className="w-8 h-5 bg-red-500/80 rounded-sm" />
-                    </div>
+                {stripeEnabled && (metodo === 'apple_pay' || metodo === 'google_pay') ? (
+                  <div className="bg-gray-50 rounded-xl p-4 text-center">
+                    <p className="text-sm text-gray-500">
+                      {metodo === 'apple_pay'
+                        ? 'Apple Pay se procesará via Stripe en el siguiente paso'
+                        : 'Google Pay se procesará via Stripe en el siguiente paso'}
+                    </p>
                   </div>
-                  <p className="text-lg tracking-[0.2em] font-mono mb-4">
-                    {tarjetaNumero || '•••• •••• •••• ••••'}
-                  </p>
-                  <div className="flex justify-between">
+                ) : (
+                  <>
+                    {/* Card preview */}
+                    <div className="bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-5 text-white shadow-xl mb-2">
+                      <div className="flex justify-between items-start mb-6">
+                        <CreditCard size={28} className="opacity-80" />
+                        <div className="flex gap-1">
+                          <div className="w-8 h-5 bg-yellow-400/80 rounded-sm" />
+                          <div className="w-8 h-5 bg-red-500/80 rounded-sm" />
+                        </div>
+                      </div>
+                      <p className="text-lg tracking-[0.2em] font-mono mb-4">
+                        {tarjetaNumero || '•••• •••• •••• ••••'}
+                      </p>
+                      <div className="flex justify-between">
+                        <div>
+                          <p className="text-[8px] opacity-60 uppercase">Titular</p>
+                          <p className="text-xs font-medium">{tarjetaTitular || 'NOMBRE APELLIDO'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[8px] opacity-60 uppercase">Caduca</p>
+                          <p className="text-xs font-medium">{tarjetaCaducidad || 'MM/AA'}</p>
+                        </div>
+                      </div>
+                    </div>
+
                     <div>
-                      <p className="text-[8px] opacity-60 uppercase">Titular</p>
-                      <p className="text-xs font-medium">{tarjetaTitular || 'NOMBRE APELLIDO'}</p>
+                      <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardNumber', locale)}</label>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        placeholder="4242 4242 4242 4242"
+                        value={tarjetaNumero}
+                        onChange={(e) => setTarjetaNumero(formatCardNumber(e.target.value))}
+                        className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.numero ? 'border-red-300' : 'border-transparent'}`}
+                      />
+                      {errors.numero && <p className="text-red-500 text-xs mt-1">{errors.numero}</p>}
                     </div>
+
                     <div>
-                      <p className="text-[8px] opacity-60 uppercase">Caduca</p>
-                      <p className="text-xs font-medium">{tarjetaCaducidad || 'MM/AA'}</p>
+                      <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardHolder', locale)}</label>
+                      <input
+                        type="text"
+                        placeholder="MARÍA GARCÍA"
+                        value={tarjetaTitular}
+                        onChange={(e) => setTarjetaTitular(e.target.value.toUpperCase())}
+                        className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.titular ? 'border-red-300' : 'border-transparent'}`}
+                      />
+                      {errors.titular && <p className="text-red-500 text-xs mt-1">{errors.titular}</p>}
                     </div>
-                  </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardNumber', locale)}</label>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    placeholder="4242 4242 4242 4242"
-                    value={tarjetaNumero}
-                    onChange={(e) => setTarjetaNumero(formatCardNumber(e.target.value))}
-                    className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.numero ? 'border-red-300' : 'border-transparent'}`}
-                  />
-                  {errors.numero && <p className="text-red-500 text-xs mt-1">{errors.numero}</p>}
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardExpiry', locale)}</label>
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          placeholder="12/28"
+                          value={tarjetaCaducidad}
+                          onChange={(e) => setTarjetaCaducidad(formatExpiry(e.target.value))}
+                          className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.caducidad ? 'border-red-300' : 'border-transparent'}`}
+                        />
+                        {errors.caducidad && <p className="text-red-500 text-xs mt-1">{errors.caducidad}</p>}
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 mb-1 block">CVV</label>
+                        <input
+                          type="password"
+                          inputMode="numeric"
+                          placeholder="123"
+                          maxLength={4}
+                          value={tarjetaCvv}
+                          onChange={(e) => setTarjetaCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                          className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.cvv ? 'border-red-300' : 'border-transparent'}`}
+                        />
+                        {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardHolder', locale)}</label>
-                  <input
-                    type="text"
-                    placeholder="MARÍA GARCÍA"
-                    value={tarjetaTitular}
-                    onChange={(e) => setTarjetaTitular(e.target.value.toUpperCase())}
-                    className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.titular ? 'border-red-300' : 'border-transparent'}`}
-                  />
-                  {errors.titular && <p className="text-red-500 text-xs mt-1">{errors.titular}</p>}
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-medium text-gray-500 mb-1 block">{t('cardExpiry', locale)}</label>
-                    <input
-                      type="text"
-                      inputMode="numeric"
-                      placeholder="12/28"
-                      value={tarjetaCaducidad}
-                      onChange={(e) => setTarjetaCaducidad(formatExpiry(e.target.value))}
-                      className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.caducidad ? 'border-red-300' : 'border-transparent'}`}
-                    />
-                    {errors.caducidad && <p className="text-red-500 text-xs mt-1">{errors.caducidad}</p>}
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-gray-500 mb-1 block">CVV</label>
-                    <input
-                      type="password"
-                      inputMode="numeric"
-                      placeholder="123"
-                      maxLength={4}
-                      value={tarjetaCvv}
-                      onChange={(e) => setTarjetaCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.cvv ? 'border-red-300' : 'border-transparent'}`}
-                    />
-                    {errors.cvv && <p className="text-red-500 text-xs mt-1">{errors.cvv}</p>}
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Lock size={12} />
-                  <span className="text-[10px]">{t('securePayment', locale)}</span>
-                  <ShieldCheck size={12} className="text-emerald-500" />
-                </div>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Lock size={12} />
+                      <span className="text-[10px]">{t('securePayment', locale)}</span>
+                      <ShieldCheck size={12} className="text-emerald-500" />
+                    </div>
+                  </>
+                )}
               </motion.div>
             )}
 

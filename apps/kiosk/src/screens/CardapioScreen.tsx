@@ -152,7 +152,7 @@ export default function CardapioScreen({
           >
             <ShoppingCart size={24} />
             Ver carrito
-            <span className="bg-white/20 px-3 py-1 rounded-lg">{cartCount} items</span>
+            <span className="bg-white/20 px-3 py-1 rounded-lg">{cartCount} artículos</span>
             <span className="font-mono">€{cartTotal.toFixed(2)}</span>
           </button>
         </motion.div>

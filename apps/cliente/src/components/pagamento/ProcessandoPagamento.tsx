@@ -2,32 +2,84 @@ import { motion } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
 import type { MetodoPagamento } from './PagamentoModal';
+import { CreditCard, Smartphone, Banknote, Wallet, Apple } from 'lucide-react';
 
 interface ProcessandoPagamentoProps {
   metodo: MetodoPagamento;
   total: number;
+  /** Mensagem extra (ex: "Conectando con Stripe...") */
+  statusMessage?: string;
+  /** Se está processando com gateway real vs simulando */
+  isRealProcessing?: boolean;
 }
 
-export default function ProcessandoPagamento({ metodo, total }: ProcessandoPagamentoProps) {
+export default function ProcessandoPagamento({
+  metodo,
+  total,
+  statusMessage,
+  isRealProcessing = false,
+}: ProcessandoPagamentoProps) {
   const { locale } = useStore();
-  const steps = [
-    { key: 'connecting', label: t('connecting', locale), duration: 0.8 },
-    { key: 'validating', label: t('validatingPayment', locale), duration: 1.2 },
-    { key: 'processing', label: t('processing', locale), duration: 1.5 },
-    { key: 'confirming', label: t('confirmingOrder', locale), duration: 1.0 },
-  ];
 
-  const metodoIcon = {
-    tarjeta: '💳',
-    bizum: '📱',
-    efectivo: '💶',
+  const metodoConfig: Record<string, { icon: React.ReactNode; label: string; color: string; steps: string[] }> = {
+    tarjeta: {
+      icon: <CreditCard size={20} />,
+      label: t('payCard', locale),
+      color: 'from-blue-500 to-indigo-600',
+      steps: [
+        t('connectingGateway', locale),
+        t('validatingPayment', locale),
+        t('processing', locale),
+        t('confirmingOrder', locale),
+      ],
+    },
+    bizum: {
+      icon: <Smartphone size={20} />,
+      label: 'Bizum',
+      color: 'from-emerald-500 to-teal-600',
+      steps: [
+        t('connectingBizum', locale),
+        t('waitingConfirmation', locale),
+        t('processing', locale),
+        t('confirmingOrder', locale),
+      ],
+    },
+    efectivo: {
+      icon: <Banknote size={20} />,
+      label: t('payCash', locale),
+      color: 'from-amber-500 to-orange-600',
+      steps: [
+        t('registeringOrder', locale),
+        t('generatingTicket', locale),
+        t('confirmingOrder', locale),
+      ],
+    },
+    apple_pay: {
+      icon: <Apple size={20} />,
+      label: 'Apple Pay',
+      color: 'from-gray-800 to-black',
+      steps: [
+        t('connectingApplePay', locale),
+        t('authenticating', locale),
+        t('processing', locale),
+        t('confirmingOrder', locale),
+      ],
+    },
+    google_pay: {
+      icon: <Wallet size={20} />,
+      label: 'Google Pay',
+      color: 'from-blue-600 to-cyan-500',
+      steps: [
+        t('connectingGooglePay', locale),
+        t('authenticating', locale),
+        t('processing', locale),
+        t('confirmingOrder', locale),
+      ],
+    },
   };
 
-  const metodoLabel = {
-    tarjeta: t('payCard', locale),
-    bizum: t('payBizum', locale),
-    efectivo: t('payCash', locale),
-  };
+  const config = metodoConfig[metodo] || metodoConfig.tarjeta;
+  const steps = config.steps;
 
   return (
     <div className="fixed inset-0 z-[70] bg-[#0a0a0f] flex flex-col items-center justify-center px-6">
@@ -60,7 +112,7 @@ export default function ProcessandoPagamento({ metodo, total }: ProcessandoPagam
               transition={{ duration: 1.5, repeat: Infinity }}
               className="text-pink-400 text-[8px] font-mono"
             >
-              TPV-SORV-001
+              {isRealProcessing ? 'STRIPE-PROD' : 'TPV-SORV-001'}
             </motion.p>
           </div>
           {/* Keypad dots */}
@@ -96,19 +148,24 @@ export default function ProcessandoPagamento({ metodo, total }: ProcessandoPagam
         transition={{ delay: 0.3 }}
         className="text-center mb-6 z-10"
       >
-        <p className="text-3xl mb-1">{metodoIcon[metodo]}</p>
-        <p className="text-white font-bold text-lg">{metodoLabel[metodo]}</p>
+        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${config.color} flex items-center justify-center text-white mx-auto mb-2 shadow-lg`}>
+          {config.icon}
+        </div>
+        <p className="text-white font-bold text-lg">{config.label}</p>
         <p className="text-white/50 text-sm">€{total.toFixed(2)}</p>
+        {statusMessage && (
+          <p className="text-pink-400 text-xs mt-1 animate-pulse">{statusMessage}</p>
+        )}
       </motion.div>
 
       {/* Progress steps */}
       <div className="w-full max-w-xs sm:max-w-sm space-y-3 z-10">
         {steps.map((s, i) => (
           <motion.div
-            key={s.key}
+            key={s}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * s.duration * 0.6 }}
+            transition={{ delay: i * 0.6 }}
             className="flex items-center gap-3"
           >
             <motion.div
@@ -116,15 +173,15 @@ export default function ProcessandoPagamento({ metodo, total }: ProcessandoPagam
                 scale: [1, 1.2, 1],
                 backgroundColor: ['rgba(255,107,157,0.2)', 'rgba(255,107,157,0.8)', 'rgba(255,107,157,0.2)'],
               }}
-              transition={{ duration: s.duration, repeat: Infinity, delay: i * 0.3 }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
               className="w-2 h-2 rounded-full bg-pink-500/30"
             />
             <motion.p
               animate={{ opacity: [0.4, 1, 0.4] }}
-              transition={{ duration: s.duration, repeat: Infinity, delay: i * 0.3 }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
               className="text-white/70 text-sm"
             >
-              {s.label}
+              {s}
             </motion.p>
           </motion.div>
         ))}
@@ -137,7 +194,9 @@ export default function ProcessandoPagamento({ metodo, total }: ProcessandoPagam
         transition={{ delay: 2 }}
         className="absolute bottom-8 text-white/20 text-[10px] text-center z-10"
       >
-        {t('hardwareMockNote', locale)}
+        {isRealProcessing
+          ? 'Procesado de forma segura via Stripe · PCI DSS Compliant'
+          : t('hardwareMockNote', locale)}
       </motion.p>
     </div>
   );

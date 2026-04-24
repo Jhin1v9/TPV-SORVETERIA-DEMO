@@ -6,7 +6,7 @@ export type SaborCategoria = 'cremoso' | 'chocolate' | 'especial' | 'fruta' | 's
 
 export type PedidoStatus = 'pendiente' | 'preparando' | 'listo' | 'entregado' | 'cancelado';
 
-export type MetodoPago = 'tarjeta' | 'efectivo' | 'bizum' | 'pendiente';
+export type MetodoPago = 'tarjeta' | 'efectivo' | 'bizum' | 'apple_pay' | 'google_pay' | 'pendiente';
 
 export type OrigemPedido = 'tpv' | 'kiosk' | 'pwa';
 
@@ -91,6 +91,62 @@ export interface ComprovantePagamento {
   gateway?: string;
 }
 
+// ─── Tipos para pagamento v2.0 ───
+
+export type PaymentGateway = 'stripe' | 'redsys' | 'tpv' | 'bizum' | 'efectivo' | 'apple_pay' | 'google_pay';
+
+export type PaymentStatus = 'pendente' | 'processando' | 'aprovado' | 'rejeitado' | 'reembolsado' | 'cancelado';
+
+export interface PaymentIntentPayload {
+  amount: number;        // em cêntimos (Stripe usa cêntimos)
+  currency: string;      // 'eur'
+  orderId?: string;
+  customerEmail?: string;
+  description?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface PaymentIntentResponse {
+  clientSecret: string;
+  paymentIntentId: string;
+  amount: number;
+  currency: string;
+}
+
+export interface ReceiptRequest {
+  orderId: string;
+  type: 'email' | 'print' | 'qr';
+  email?: string;
+  language?: Locale;
+}
+
+export interface ReceiptResponse {
+  success: boolean;
+  message?: string;
+  url?: string;
+}
+
+export interface TPVConfig {
+  enabled: boolean;
+  provider?: 'elo' | 'ingenico' | 'pax' | 'verifone';
+  connectionType?: 'usb' | 'bluetooth' | 'serial' | 'tcp';
+  deviceId?: string;
+}
+
+export interface PrinterConfig {
+  enabled: boolean;
+  connectionType?: 'usb' | 'bluetooth' | 'serial';
+  vendorId?: number;
+  productId?: number;
+}
+
+export interface KioskHardwareConfig {
+  isPhysical: boolean;
+  tpv: TPVConfig;
+  printer: PrinterConfig;
+  nfcEnabled: boolean;
+}
+
 export interface Pedido {
   id: string;
   numeroSequencial: number;
@@ -111,6 +167,19 @@ export interface Pedido {
   nomeUsuario?: string | null;
   /** Dados do pagamento — mock por enquanto, preparado para real */
   comprovantePagamento?: ComprovantePagamento;
+
+  // ─── Campos de pagamento v2.0 (Stripe, wallets, TPV) ───
+  paymentStatus?: 'pendente' | 'processando' | 'aprovado' | 'rejeitado' | 'reembolsado' | 'cancelado';
+  paymentGateway?: string;
+  transactionId?: string | null;
+  paidAt?: string | null;
+  receiptUrl?: string | null;
+  refundAmount?: number;
+  paymentError?: string | null;
+  receiptEmail?: string | null;
+  receiptSentAt?: string | null;
+  receiptPrintedAt?: string | null;
+  customerEmail?: string | null;
 }
 
 // ─── Formato legado de carrinho (deprecated, mantido para compatibilidade) ───

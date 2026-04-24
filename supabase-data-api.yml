@@ -1,0 +1,270 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - banner [ref=e6]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - link "Supabase" [ref=e9] [cursor=pointer]:
+              - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+              - img "Supabase" [ref=e10]
+            - generic [ref=e11]:
+              - img [ref=e13]
+              - generic [ref=e15]:
+                - link "Jhin1v9's Org Free" [ref=e16] [cursor=pointer]:
+                  - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+                  - img [ref=e17]
+                  - generic [ref=e27]: Jhin1v9's Org
+                  - generic [ref=e28]: Free
+                - button [ref=e29] [cursor=pointer]:
+                  - img [ref=e31]
+              - generic [ref=e34]:
+                - img [ref=e36]
+                - generic [ref=e38]:
+                  - link "Sorveteria demo" [ref=e39] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                    - img [ref=e40]
+                    - generic "Sorveteria demo" [ref=e43]
+                  - button [ref=e44] [cursor=pointer]:
+                    - img [ref=e46]
+                - img [ref=e50]
+                - generic [ref=e281]:
+                  - link "main Production" [ref=e282] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                    - generic "main" [ref=e283]
+                    - generic [ref=e284]: Production
+                  - button [ref=e285] [cursor=pointer]:
+                    - img [ref=e287]
+            - button "Connect" [ref=e54] [cursor=pointer]:
+              - img [ref=e56]
+              - generic [ref=e58]: Connect
+          - generic [ref=e59]:
+            - generic [ref=e61] [cursor=pointer]: Feedback
+            - generic [ref=e62]:
+              - button "Search..." [ref=e63] [cursor=pointer]:
+                - generic [ref=e64]:
+                  - img [ref=e65]
+                  - paragraph [ref=e68]: Search...
+                - generic [ref=e70]: Ctrl K
+              - button [ref=e71] [cursor=pointer]:
+                - img [ref=e73]
+              - button [ref=e77] [cursor=pointer]:
+                - img [ref=e79]
+              - button [ref=e81] [cursor=pointer]:
+                - img [ref=e83]
+              - button [ref=e85] [cursor=pointer]:
+                - img [ref=e89]
+            - link "Upgrade to Pro" [ref=e92] [cursor=pointer]:
+              - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing?panel=subscriptionPlan&source=headerUpgradeCta
+              - generic [ref=e93]: Upgrade to Pro
+            - button "Jhin1v9" [ref=e94] [cursor=pointer]:
+              - img "Jhin1v9" [ref=e96]
+      - generic [ref=e97]:
+        - generic [ref=e101]:
+          - list [ref=e104]:
+            - generic [ref=e105]:
+              - listitem [ref=e106]:
+                - link "Project Overview" [ref=e107] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc
+                  - img [ref=e108]
+                  - generic: Project Overview
+              - listitem [ref=e110]:
+                - link "Table Editor" [ref=e111] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/editor
+                  - img [ref=e112]
+                  - generic: Table Editor
+              - listitem [ref=e114]:
+                - link "SQL Editor" [ref=e115] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/sql
+                  - img [ref=e116]
+                  - generic: SQL Editor
+            - generic [ref=e118]:
+              - listitem [ref=e119]:
+                - link "Database" [ref=e120] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/database/schemas
+                  - img [ref=e121]
+                  - generic: Database
+              - listitem [ref=e125]:
+                - link "Authentication" [ref=e126] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/auth/users
+                  - img [ref=e127]
+                  - generic: Authentication
+              - listitem [ref=e129]:
+                - link "Storage" [ref=e130] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/storage/files
+                  - img [ref=e131]
+                  - generic: Storage
+              - listitem [ref=e133]:
+                - link "Edge Functions" [ref=e134] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/functions
+                  - img [ref=e135]
+                  - generic: Edge Functions
+              - listitem [ref=e140]:
+                - link "Realtime" [ref=e141] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/realtime/inspector
+                  - img [ref=e142]
+                  - generic: Realtime
+            - generic [ref=e144]:
+              - listitem [ref=e146]:
+                - link "Advisors" [ref=e147] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/advisors/security
+                  - img [ref=e148]
+                  - generic: Advisors
+              - listitem [ref=e150]:
+                - link "Observability" [ref=e151] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/observability
+                  - img [ref=e152]
+                  - generic: Observability
+              - listitem [ref=e160]:
+                - link "Logs" [ref=e161] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/logs/explorer
+                  - img [ref=e162]
+                  - generic: Logs
+              - listitem [ref=e163]:
+                - link "Integrations" [ref=e164] [cursor=pointer]:
+                  - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                  - img [ref=e165]
+                  - generic: Integrations
+            - listitem [ref=e169]:
+              - link "Project Settings" [ref=e170] [cursor=pointer]:
+                - /url: /dashboard/project/jmvikjujftidgcezmlfc/settings/general
+                - img [ref=e171]
+                - generic: Project Settings
+          - button [ref=e176] [cursor=pointer]:
+            - img [ref=e178]
+        - generic [ref=e185]:
+          - generic [ref=e189]:
+            - heading "Integrations" [level=4] [ref=e191]
+            - generic [ref=e192]:
+              - generic [ref=e193]:
+                - generic [ref=e195]: Explore
+                - generic [ref=e196]:
+                  - link "All" [disabled] [ref=e197] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                    - menuitem "All" [disabled] [ref=e198]:
+                      - generic "All" [ref=e201]:
+                        - generic [ref=e202]: All
+                  - link "Wrappers" [disabled] [ref=e203] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations?category=wrapper
+                    - menuitem "Wrappers" [disabled] [ref=e204]:
+                      - generic "Wrappers" [ref=e207]:
+                        - generic [ref=e208]: Wrappers
+                  - link "Postgres Modules" [disabled] [ref=e209] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations?category=postgres_extension
+                    - menuitem "Postgres Modules" [disabled] [ref=e210]:
+                      - generic "Postgres Modules" [ref=e213]:
+                        - generic [ref=e214]: Postgres Modules
+              - generic [ref=e215]:
+                - generic [ref=e217]: Installed
+                - generic [ref=e290]:
+                  - link "Data API" [disabled] [ref=e291] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/overview
+                    - menuitem "Data API" [disabled] [ref=e292]:
+                      - img [ref=e295]
+                      - generic "Data API" [ref=e301]:
+                        - generic [ref=e302]: Data API
+                  - link "GraphiQL GraphQL" [disabled] [ref=e303] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/graphiql/overview
+                    - menuitem "GraphiQL GraphQL" [disabled] [ref=e304]:
+                      - img "GraphiQL" [ref=e307]
+                      - generic "GraphQL" [ref=e310]:
+                        - generic [ref=e311]: GraphQL
+                  - link "Vault beta" [disabled] [ref=e312] [cursor=pointer]:
+                    - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/vault/overview
+                    - menuitem "Vault beta" [disabled] [ref=e313]:
+                      - img [ref=e316]
+                      - generic "Vault" [ref=e329]:
+                        - generic [ref=e330]: Vault
+                        - generic [ref=e331]: beta
+          - separator [disabled] [ref=e222]:
+            - img [ref=e224]
+          - main [ref=e233]:
+            - generic [ref=e234]:
+              - navigation "breadcrumb" [ref=e236]:
+                - list [ref=e237]:
+                  - listitem [ref=e238]:
+                    - link "Integrations" [ref=e239] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations
+                  - listitem [ref=e240]:
+                    - img [ref=e241]
+                  - listitem [ref=e243]:
+                    - link "Data API" [disabled] [ref=e244]
+              - generic [ref=e246]:
+                - img [ref=e249]
+                - generic [ref=e253]:
+                  - heading "Data API" [level=1] [ref=e254]
+                  - generic [ref=e255]: Auto-generate an API directly from your database schema
+              - navigation [ref=e258]:
+                - menu [ref=e259]:
+                  - listitem [ref=e260]:
+                    - link "Overview" [ref=e261] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/overview
+                  - listitem [ref=e332]:
+                    - link "Settings" [ref=e333] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/settings
+                  - listitem [ref=e334]:
+                    - link "Docs" [ref=e335] [cursor=pointer]:
+                      - /url: /dashboard/project/jmvikjujftidgcezmlfc/integrations/data_api/docs
+            - generic [ref=e336]:
+              - generic [ref=e337]:
+                - generic [ref=e338]:
+                  - generic [ref=e339]: BUILT BY
+                  - generic [ref=e340]: Supabase
+                - generic [ref=e341]:
+                  - generic [ref=e342]: DOCS
+                  - link "Supabase Docs" [ref=e343] [cursor=pointer]:
+                    - /url: https://supabase.com/docs/guides/api
+                    - img [ref=e344]
+                    - text: Supabase Docs
+                - generic [ref=e346]:
+                  - generic [ref=e347]: WEBSITE
+                  - link "supabase.com" [ref=e348] [cursor=pointer]:
+                    - /url: https://supabase.com
+              - generic [ref=e350]:
+                - paragraph [ref=e353]: The Supabase Data API exposes REST endpoints for your project's databases, including read replicas and load balancers. Configure the API base URL, custom domains, and PostgREST settings for your project.
+                - button "Read more" [ref=e356] [cursor=pointer]
+              - generic [ref=e358]:
+                - generic [ref=e360]:
+                  - generic [ref=e362]:
+                    - generic [ref=e363]:
+                      - heading "API URL" [level=2] [ref=e364]
+                      - generic [ref=e365]: RESTful endpoint for querying and managing your database
+                    - generic [ref=e367] [cursor=pointer]:
+                      - generic [ref=e368]: Source
+                      - button "Primary database" [ref=e369]:
+                        - generic [ref=e370]: Primary database
+                        - img [ref=e372]
+                  - group [ref=e375]:
+                    - textbox [ref=e376]: https://jmvikjujftidgcezmlfc.supabase.co/rest/v1/
+                    - group [ref=e377]:
+                      - button "Copy" [ref=e378] [cursor=pointer]:
+                        - img [ref=e380]
+                        - generic [ref=e383]: Copy
+                - generic [ref=e385]:
+                  - generic [ref=e389]:
+                    - generic [ref=e390]:
+                      - switch [checked] [ref=e391] [cursor=pointer]
+                      - checkbox [checked]
+                    - generic [ref=e392]:
+                      - generic [ref=e394]: Enable Data API
+                      - generic [ref=e395]: When enabled you will be able to use any Supabase client library and PostgREST endpoints with any schema configured in the Settings tab.
+                  - generic [ref=e398]:
+                    - button "Cancel" [disabled]:
+                      - generic: Cancel
+                    - button "Save" [disabled]:
+                      - generic: Save
+    - region "Notifications alt+T":
+      - list
+      - list:
+        - status [ref=e269]:
+          - generic [ref=e270]:
+            - paragraph [ref=e272]:
+              - text: We use cookies to collect data and improve our services.
+              - link "Learn more" [ref=e273] [cursor=pointer]:
+                - /url: https://supabase.com/privacy#8-cookies-and-similar-technologies-used-on-our-european-services
+            - generic [ref=e274]:
+              - button "Accept" [ref=e275] [cursor=pointer]:
+                - generic [ref=e276]: Accept
+              - button "Opt out" [ref=e277] [cursor=pointer]:
+                - generic [ref=e278]: Opt out
+              - button "Privacy settings" [ref=e279] [cursor=pointer]
+  - alert [ref=e280]: Integrations | Supabase

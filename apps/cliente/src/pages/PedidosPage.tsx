@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
-import { Clock, CheckCircle2, Package, ChevronRight, Receipt } from 'lucide-react';
-import type { Pedido, PedidoStatus } from '@tpv/shared/types';
+import { Clock, CheckCircle2, Package, ChevronRight, Receipt, RefreshCcw } from 'lucide-react';
+import type { Pedido, PedidoStatus, CartItem } from '@tpv/shared/types';
 import PedidoDetalhesPage from './PedidoDetalhesPage';
+import { useClienteToast } from '../hooks/useClienteToast';
 
 type PedidoTab = 'ativos' | 'historial';
 
@@ -44,23 +45,35 @@ const statusConfig: Record<
   },
 };
 
-function PedidoCard({ pedido, onClick }: { pedido: Pedido; onClick: () => void }) {
+interface PedidoCardProps {
+  pedido: Pedido;
+  onClick: () => void;
+  onRepetir?: () => void;
+}
+
+function PedidoCard({ pedido, onClick, onRepetir }: PedidoCardProps) {
   const status = statusConfig[pedido.status];
   const isActive = pedido.status !== 'entregado' && pedido.status !== 'cancelado';
 
   return (
-    <motion.button
-      onClick={onClick}
+    <motion.div
       whileTap={{ scale: 0.98 }}
-      className="w-full bg-white rounded-2xl p-4 shadow-sm border border-black/5 text-left flex items-center gap-4"
+      className="w-full bg-white rounded-2xl p-4 shadow-sm border border-black/5 flex items-center gap-4"
     >
       {/* Status icon */}
-      <div className={`w-12 h-12 rounded-xl ${status.bg} flex items-center justify-center shrink-0`}>
+      <button
+        onClick={onClick}
+        className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
+        style={{ backgroundColor: status.bg.replace('bg-', '') }} // fallback styling
+      >
         <span className={status.color}>{status.icon}</span>
-      </div>
+      </button>
 
       {/* Info */}
-      <div className="flex-1 min-w-0">
+      <button
+        onClick={onClick}
+        className="flex-1 min-w-0 text-left"
+      >
         <div className="flex items-center gap-2 mb-1">
           <span className="font-mono font-bold text-gray-800">
             #{pedido.numeroSequencial.toString().padStart(3, '0')}
@@ -83,16 +96,33 @@ function PedidoCard({ pedido, onClick }: { pedido: Pedido; onClick: () => void }
             minute: '2-digit',
           })}
         </p>
-      </div>
+      </button>
+
+      {/* Repetir pedido — só no histórico e quando houver productSnapshot */}
+      {onRepetir && (
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRepetir();
+          }}
+          className="shrink-0 flex flex-col items-center gap-1 px-3 py-2 rounded-xl bg-gradient-to-br from-[#FF6B9D]/10 to-[#FFA07A]/10 border border-[#FF6B9D]/20 hover:from-[#FF6B9D]/20 hover:to-[#FFA07A]/20 transition-colors"
+          title="Repetir pedido"
+        >
+          <RefreshCcw size={16} className="text-[#FF6B9D]" />
+          <span className="text-[10px] font-bold text-[#FF6B9D] leading-none">¡Otra!</span>
+        </motion.button>
+      )}
 
       {/* Arrow */}
       <ChevronRight size={18} className="text-gray-300 shrink-0" />
-    </motion.button>
+    </motion.div>
   );
 }
 
 export default function PedidosPage() {
-  const { pedidos, locale, perfilUsuario } = useStore();
+  const { pedidos, locale, perfilUsuario, addToCarrinho } = useStore();
+  const toast = useClienteToast();
   const [tab, setTab] = useState<PedidoTab>('ativos');
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
 
@@ -111,6 +141,40 @@ export default function PedidosPage() {
   );
 
   const pedidosExibidos = tab === 'ativos' ? pedidosAtivos : pedidosHistorial;
+
+  const handleRepetirPedido = (pedido: Pedido) => {
+    const itensRepetidos: CartItem[] = [];
+
+    for (const item of pedido.itens) {
+      // Só repete se tiver o snapshot do produto
+      if (!item.productSnapshot) continue;
+
+      const cartItem: CartItem = {
+        product: item.productSnapshot,
+        quantity: item.quantidade,
+        unitPrice: item.precoUnitario,
+        selections: item.selections,
+        notes: item.notas,
+      };
+
+      itensRepetidos.push(cartItem);
+    }
+
+    if (itensRepetidos.length === 0) {
+      toast.connectionError(); // fallback — mas teoricamente nunca acontece
+      return;
+    }
+
+    // Adiciona todos os itens ao carrinho
+    for (const cartItem of itensRepetidos) {
+      addToCarrinho(cartItem);
+    }
+
+    toast.reorderPlaced(
+      pedido.numeroSequencial.toString().padStart(3, '0'),
+      itensRepetidos.length
+    );
+  };
 
   // Se tem pedido selecionado, mostra detalhes
   if (pedidoSelecionado) {
@@ -182,6 +246,11 @@ export default function PedidosPage() {
                   key={pedido.id}
                   pedido={pedido}
                   onClick={() => setPedidoSelecionado(pedido)}
+                  onRepetir={
+                    tab === 'historial' && pedido.itens.some((i) => i.productSnapshot)
+                      ? () => handleRepetirPedido(pedido)
+                      : undefined
+                  }
                 />
               ))}
           </motion.div>

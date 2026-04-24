@@ -1,0 +1,36 @@
+🍦
+Tropicale
+Açaí Tropical
+
+Cremoso · Natural · Energético
+
+TOQUE PARA ENTRAR
+
+Helados Artesanales · Açaí · Granizados
+
+Inspecionar
+Nativo 1
+Workspace 1
+Print
+IA Kimi
+ativa em kimi-k2.5
+Bug Detector
+📋
+Bug Tracker
+
+1 total • 1 pendentes • 0 resolvidos
+
+✕
+Todos (1)
+Pendentes (1)
+Resolvidos (0)
+🐛
+Teste real do bug detector no kiosk publicado. O CTA princip...
+span
+•
+24/04/2026
+medium
+pending
+✓
+🗑
+▼ Ver detalhes

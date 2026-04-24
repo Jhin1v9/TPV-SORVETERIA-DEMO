@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useRef } from 'react';
+import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import type { Locale } from '@tpv/shared/types';
-import { ChevronRight, LogIn } from 'lucide-react';
+import { LogIn } from 'lucide-react';
 import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
 
 interface HolaScreenProps {
@@ -10,26 +10,51 @@ interface HolaScreenProps {
   onLogin: () => void;
 }
 
-const languages: { locale: Locale; label: string; flag: string }[] = [
-  { locale: 'es', label: 'Español', flag: '🇪🇸' },
-  { locale: 'ca', label: 'Català', flag: '🏴󠁥󠁳󠁣󠁴󠁿' },
-  { locale: 'pt', label: 'Português', flag: '🇵🇹' },
-  { locale: 'en', label: 'English', flag: '🇬🇧' },
+interface LangSlide {
+  locale: Locale;
+  label: string;
+  flagSrc: string;
+  greeting: string;
+  startCta: string;
+  appCta: string;
+}
+
+const languages: LangSlide[] = [
+  { locale: 'es', label: 'Español', flagSrc: '/assets/flags/es.svg', greeting: '¡Hola!', startCta: 'Comenzar pedido', appCta: 'Tengo la app Tropicale' },
+  { locale: 'ca', label: 'Català', flagSrc: '/assets/flags/es-ct.svg', greeting: 'Hola!', startCta: 'Començar comanda', appCta: 'Tinc l\'app Tropicale' },
+  { locale: 'pt', label: 'Português', flagSrc: '/assets/flags/br.svg', greeting: 'Olá!', startCta: 'Fazer pedido', appCta: 'Tenho o app Tropicale' },
+  { locale: 'en', label: 'English', flagSrc: '/assets/flags/gb.svg', greeting: 'Hello!', startCta: 'Start order', appCta: 'I have the Tropicale app' },
 ];
 
 export default function HolaScreen({ onSelectLang, onLogin }: HolaScreenProps) {
   const { setLocale } = useStore();
-  const [selectedLang, setSelectedLang] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const x = useMotionValue(0);
+  const width = typeof window !== 'undefined' ? window.innerWidth : 1024;
+
+  const handleDragEnd = (_: unknown, info: { offset: { x: number }; velocity: { x: number } }) => {
+    const threshold = width * 0.15;
+    const velocityThreshold = 500;
+
+    if (info.offset.x < -threshold || info.velocity.x < -velocityThreshold) {
+      setCurrentIndex((prev) => Math.min(prev + 1, languages.length - 1));
+    } else if (info.offset.x > threshold || info.velocity.x > velocityThreshold) {
+      setCurrentIndex((prev) => Math.max(prev - 1, 0));
+    }
+  };
 
   const handleStart = () => {
-    setLocale(languages[selectedLang].locale);
+    setLocale(languages[currentIndex].locale);
     onSelectLang();
   };
 
   const handleLogin = () => {
-    setLocale(languages[selectedLang].locale);
+    setLocale(languages[currentIndex].locale);
     onLogin();
   };
+
+  const currentLang = languages[currentIndex];
 
   return (
     <div className="relative h-full w-full bg-[#0a0a0f] flex flex-col items-center justify-center overflow-hidden select-none">
@@ -73,101 +98,173 @@ export default function HolaScreen({ onSelectLang, onLogin }: HolaScreenProps) {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-4xl px-8">
-        {/* Logo */}
+      <div className="relative z-10 flex flex-col items-center w-full h-full">
+        {/* Top: Logo */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }}
-          className="mb-6"
+          className="mt-12 mb-4"
         >
-          <div className="w-32 h-32 rounded-3xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center shadow-2xl shadow-[#2D8A4E]/30">
-            <TropicaleLogo size={68} className="text-white" />
+          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center shadow-2xl shadow-[#2D8A4E]/30">
+            <TropicaleLogo size={52} className="text-white" />
           </div>
         </motion.div>
 
-        {/* Brand name */}
         <motion.h1
-          initial={{ y: 30, opacity: 0 }}
+          initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="font-display text-6xl font-bold text-white text-center mb-2"
+          transition={{ delay: 0.3 }}
+          className="font-display text-4xl font-bold text-white text-center mb-1"
         >
           Tropicale
         </motion.h1>
 
         <motion.p
-          initial={{ y: 20, opacity: 0 }}
+          initial={{ y: 10, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="text-white/50 text-2xl text-center mb-12"
+          transition={{ delay: 0.4 }}
+          className="text-white/40 text-lg text-center mb-6"
         >
           Gelats Artesans · Helados Artesanales
         </motion.p>
 
-        {/* Language selector */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="flex gap-3 mb-10"
-        >
-          {languages.map((lang, idx) => (
-            <motion.button
-              key={lang.locale}
-              onClick={() => setSelectedLang(idx)}
-              whileTap={{ scale: 0.95 }}
-              className={`px-6 py-3 rounded-2xl text-lg font-semibold transition-all ${
-                selectedLang === idx
-                  ? 'bg-white text-[#0a0a0f] shadow-lg'
-                  : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
-              }`}
+        {/* Swiper area */}
+        <div className="flex-1 flex flex-col items-center justify-center w-full px-8" ref={containerRef}>
+          <div className="relative w-full max-w-lg overflow-hidden">
+            <motion.div
+              className="flex"
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleDragEnd}
+              animate={{ x: -currentIndex * 100 + '%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              style={{ x }}
             >
-              <span className="mr-2">{lang.flag}</span>
-              {lang.label}
+              {languages.map((lang, idx) => (
+                <div
+                  key={lang.locale}
+                  className="w-full flex-shrink-0 flex flex-col items-center justify-center px-4"
+                >
+                  <AnimatePresence mode="wait">
+                    {idx === currentIndex && (
+                      <motion.div
+                        key={lang.locale}
+                        initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex flex-col items-center"
+                      >
+                        {/* Flag */}
+                        <motion.img
+                          src={lang.flagSrc}
+                          alt={lang.label}
+                          className="w-40 h-28 object-cover rounded-xl mb-4 drop-shadow-2xl shadow-2xl border border-white/10"
+                          animate={{ y: [0, -8, 0] }}
+                          transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                        />
+
+                        {/* Greeting */}
+                        <h2 className="font-display text-5xl font-bold text-white text-center mb-2">
+                          {lang.greeting}
+                        </h2>
+
+                        {/* Language label */}
+                        <p className="text-white/50 text-xl font-medium">
+                          {lang.label}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ))}
+            </motion.div>
+
+            {/* Swipe hint arrows */}
+            {currentIndex > 0 && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                whileHover={{ opacity: 0.8 }}
+                onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white text-2xl"
+              >
+                ‹
+              </motion.button>
+            )}
+            {currentIndex < languages.length - 1 && (
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.4 }}
+                whileHover={{ opacity: 0.8 }}
+                onClick={() => setCurrentIndex((prev) => Math.min(prev + 1, languages.length - 1))}
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white text-2xl"
+              >
+                ›
+              </motion.button>
+            )}
+          </div>
+
+          {/* Pagination dots */}
+          <div className="flex gap-3 mt-8">
+            {languages.map((_, idx) => (
+              <motion.button
+                key={idx}
+                onClick={() => setCurrentIndex(idx)}
+                className="h-2.5 rounded-full transition-all"
+                animate={{
+                  width: idx === currentIndex ? 32 : 10,
+                  backgroundColor: idx === currentIndex ? '#4CAF50' : 'rgba(255,255,255,0.2)',
+                }}
+                transition={{ duration: 0.3 }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom: CTA buttons */}
+        <div className="w-full max-w-md px-8 pb-12 space-y-3">
+          <AnimatePresence mode="wait">
+            <motion.button
+              key={currentLang.locale + '-start'}
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleStart}
+              className="w-full py-5 rounded-3xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-display font-bold text-2xl shadow-2xl shadow-[#2D8A4E]/40 flex items-center justify-center gap-3"
+            >
+              <span>🍦</span>
+              {currentLang.startCta}
             </motion.button>
-          ))}
-        </motion.div>
-
-        {/* Main CTA Buttons */}
-        <div className="w-full max-w-md space-y-3">
-          <motion.button
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleStart}
-            className="w-full py-6 rounded-3xl bg-gradient-to-r from-[#2D8A4E] to-[#4CAF50] text-white font-display font-bold text-3xl shadow-2xl shadow-[#2D8A4E]/40 flex items-center justify-center gap-4"
-          >
-            <span>🍦</span>
-            Comenzar Pedido
-            <ChevronRight size={32} />
-          </motion.button>
+          </AnimatePresence>
 
           <motion.button
-            initial={{ y: 30, opacity: 0 }}
+            initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8 }}
+            transition={{ delay: 0.2 }}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={handleLogin}
-            className="w-full py-4 rounded-2xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors flex items-center justify-center gap-3 font-semibold text-xl"
+            className="w-full py-4 rounded-2xl bg-white/5 text-white/60 hover:bg-white/10 hover:text-white border border-white/10 transition-colors flex items-center justify-center gap-3 font-semibold text-lg"
           >
-            <LogIn size={24} />
-            Tengo la app Tropicale
+            <LogIn size={22} />
+            {currentLang.appCta}
           </motion.button>
-        </div>
 
-        {/* Footer */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          className="text-white/30 text-base mt-8"
-        >
-          Toca la pantalla para comenzar
-        </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-white/30 text-sm text-center pt-2"
+          >
+            Desliza para cambiar idioma
+          </motion.p>
+        </div>
       </div>
     </div>
   );

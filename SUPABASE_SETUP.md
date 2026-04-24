@@ -66,6 +66,33 @@ npm run dev
 6. Confirme o reflexo no Admin.
 7. Teste `Reset Demo` no Admin.
 
+## Configuracao de CORS (IMPORTANTE)
+
+Se os apps estiverem hospedados na Vercel (ou outro dominio), voce **DEVE** configurar o CORS no Supabase para permitir requisicoes desses dominios. Sem isso, o navegador bloqueia todas as chamadas API e o app fica offline.
+
+### Como configurar:
+
+1. Acesse o [Dashboard do Supabase](https://supabase.com/dashboard)
+2. Va em `Project Settings` → `API`
+3. Em `API Settings`, procure a secao **CORS (Cross-Origin Resource Sharing)**
+4. Adicione as URLs dos seus apps na lista de origens permitidas:
+   ```
+   https://cliente-pearl.vercel.app
+   https://kds-one.vercel.app
+   https://admin-ten-vert-54.vercel.app
+   https://kiosk-swart-delta.vercel.app
+   ```
+5. Se estiver testando localmente, adicione tambem:
+   ```
+   http://localhost:5173
+   http://localhost:5174
+   http://localhost:5175
+   http://localhost:5176
+   ```
+6. Clique em `Save`
+
+> **Dica:** Se nao houver campo de CORS no dashboard, o Supabase pode estar usando a configuracao padrao (permissivo). Caso contrario, entre em contato com o suporte do Supabase ou use uma Edge Function para adicionar os headers CORS manualmente.
+
 ## Observacoes
 
 - O projeto usa o nome novo oficial `VITE_SUPABASE_PUBLISHABLE_KEY`.

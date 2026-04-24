@@ -42,7 +42,7 @@ export default function ConfigPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Configuracion</h1>
+      <h1 className="font-display text-3xl font-bold text-gray-800 mb-6">Configuración</h1>
 
       {saved && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-green-100 text-green-700 rounded-xl px-4 py-3 mb-4">
@@ -61,7 +61,7 @@ export default function ConfigPage() {
             disabled={resetting}
             className="h-11 px-5 rounded-xl bg-red-600 text-white font-semibold disabled:opacity-60 hover:bg-red-700 transition-colors"
           >
-            {resetting ? 'Reiniciando...' : 'Reset Demo'}
+            {resetting ? 'Reiniciando...' : 'Reiniciar Demo'}
           </button>
         </div>
         <p className="text-sm text-gray-500">

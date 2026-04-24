@@ -1,0 +1,22 @@
+- generic [ref=e2]:
+  - generic [ref=e6] [cursor=pointer]:
+    - img "Cones Artesanais" [ref=e40]
+    - generic [ref=e10]:
+      - generic [ref=e12]:
+        - generic [ref=e14]: 🍦
+        - generic [ref=e15]: Tropicale
+      - generic [ref=e42]:
+        - heading "Cones Artesanais" [level=2] [ref=e43]
+        - paragraph [ref=e44]: Crocante · Fresco · Irresistível
+      - generic [ref=e26]: TOQUE PARA ENTRAR
+      - paragraph [ref=e27]: Helados Artesanales · Açaí · Granizados
+  - generic [ref=e28]:
+    - generic [ref=e29]:
+      - button "Inspecionar" [ref=e30] [cursor=pointer]
+      - button "Nativo 0" [ref=e31] [cursor=pointer]
+      - button "Workspace 0" [ref=e32] [cursor=pointer]
+      - button "Print" [ref=e33] [cursor=pointer]
+    - generic [ref=e34]:
+      - generic [ref=e36]: IA Kimi
+      - generic [ref=e37]: ativa em kimi-k2.5
+    - button "Bug Detector" [ref=e38] [cursor=pointer]

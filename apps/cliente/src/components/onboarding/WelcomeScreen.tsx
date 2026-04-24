@@ -46,7 +46,7 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
         onClick={onSkip}
         className="absolute top-6 right-6 text-white/50 text-sm flex items-center gap-1 hover:text-white transition-colors"
       >
-        {typeof navigator !== 'undefined' && navigator.language.startsWith('es') ? 'Ya sé usar' : 'Skip'} <ArrowRight size={14} />
+        Ya sé usar <ArrowRight size={14} />
       </motion.button>
 
       {/* Content */}

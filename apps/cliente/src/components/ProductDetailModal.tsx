@@ -40,7 +40,9 @@ export default function ProductDetailModal({ produto, onClose }: ProductDetailMo
     setHeaderCompact(false);
     setIsClosing(false);
     const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
+      if (scrollRef.current && typeof scrollRef.current.scrollTo === 'function') {
+        scrollRef.current.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+      }
     }, 50);
     return () => clearTimeout(timer);
   }, [produto.id]);
@@ -136,7 +138,8 @@ export default function ProductDetailModal({ produto, onClose }: ProductDetailMo
   // ─── Configuração das seções ───
   const opcoesProduto = isPersonalizavel ? produto.opcoes : null;
   const secoes = useMemo(() => {
-    if (!opcoesProduto || typeof opcoesProduto !== 'object') return [];
+    if (!opcoesProduto || typeof opcoesProduto !== 'object' || Array.isArray(opcoesProduto)) return [];
+    const opcoesRecord = opcoesProduto as Record<string, OpcaoPersonalizacao[]>;
     return [
       { key: 'tamanhos', label: t('chooseSize', locale), icon: '📏', max: 1, radio: true },
       { key: 'sabores', label: t('chooseFlavors', locale), icon: '🍦', max: maxSabores },
@@ -144,7 +147,7 @@ export default function ProductDetailModal({ produto, onClose }: ProductDetailMo
       { key: 'frutas', label: 'Frutas', icon: '🍓', max: maxFrutas },
       { key: 'extras', label: t('addExtras', locale), icon: '✨', max: maxExtras },
     ].filter((sec) => {
-      const lista = (opcoesProduto as Record<string, OpcaoPersonalizacao[]>)[sec.key];
+      const lista = opcoesRecord[sec.key];
       return Array.isArray(lista) && lista.length > 0;
     });
   }, [opcoesProduto, locale, maxSabores, maxToppings, maxFrutas, maxExtras]);
@@ -274,7 +277,9 @@ export default function ProductDetailModal({ produto, onClose }: ProductDetailMo
           {isPersonalizavel && secoes.length > 0 && (
             <div className="px-5 pb-4 space-y-6">
               {secoes.map(({ key, label, icon, max, radio }) => {
-                const opcoes = (produto.opcoes as Record<string, OpcaoPersonalizacao[]>)[key];
+                const opcoes = (produto.opcoes && typeof produto.opcoes === 'object' && !Array.isArray(produto.opcoes))
+                  ? (produto.opcoes as Record<string, OpcaoPersonalizacao[]>)[key]
+                  : undefined;
                 if (!Array.isArray(opcoes) || opcoes.length === 0) return null;
                 const selecionadas = selecoes[key] || [];
                 const atingiuLimite = selecionadas.length >= max && max > 0;

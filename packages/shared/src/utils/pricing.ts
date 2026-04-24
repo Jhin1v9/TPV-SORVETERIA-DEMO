@@ -14,6 +14,7 @@ export interface CheckoutState {
   origem?: 'tpv' | 'kiosk' | 'pwa';
   nomeUsuario?: string;
   customerId?: string;
+  customerEmail?: string;
 }
 
 export interface CheckoutSummary {

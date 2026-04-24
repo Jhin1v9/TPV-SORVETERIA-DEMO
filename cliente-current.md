@@ -1,0 +1,25 @@
+- generic [active]:
+  - generic:
+    - generic [ref=e1]:
+      - button "Ya sé usar" [ref=e23] [cursor=pointer]:
+        - text: Ya sé usar
+        - img [ref=e24]
+      - generic [ref=e26]:
+        - img [ref=e28]
+        - heading "Heladería Tropicale" [level=1] [ref=e38]
+        - paragraph [ref=e39]: Sabadell, Cataluña
+        - paragraph [ref=e40]:
+          - img [ref=e41]
+          - text: Gelato artesanal desde 1987
+        - button "COMENZAR" [ref=e44] [cursor=pointer]
+        - paragraph [ref=e45]: Sin instalación. Escanea y disfruta.
+    - generic [ref=e46]:
+      - generic [ref=e47]:
+        - button "Inspecionar" [ref=e48] [cursor=pointer]
+        - button "Nativo 0" [ref=e49] [cursor=pointer]
+        - button "Workspace 0" [ref=e50] [cursor=pointer]
+        - button "Print" [ref=e51] [cursor=pointer]
+      - generic [ref=e52]:
+        - generic [ref=e54]: IA Kimi
+        - generic [ref=e55]: ativa em kimi-k2.5
+      - button "Bug Detector" [ref=e56] [cursor=pointer]

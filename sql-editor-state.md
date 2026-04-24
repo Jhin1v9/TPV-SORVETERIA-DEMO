@@ -1,0 +1,270 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e6]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - link "Supabase" [ref=e9] [cursor=pointer]:
+            - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+            - img "Supabase" [ref=e10]
+          - generic [ref=e11]:
+            - img [ref=e13]
+            - generic [ref=e15]:
+              - link "Jhin1v9's Org Free" [ref=e16] [cursor=pointer]:
+                - /url: /dashboard/org/gvejpcojsuiufnzykgnw
+                - img [ref=e17]
+                - generic [ref=e27]: Jhin1v9's Org
+                - generic [ref=e28]: Free
+              - button [ref=e29] [cursor=pointer]:
+                - img [ref=e31]
+            - generic [ref=e34]:
+              - img [ref=e36]
+              - generic [ref=e38]:
+                - link "Sorveteria Tropicale" [ref=e39] [cursor=pointer]:
+                  - /url: /dashboard/project/dproxlygtabihfhtxdvm
+                  - img [ref=e40]
+                  - generic "Sorveteria Tropicale" [ref=e43]
+                - button [ref=e44] [cursor=pointer]:
+                  - img [ref=e46]
+              - img [ref=e50]
+              - generic [ref=e52]:
+                - link "main Production" [ref=e53] [cursor=pointer]:
+                  - /url: /dashboard/project/dproxlygtabihfhtxdvm
+                  - generic "main" [ref=e54]
+                  - generic [ref=e55]: Production
+                - button [ref=e56] [cursor=pointer]:
+                  - img [ref=e58]
+          - button "Connect" [ref=e62] [cursor=pointer]:
+            - img [ref=e64]
+            - generic [ref=e66]: Connect
+        - generic [ref=e67]:
+          - generic [ref=e69] [cursor=pointer]: Feedback
+          - generic [ref=e70]:
+            - button "Search..." [ref=e71] [cursor=pointer]:
+              - generic [ref=e72]:
+                - img [ref=e73]
+                - paragraph [ref=e76]: Search...
+              - generic [ref=e78]: Ctrl K
+            - button [ref=e79] [cursor=pointer]:
+              - img [ref=e81]
+            - button [ref=e85] [cursor=pointer]:
+              - img [ref=e87]
+            - button [ref=e89] [cursor=pointer]:
+              - img [ref=e91]
+            - button [ref=e93] [cursor=pointer]:
+              - img [ref=e97]
+          - link "Upgrade to Pro" [ref=e100] [cursor=pointer]:
+            - /url: /dashboard/org/gvejpcojsuiufnzykgnw/billing?panel=subscriptionPlan&source=headerUpgradeCta
+            - generic [ref=e101]: Upgrade to Pro
+          - button "Jhin1v9" [ref=e102] [cursor=pointer]:
+            - img "Jhin1v9" [ref=e104]
+    - generic [ref=e105]:
+      - generic [ref=e109]:
+        - list [ref=e112]:
+          - generic [ref=e113]:
+            - listitem [ref=e114]:
+              - link "Project Overview" [ref=e115] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm
+                - img [ref=e116]
+                - generic: Project Overview
+            - listitem [ref=e118]:
+              - link "Table Editor" [ref=e119] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/editor
+                - img [ref=e120]
+                - generic: Table Editor
+            - listitem [ref=e122]:
+              - link "SQL Editor" [ref=e123] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/sql
+                - img [ref=e124]
+                - generic: SQL Editor
+          - generic [ref=e126]:
+            - listitem [ref=e127]:
+              - link "Database" [ref=e128] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/database/schemas
+                - img [ref=e129]
+                - generic: Database
+            - listitem [ref=e133]:
+              - link "Authentication" [ref=e134] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/auth/users
+                - img [ref=e135]
+                - generic: Authentication
+            - listitem [ref=e137]:
+              - link "Storage" [ref=e138] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/storage/files
+                - img [ref=e139]
+                - generic: Storage
+            - listitem [ref=e141]:
+              - link "Edge Functions" [ref=e142] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/functions
+                - img [ref=e143]
+                - generic: Edge Functions
+            - listitem [ref=e148]:
+              - link "Realtime" [ref=e149] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/realtime/inspector
+                - img [ref=e150]
+                - generic: Realtime
+          - generic [ref=e152]:
+            - listitem [ref=e154]:
+              - link "Advisors" [ref=e155] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/advisors/security
+                - img [ref=e156]
+                - generic: Advisors
+            - listitem [ref=e158]:
+              - link "Observability" [ref=e159] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/observability
+                - img [ref=e160]
+                - generic: Observability
+            - listitem [ref=e168]:
+              - link "Logs" [ref=e169] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/logs/explorer
+                - img [ref=e170]
+                - generic: Logs
+            - listitem [ref=e171]:
+              - link "Integrations" [ref=e172] [cursor=pointer]:
+                - /url: /dashboard/project/dproxlygtabihfhtxdvm/integrations
+                - img [ref=e173]
+                - generic: Integrations
+          - listitem [ref=e177]:
+            - link "Project Settings" [ref=e178] [cursor=pointer]:
+              - /url: /dashboard/project/dproxlygtabihfhtxdvm/settings/general
+              - img [ref=e179]
+              - generic: Project Settings
+        - button [ref=e184] [cursor=pointer]:
+          - img [ref=e186]
+      - generic [ref=e193]:
+        - generic [ref=e197]:
+          - heading "SQL Editor" [level=4] [ref=e199]
+          - generic [ref=e201]:
+            - generic [ref=e202]:
+              - generic [ref=e203]:
+                - generic [ref=e205]:
+                  - generic [ref=e206]: Search queries
+                  - textbox "Search queries..." [ref=e207]
+                  - button [ref=e208] [cursor=pointer]:
+                    - img [ref=e209]
+                  - img [ref=e212]
+                - button [ref=e215] [cursor=pointer]:
+                  - img [ref=e217]
+              - button "Shared" [ref=e220] [cursor=pointer]:
+                - img [ref=e221]
+                - generic [ref=e223]: Shared
+              - generic [ref=e225]:
+                - button "Favorites" [expanded] [ref=e226] [cursor=pointer]:
+                  - img [ref=e227]
+                  - generic [ref=e229]: Favorites
+                - generic [ref=e232]:
+                  - paragraph [ref=e233]: No favorite queries
+                  - paragraph [ref=e234]:
+                    - text: Save a query to favorites for easy accessibility by clicking the
+                    - img [ref=e235]
+                    - text: icon.
+              - generic [ref=e238]:
+                - button "PRIVATE (3)" [expanded] [ref=e239] [cursor=pointer]:
+                  - img [ref=e240]
+                  - generic [ref=e242]: PRIVATE (3)
+                - tree "private-snippets" [ref=e244]:
+                  - generic "Hello Test Function" [ref=e245] [cursor=pointer]:
+                    - generic [ref=e246]:
+                      - img [ref=e247]
+                      - generic [ref=e253]: Hello Test Function
+                  - generic "Order creation with stock debiting and kiosk validation" [ref=e254] [cursor=pointer]:
+                    - generic [ref=e255]:
+                      - img [ref=e256]
+                      - generic [ref=e262]: Order creation with stock debiting and kiosk validation
+                  - generic "Schema TPV para Sorveteria com Pedidos e Estoque" [ref=e263] [cursor=pointer]:
+                    - generic [ref=e264]:
+                      - img [ref=e265]
+                      - generic [ref=e271]: Schema TPV para Sorveteria com Pedidos e Estoque
+              - generic [ref=e273]:
+                - button "Community" [expanded] [ref=e274] [cursor=pointer]:
+                  - img [ref=e275]
+                  - generic [ref=e277]: Community
+                - generic [ref=e278]:
+                  - link "templates" [ref=e279] [cursor=pointer]:
+                    - /url: /dashboard/project/dproxlygtabihfhtxdvm/sql/templates
+                    - img [ref=e280]
+                    - text: templates
+                  - link "quickstarts" [ref=e282] [cursor=pointer]:
+                    - /url: /dashboard/project/dproxlygtabihfhtxdvm/sql/quickstarts
+                    - img [ref=e283]
+                    - text: quickstarts
+            - button "View running queries" [ref=e287] [cursor=pointer]:
+              - generic [ref=e288]: View running queries
+        - separator [ref=e289]:
+          - img [ref=e291]
+        - main [ref=e300]:
+          - generic [ref=e301]:
+            - generic [ref=e302]:
+              - generic [ref=e303]:
+                - button [ref=e304] [cursor=pointer]:
+                  - img [ref=e305]
+                - tablist [ref=e308]:
+                  - button "Schema TPV para Sorveteria com Pedidos e Estoque" [ref=e310] [cursor=pointer]:
+                    - tab "Schema TPV para Sorveteria com Pedidos e Estoque" [ref=e311]:
+                      - img [ref=e312]
+                      - generic [ref=e319]: Schema TPV para Sorveteria com Pedidos e Estoque
+                      - button [ref=e320]:
+                        - img [ref=e321]
+                    - separator [ref=e325]
+                  - button "Order creation with stock debiting and kiosk validation" [ref=e327] [cursor=pointer]:
+                    - tab "Order creation with stock debiting and kiosk validation" [ref=e328]:
+                      - img [ref=e329]
+                      - generic [ref=e336]: Order creation with stock debiting and kiosk validation
+                      - button [ref=e337]:
+                        - img [ref=e338]
+                    - separator [ref=e342]
+                  - button "Hello Test Function" [ref=e344] [cursor=pointer]:
+                    - tab "Hello Test Function" [ref=e345]:
+                      - img [ref=e346]
+                      - generic [ref=e353]: Hello Test Function
+                      - button [ref=e354]:
+                        - img [ref=e355]
+                    - separator [ref=e359]
+                  - tab "New" [selected] [ref=e360] [cursor=pointer]:
+                    - img [ref=e361]
+                    - generic [ref=e363]: New
+                    - button [ref=e364]:
+                      - img [ref=e365]
+              - status [ref=e370]
+            - generic [ref=e373]:
+              - code [ref=e380]:
+                - generic [ref=e381]:
+                  - generic [ref=e386]: "1"
+                  - textbox "Editor content" [active] [ref=e395]
+                  - generic:
+                    - generic: Hit CTRL+K to generate query or just start typing
+              - separator [ref=e396]:
+                - img [ref=e398]
+              - generic [ref=e407]:
+                - tablist [ref=e408]:
+                  - generic [ref=e409]:
+                    - tab "Results" [selected] [ref=e410] [cursor=pointer]:
+                      - generic [ref=e411]: Results
+                    - tab "Explain" [ref=e412] [cursor=pointer]:
+                      - generic [ref=e413]: Explain
+                    - tab "Chart" [ref=e414] [cursor=pointer]:
+                      - generic [ref=e415]: Chart
+                  - generic [ref=e416]:
+                    - button [ref=e417] [cursor=pointer]:
+                      - img [ref=e419]
+                    - generic [ref=e424]:
+                      - generic [ref=e425] [cursor=pointer]:
+                        - generic [ref=e426]: Source
+                        - button "Primary database" [ref=e427]:
+                          - generic [ref=e428]: Primary database
+                          - img [ref=e430]
+                      - button "Role postgres" [ref=e432] [cursor=pointer]:
+                        - generic [ref=e434]:
+                          - generic [ref=e435]: Role
+                          - generic [ref=e436]: postgres
+                          - img [ref=e437]
+                      - button "Run Ctrl ↵" [ref=e439] [cursor=pointer]:
+                        - generic [ref=e440]: Run
+                        - generic [ref=e442]: Ctrl ↵
+                - paragraph [ref=e444]:
+                  - text: Click
+                  - code [ref=e445]: Run
+                  - text: to execute your query.
+  - alert [ref=e447]: Hello Test Function | SQL Editor | Sorveteria Tropicale | Jhin1v9's Org | Supabase
+  - generic [ref=e448]:
+    - alert
+    - alert

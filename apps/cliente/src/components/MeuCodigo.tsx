@@ -56,7 +56,7 @@ export default function MeuCodigo() {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-black/5">
         <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
           <Smartphone size={18} className="text-[#FF6B9D]" />
-          Código do Totem
+          Código del Tótem
         </h3>
         <p className="text-sm text-gray-500">Guarda tu perfil para generar un código.</p>
       </div>

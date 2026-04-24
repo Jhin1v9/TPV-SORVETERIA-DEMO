@@ -47,5 +47,11 @@ export function useClienteToast() {
         description: t('connectionOffline', locale),
         duration: 3000,
       }),
+
+    reorderPlaced: (orderNumber: string, count: number) =>
+      toast.success('¡De nuevo! 🍦', {
+        description: `Pedido #${orderNumber} — ${count} producto${count > 1 ? 's' : ''} añadidos al carrito`,
+        duration: 3000,
+      }),
   };
 }

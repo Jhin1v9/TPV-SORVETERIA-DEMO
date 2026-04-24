@@ -5,6 +5,7 @@ import { useRealtimeSync } from '@tpv/shared';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
 import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
 import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
+import AttractScreen from './screens/AttractScreen';
 import HolaScreen from './screens/HolaScreen';
 import LoginKioskScreen from './screens/LoginKioskScreen';
 import CardapioScreen from './screens/CardapioScreen';
@@ -14,12 +15,12 @@ import PagamentoScreen from './screens/PagamentoScreen';
 import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
 import CodigoAppScreen from './screens/CodigoAppScreen';
 
-type KioskScreen = 'hola' | 'login' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
+type KioskScreen = 'attract' | 'hola' | 'login' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
 
 export default function KioskApp() {
   useRealtimeSync();
   const { setScreen: _setScreen, setCurrentPedido, clearCarrinho, resetKiosk, connectionStatus, locale } = useStore();
-  const [screen, setScreen] = useState<KioskScreen>('hola');
+  const [screen, setScreen] = useState<KioskScreen>('attract');
   const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
   const [paymentBusy, setPaymentBusy] = useState(false);
   const [paymentError, setPaymentError] = useState('');
@@ -31,9 +32,11 @@ export default function KioskApp() {
   const resetInactivityTimer = useCallback(() => {
     if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
     inactivityTimer.current = setTimeout(() => {
-      if (screen !== 'hola' && screen !== 'confirmacao') {
+      if (screen !== 'attract' && screen !== 'confirmacao') {
         clearCarrinho();
-        setScreen('hola');
+        setLinkedCustomerId(null);
+        setLinkedCustomerName(null);
+        setScreen('attract');
       }
     }, 60000);
   }, [screen, clearCarrinho]);
@@ -145,7 +148,7 @@ export default function KioskApp() {
     setLinkedCustomerId(null);
     setLinkedCustomerName(null);
     resetKiosk();
-    setScreen('hola');
+    setScreen('attract');
   };
 
   const variants = {
@@ -168,6 +171,11 @@ export default function KioskApp() {
       )}
 
       <AnimatePresence mode="wait">
+        {screen === 'attract' && (
+          <motion.div key="attract" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.5 }} className="h-full">
+            <AttractScreen onTap={() => setScreen('hola')} />
+          </motion.div>
+        )}
         {screen === 'hola' && (
           <motion.div key="hola" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
             <HolaScreen

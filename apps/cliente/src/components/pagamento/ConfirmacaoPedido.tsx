@@ -15,10 +15,12 @@ interface ConfirmacaoPedidoProps {
 export default function ConfirmacaoPedido({ numeroPedido, total, metodo, onClose, onTrackOrder }: ConfirmacaoPedidoProps) {
   const { locale } = useStore();
 
-  const metodoInfo = {
+  const metodoInfo: Record<string, { icon: string; label: string; color: string }> = {
     tarjeta: { icon: '💳', label: t('payCard', locale), color: 'from-blue-500 to-indigo-600' },
     bizum: { icon: '📱', label: t('payBizum', locale), color: 'from-emerald-500 to-teal-600' },
     efectivo: { icon: '💶', label: t('payCash', locale), color: 'from-amber-500 to-orange-600' },
+    apple_pay: { icon: '🍎', label: 'Apple Pay', color: 'from-gray-800 to-black' },
+    google_pay: { icon: '💳', label: 'Google Pay', color: 'from-blue-600 to-cyan-500' },
   };
 
   return (
