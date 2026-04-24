@@ -115,14 +115,14 @@ Realtime sync → Filtra pedidos ativos → Cards com timer
 
 | # | Bug | Severidade | Status | Persona |
 |---|-----|-----------|--------|---------|
-| 1 | **Kiosk: produtos fixos não adicionam ao carrinho** | 🔴 Crítica | **OPEN** | Surgeon+Product |
-| 2 | **Tela branca no ProductDetailModal (Cliente)** | 🔴 Crítica | Investigando | Surgeon |
-| 3 | **Kiosk carousel preto entre transições** | 🟡 Média | **OPEN** | Product |
-| 4 | Onboarding aparece em cada reload | 🟡 Média | Pendente | Product |
-| 5 | Bug Detector usando Gemini (não Kimi) | 🟢 Baixa | Pendente | DevOps |
+| 1 | **Kiosk carousel preto entre transições** | 🟡 Média | **OPEN** | Product |
+| 2 | Onboarding aparece em cada reload | 🟡 Média | Pendente | Product |
+| 3 | Bug Detector usando Gemini (não Kimi) | 🟢 Baixa | Pendente | DevOps |
 
-**BUG-001 CORS resolvido** — Edge Functions atualizadas com headers CORS.
-**BUG-002 RPCs resolvido** — Novo projeto Supabase, todas as RPCs funcionando.
+**BUG-001 CORS** — Edge Functions atualizadas com headers CORS (aguardando deploy).
+**BUG-002 RPCs** ✅ — Novo projeto Supabase, todas as RPCs funcionando.
+**BUG-003 WSOD** ✅ — ErrorBoundary + guards null-check adicionados ao ProductDetailModal.
+**BUG-004 Produtos fixos kiosk** ✅ — Código já corrigido, testado E2E.
 
 Detalhes completos em: [[memory/bugs]]
 
@@ -130,23 +130,14 @@ Detalhes completos em: [[memory/bugs]]
 
 ## 🎯 Próximos Passos Imediatos
 
-1. **🔴 Corrigir botão "Añadir" no Kiosk** (BUG-004)
-   - Remover `disabled={quantidade === 0}`
-   - Ajustar handler para fallback quantidade = 1
-
-2. **🔴 Corrigir ProductDetailModal WSOD** (BUG-003)
-   - Adicionar Error Boundary
-   - Simplificar useEffect do scrollRef
-   - Adicionar `key` ao AnimatePresence
-
-3. **🟡 Corrigir carousel preto** (BUG-005)
+1. **🟡 Corrigir Kiosk carousel preto** (BUG-005)
    - Ajustar transições CSS no AttractScreen
 
-4. **🟡 Deploy para Vercel** após correções
+2. **🟡 Deploy para Vercel** após correções
    - `node scripts/deploy-all.mjs`
    - Validar fluxo completo Cliente → KDS
 
-5. **🟢 Documentar lições** em `memory/decisions.md` e `memory/bugs.md`
+3. **🟢 Documentar lições** em `memory/decisions.md` e `memory/bugs.md`
 
 ---
 
