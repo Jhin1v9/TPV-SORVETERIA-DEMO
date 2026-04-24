@@ -92,54 +92,97 @@ export default function ProcessandoPagamento({
         />
       </div>
 
-      {/* Terminal/Hardware mock */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 mb-8"
-      >
-        <div className="w-40 h-52 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-2xl flex flex-col items-center justify-center p-4">
-          {/* Screen */}
-          <div className="w-full h-28 bg-black rounded-xl mb-3 flex flex-col items-center justify-center overflow-hidden relative">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-              className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full mb-2"
-            />
-            <motion.p
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-pink-400 text-[8px] font-mono"
-            >
-              {isRealProcessing ? 'STRIPE-PROD' : 'TPV-SORV-001'}
-            </motion.p>
-          </div>
-          {/* Keypad dots */}
-          <div className="grid grid-cols-3 gap-1.5">
-            {[...Array(9)].map((_, i) => (
+      {/* Hardware mock — adapta ao método de pagamento */}
+      {metodo === 'tarjeta' || metodo === 'apple_pay' || metodo === 'google_pay' ? (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10 mb-8"
+        >
+          <div className="w-40 h-52 bg-gradient-to-b from-gray-800 to-gray-900 rounded-3xl border border-gray-700 shadow-2xl flex flex-col items-center justify-center p-4">
+            <div className="w-full h-28 bg-black rounded-xl mb-3 flex flex-col items-center justify-center overflow-hidden relative">
               <motion.div
-                key={i}
-                animate={{ opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
-                className="w-2 h-2 rounded-full bg-gray-600"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full mb-2"
               />
-            ))}
+              <motion.p
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-pink-400 text-[8px] font-mono"
+              >
+                {isRealProcessing ? 'STRIPE-PROD' : 'TPV-SORV-001'}
+              </motion.p>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              {[...Array(9)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  animate={{ opacity: [0.3, 0.8, 0.3] }}
+                  transition={{ duration: 1, repeat: Infinity, delay: i * 0.1 }}
+                  className="w-2 h-2 rounded-full bg-gray-600"
+                />
+              ))}
+            </div>
+            <div className="mt-2 w-12 h-8 border border-gray-600 rounded-lg flex items-center justify-center">
+              <motion.div
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-gray-500 text-[6px]"
+              >
+                NFC
+              </motion.div>
+            </div>
           </div>
-          {/* NFC area */}
-          <div className="mt-2 w-12 h-8 border border-gray-600 rounded-lg flex items-center justify-center">
+          <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-1 h-8 bg-gray-700" />
+        </motion.div>
+      ) : metodo === 'bizum' ? (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10 mb-8"
+        >
+          <div className="w-32 h-56 bg-gradient-to-b from-gray-800 to-gray-900 rounded-[2rem] border border-gray-700 shadow-2xl flex flex-col items-center justify-center p-3">
+            <div className="w-full h-36 bg-black rounded-xl mb-2 flex flex-col items-center justify-center overflow-hidden relative">
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-emerald-400 text-2xl"
+              >
+                <Smartphone size={40} />
+              </motion.div>
+              <motion.p
+                animate={{ opacity: [0.3, 1, 0.3] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+                className="text-emerald-400 text-[8px] font-mono mt-2"
+              >
+                BIZUM
+              </motion.p>
+            </div>
+            <div className="w-8 h-1 rounded-full bg-gray-600" />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="relative z-10 mb-8"
+        >
+          <div className="w-48 h-32 bg-gradient-to-br from-amber-600 to-orange-700 rounded-2xl border border-amber-500 shadow-2xl flex items-center justify-center p-4">
             <motion.div
-              animate={{ opacity: [0.3, 1, 0.3] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="text-gray-500 text-[6px]"
+              animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="text-amber-100 text-center"
             >
-              NFC
+              <Banknote size={48} className="mx-auto mb-1" />
+              <p className="text-amber-100 text-[10px] font-mono">EFECTIVO</p>
             </motion.div>
           </div>
-        </div>
-        {/* Cable */}
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-1 h-8 bg-gray-700" />
-      </motion.div>
+        </motion.div>
+      )}
 
       {/* Método info */}
       <motion.div
