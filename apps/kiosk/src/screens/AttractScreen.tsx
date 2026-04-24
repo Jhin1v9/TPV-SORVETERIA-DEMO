@@ -5,45 +5,27 @@ interface AttractScreenProps {
   onTap: () => void;
 }
 
-const slides = [
-  {
-    image: 'https://images.unsplash.com/photo-1627308594190-a057cd4bfac8?w=3840&q=90',
-    title: 'Açaí Tropical',
-    subtitle: 'Cremoso · Natural · Energético',
-    color: '#7C3AED',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=3840&q=90',
-    title: 'Cones Artesanais',
-    subtitle: 'Crocante · Fresco · Irresistível',
-    color: '#D97706',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1590288488147-f46142daf112?w=3840&q=90',
-    title: 'Copa Bahia',
-    subtitle: 'Frutas Frescas · Granola · Leite Condensado',
-    color: '#EC4899',
-  },
-  {
-    image: 'https://images.unsplash.com/photo-1562790879-dfde82829db0?w=3840&q=90',
-    title: 'Gelato Artesanal',
-    subtitle: 'Sabores Únicos · Para Compartilhar',
-    color: '#10B981',
-  },
+const greetings = [
+  { lang: 'Hola', region: 'Español', image: 'https://images.unsplash.com/photo-1627308594190-a057cd4bfac8?w=3840&q=90', color: '#7C3AED' },
+  { lang: 'Hola', region: 'Català', image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=3840&q=90', color: '#D97706' },
+  { lang: 'Hello', region: 'English', image: 'https://images.unsplash.com/photo-1590288488147-f46142daf112?w=3840&q=90', color: '#EC4899' },
+  { lang: 'Bonjour', region: 'Français', image: 'https://images.unsplash.com/photo-1562790879-dfde82829db0?w=3840&q=90', color: '#10B981' },
+  { lang: 'Ciao', region: 'Italiano', image: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=3840&q=90', color: '#EF4444' },
+  { lang: 'Hallo', region: 'Deutsch', image: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=3840&q=90', color: '#3B82F6' },
 ];
 
 export default function AttractScreen({ onTap }: AttractScreenProps) {
   const [current, setCurrent] = useState(0);
   const nextSlide = useCallback(() => {
-    setCurrent((prev) => (prev + 1) % slides.length);
+    setCurrent((prev) => (prev + 1) % greetings.length);
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(nextSlide, 5000);
+    const timer = setInterval(nextSlide, 4000);
     return () => clearInterval(timer);
   }, [nextSlide]);
 
-  const slide = slides[current];
+  const slide = greetings[current];
 
   return (
     <div
@@ -51,9 +33,9 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
       onClick={onTap}
     >
       {/* Background image stack — crossfade with overlap, no black flash */}
-      {slides.map((s, idx) => (
+      {greetings.map((g, idx) => (
         <motion.div
-          key={s.image}
+          key={g.image}
           initial={false}
           animate={{
             opacity: idx === current ? 1 : 0,
@@ -64,12 +46,11 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
           style={{ zIndex: idx === current ? 1 : 0 }}
         >
           <img
-            src={s.image}
-            alt={s.title}
+            src={g.image}
+            alt={g.lang}
             className="h-full w-full object-cover"
             loading={idx === 0 ? 'eager' : 'lazy'}
           />
-          {/* Gradient overlay — always visible beneath all images */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
         </motion.div>
       ))}
@@ -121,7 +102,7 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
 
         {/* Slide indicators */}
         <div className="absolute top-8 right-8 flex gap-2">
-          {slides.map((_, idx) => (
+          {greetings.map((_, idx) => (
             <motion.div
               key={idx}
               className="h-1.5 rounded-full"
@@ -134,21 +115,21 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
           ))}
         </div>
 
-        {/* Product text */}
+        {/* Greeting carousel */}
         <AnimatePresence mode="wait">
           <motion.div
             key={current}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
+            initial={{ opacity: 0, y: 30, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 1.05 }}
             transition={{ duration: 0.6 }}
             className="text-center mb-8"
           >
-            <h2 className="font-display text-5xl font-bold text-white drop-shadow-xl mb-3">
-              {slide.title}
+            <h2 className="font-display text-7xl font-black text-white drop-shadow-xl mb-2">
+              {slide.lang}
             </h2>
-            <p className="text-white/70 text-xl drop-shadow-md">
-              {slide.subtitle}
+            <p className="text-white/60 text-lg font-medium tracking-widest uppercase drop-shadow-md">
+              {slide.region}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -168,7 +149,7 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
           <div className="absolute inset-0 rounded-full bg-white/20 blur-xl animate-pulse" />
           <div className="relative px-12 py-5 rounded-full bg-white/10 backdrop-blur-md border border-white/20">
             <span className="font-display text-2xl font-bold text-white tracking-wide">
-              TOQUE PARA ENTRAR
+              TOCA PARA EMPEZAR
             </span>
           </div>
         </motion.div>
