@@ -4,14 +4,17 @@
 > Para entender o sistema completo de memória, leia: [[index]]
 
 ## Última Atualização
-**2026-04-23** — Fotos dos produtos substituídas por imagens profissionais em alta resolução (1920px). Build dos 4 apps ok.
+**2026-04-24** — Novo projeto Supabase criado e configurado. Todas as RPCs restauradas. Pedido E2E #003 confirmado no kiosk.
 
-### Fotos/Imagens
-- **Antes:** Imagens genéricas de 400px (`/assets/demo/`) — pixeladas em tela grande
-- **Depois:** Imagens profissionais em 1920px (`/assets/produtos/`) — copa sundae, cone, café, gelato, slushie, soufflé, etc.
-- **AttractScreen:** Unsplash atualizado para `w=3840&q=90` (máxima qualidade)
-- **Schemas SQL:** Todos os 4 arquivos SQL atualizados com novos paths
-- **Produtos locais:** `produtosLocal.ts` atualizado com novos paths
+### Mudanças Críticas
+- **Novo projeto Supabase:** `dproxlygtabihfhtxdvm` (antigo `jmvikjujftidgcezmlfc` corrompido)
+- **RPCs renomeadas** para contornar PostgREST cache bug:
+  - `upsert_customer` → `save_customer`
+  - `upsert_store_settings` → `save_store_settings`
+  - `reset_demo_data` → `restore_demo_data`
+- **Dados demo populados** via `restore_demo_data()` — produtos, sabores, toppings, pedidos
+- **Build OK** — 4 apps compilam sem erros
+- **Teste E2E OK** — Pedido #003 criado com sucesso via kiosk
 
 ---
 
@@ -27,61 +30,61 @@
 | Tests | ✅ 73/73 | Unitários passando |
 | E2E | ⚠️ 4 suites | Requerem servidor rodando; não rodadas no CI |
 
-### Conectividade (🔴 CRÍTICO)
+### Conectividade
 - **Localhost:** ✅ Supabase conecta, RPCs funcionam, Realtime funciona
-- **Vercel (Produção):** 🔴 **CORS bloqueando fetches para Edge Functions** (BUG-001)
-  - Sintoma: App carrega mas fica "offline"; pedidos falham com toast de erro
-  - Causa: Edge Functions não retornavam headers CORS (corrigido)
-  - Nota: A documentação do Supabase confirma que NÃO existe configuração de CORS no dashboard para origens específicas. O PostgREST gerencia CORS automaticamente via headers.
+- **Novo projeto Supabase:** ✅ `dproxlygtabihfhtxdvm` — todas as 10 RPCs expostas na API
+- **Vercel (Produção):** 🟡 Aguardando deploy com novas credenciais
 
 ---
 
 ## 🗄️ Supabase
 
-- **URL:** https://jmvikjujftidgcezmlfc.supabase.co
-- **Schema definitivo:** `supabase/schema-expanded.sql` (auto-contido, use este!)
+- **URL:** https://dproxlygtabihfhtxdvm.supabase.co
+- **Projeto anterior (corrompido):** https://jmvikjujftidgcezmlfc.supabase.co
+- **Schema definitivo:** `supabase/schema-expanded.sql`
+- **Migrações separadas:** `supabase/migrations/func_*.sql` (9 arquivos)
 
 ### Tabelas
 `categories` (legado), `product_categories`, `products`, `flavors`, `toppings`, `orders`, `order_items`, `customers`, `store_settings`, `inventory_log`, `kiosk_codes`
 
-### RPCs Funcionais
+### RPCs Funcionais (novo projeto)
 | RPC | Status | Notas |
 |-----|--------|-------|
-| `create_order` | ✅ | Suporta formato `product` + legado `categoria`; com `customer_id` |
-| `create_demo_order` | ✅ | Delega para `create_order` |
+| `create_order` | ✅ | Suporta formato `product` + legado `categoria` |
 | `update_order_status` | ✅ | |
 | `adjust_flavor_stock` | ✅ | |
+| `set_product_availability` | ✅ | |
 | `set_flavor_availability` | ✅ | |
-| `reset_demo_data` | ✅ | |
-| `upsert_store_settings` | ✅ | |
-| `get_products_by_category` | ✅ | |
-| `update_product_stock` | ✅ | |
-| `upsert_customer` | ✅ | |
-| `generate_kiosk_code` | ✅ | Novo — código 5 dígitos, TTL 5 min |
-| `validate_kiosk_code` | ✅ | Novo — valida e retorna `customer_id` |
+| `save_store_settings` | ✅ | Renomeado de `upsert_store_settings` |
+| `save_customer` | ✅ | Renomeado de `upsert_customer` |
+| `restore_demo_data` | ✅ | Renomeado de `reset_demo_data` |
+| `generate_kiosk_code` | ✅ | Código 5 dígitos, TTL 5 min |
+| `validate_kiosk_code` | ✅ | Valida e retorna `customer_id` |
+
+### Nota Técnica: PostgREST Cache Bug
+> Funções com nomes `upsert_*` e `reset_*` ficam permanentemente invisíveis na API REST mesmo existindo no Postgres. `NOTIFY pgrst, 'reload schema'` e restart do projeto não resolvem. **Solução: renomear as funções.**
 
 ### Realtime
-- Publicação `supabase_realtime` configurada para todas as tabelas (incluindo `kiosk_codes`)
-- WebSocket funciona (testado via Node.js)
-- **Bloqueado em produção por CORS nas Edge Functions** (os fetches REST funcionam, mas Edge Functions falhavam por falta de headers CORS — corrigido)
+- Publicação `supabase_realtime` configurada para todas as tabelas
+- WebSocket funciona
 
 ---
 
 ## 📦 Modelo de Dados (Atual)
 
 ### Produtos
-- **Fixos:** `copa-bahia`, `copa-oreo`, `cafe`, `agua`, etc. — preço fixo, sem personalização
-- **Personalizáveis:** `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` (tamanhos, sabores, toppings, frutas, extras) e `limites`
+- **Fixos:** `copa-bahia`, `copa-oreo`, `cafe`, `agua`, etc. — preço fixo
+- **Personalizáveis:** `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` e `limites`
 
 ### Pedidos
 - Armazenam `product_snapshot` JSONB imutável + `selections` JSONB
-- Agora com `customer_id` FK para vincular ao perfil
-- Campos legados (`category_sku`, `category_name`, `flavors`, `toppings`) populados automaticamente pela RPC
+- Com `customer_id` FK para vincular ao perfil
+- Campos legados populados automaticamente pela RPC
 
 ### Estoque
 - Sabores artesanais com `stock_buckets` (float)
-- `inventory_log` para auditoria de movimentação
-- Consumo automático por categoria (copas: 0.1, helados: 0.052, conos: 0.031)
+- `inventory_log` para auditoria
+- Consumo automático por categoria
 
 ---
 
@@ -95,7 +98,7 @@ Cardápio → [ProductDetailModal opcional] → Fly-to-cart → Tab Carrinho
 
 ### Kiosk
 ```
-AttractScreen (produtos em loop) → HolaScreen (swipe idiomas) → CardapioScreen
+AttractScreen → HolaScreen (swipe idiomas) → CardapioScreen
 → [PersonalizacaoScreen opcional] → CarrinhoScreen → Pagamento → Confirmacao
 → Reset para AttractScreen
 ```
@@ -112,11 +115,14 @@ Realtime sync → Filtra pedidos ativos → Cards com timer
 
 | # | Bug | Severidade | Status | Persona |
 |---|-----|-----------|--------|---------|
-| 1 | **CORS bloqueando pedidos na Vercel** | 🔴 Crítica | **OPEN** | DevOps |
+| 1 | **Kiosk: produtos fixos não adicionam ao carrinho** | 🔴 Crítica | **OPEN** | Surgeon+Product |
 | 2 | **Tela branca no ProductDetailModal (Cliente)** | 🔴 Crítica | Investigando | Surgeon |
-| 3 | **Kiosk: produtos fixos não adicionam ao carrinho** | 🔴 Crítica | **OPEN** | Product+Surgeon |
+| 3 | **Kiosk carousel preto entre transições** | 🟡 Média | **OPEN** | Product |
 | 4 | Onboarding aparece em cada reload | 🟡 Média | Pendente | Product |
 | 5 | Bug Detector usando Gemini (não Kimi) | 🟢 Baixa | Pendente | DevOps |
+
+**BUG-001 CORS resolvido** — Edge Functions atualizadas com headers CORS.
+**BUG-002 RPCs resolvido** — Novo projeto Supabase, todas as RPCs funcionando.
 
 Detalhes completos em: [[memory/bugs]]
 
@@ -124,25 +130,23 @@ Detalhes completos em: [[memory/bugs]]
 
 ## 🎯 Próximos Passos Imediatos
 
-1. **🔴 Corrigir CORS nas Edge Functions** (BUG-001)
-   - Headers CORS adicionados às 3 Edge Functions (corrigido)
-   - Deployar Edge Functions atualizadas
-   - Testar pedido end-to-end na Vercel
+1. **🔴 Corrigir botão "Añadir" no Kiosk** (BUG-004)
+   - Remover `disabled={quantidade === 0}`
+   - Ajustar handler para fallback quantidade = 1
 
 2. **🔴 Corrigir ProductDetailModal WSOD** (BUG-003)
    - Adicionar Error Boundary
    - Simplificar useEffect do scrollRef
    - Adicionar `key` ao AnimatePresence
 
-3. **🔴 Corrigir botão "Añadir" no Kiosk** (BUG-004)
-   - Remover `disabled={quantidade === 0}`
-   - Ajustar handler para fallback quantidade = 1
+3. **🟡 Corrigir carousel preto** (BUG-005)
+   - Ajustar transições CSS no AttractScreen
 
 4. **🟡 Deploy para Vercel** após correções
    - `node scripts/deploy-all.mjs`
    - Validar fluxo completo Cliente → KDS
 
-5. **🟢 Documentar lições em** `memory/decisions.md` e `memory/bugs.md`
+5. **🟢 Documentar lições** em `memory/decisions.md` e `memory/bugs.md`
 
 ---
 
