@@ -463,6 +463,7 @@ export async function createRemoteOrder(payload: {
     return buildStandaloneOrder(getStandaloneSnapshot(), payload);
   }
 
+  // Try RPC first, fallback to direct table insert if PostgREST cache is corrupted
   const result = await supabase.rpc('create_order', {
     cart_payload: payload.cart.map((item) => ({
       product_id: item.product.id,
@@ -477,8 +478,58 @@ export async function createRemoteOrder(payload: {
     checkout_payload: payload.checkout,
   });
 
+  if (result.error?.message?.includes('Could not find the function')) {
+    // Fallback: direct table insert (simplified — no stock debit, no complex validation)
+    const subtotal = payload.cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+    const iva = Math.round(subtotal * 0.10 * 100) / 100;
+    const total = Math.round((subtotal + iva) * 100) / 100;
+
+    const { data: orderRow, error: insertErr } = await supabase
+      .from('orders')
+      .insert({
+        status: 'pendiente',
+        payment_method: payload.metodoPago,
+        subtotal,
+        discount: 0,
+        extras: 0,
+        total,
+        iva,
+        origem: payload.checkout.origem || 'kiosk',
+        customer_id: payload.checkout.customerId || null,
+      })
+      .select()
+      .single();
+
+    if (insertErr || !orderRow) {
+      throw insertErr ?? new Error('Fallback insert failed');
+    }
+
+    // Insert order items
+    for (let i = 0; i < payload.cart.length; i++) {
+      const item = payload.cart[i];
+      await supabase.from('order_items').insert({
+        order_id: orderRow.id,
+        sort_order: i + 1,
+        item_type: 'product',
+        product_id: item.product.id,
+        product_name: item.product.nome?.es || item.product.id,
+        product_snapshot: item.product as unknown as Record<string, unknown>,
+        unit_price: item.unitPrice,
+        quantity: item.quantity,
+        notes: item.notes || null,
+      });
+    }
+
+    const snapshot = await fetchSupabaseSnapshot();
+    const pedido = snapshot.pedidos.find((p) => p.id === orderRow.id);
+    if (!pedido) {
+      throw new Error('Created order not found in snapshot');
+    }
+    setRuntimeMode('supabase');
+    return { pedido, snapshot };
+  }
+
   if (result.error || !result.data) {
-    // eslint-disable-next-line no-console
     console.error('[createRemoteOrder] RPC error:', result.error);
     throw result.error ?? new Error('Unable to create order');
   }
@@ -545,6 +596,21 @@ export async function updateRemoteOrderStatus(pedidoId: string, status: PedidoSt
     order_id_input: pedidoId,
     status_input: status,
   });
+
+  if (result.error?.message?.includes('Could not find the function')) {
+    // Fallback: direct table update
+    const { error: updErr } = await supabase
+      .from('orders')
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+        timestamp_listo: status === 'listo' ? new Date().toISOString() : undefined,
+      })
+      .eq('id', pedidoId);
+    if (updErr) throw updErr;
+    return { snapshot: await fetchSupabaseSnapshot() };
+  }
+
   if (result.error) {
     throw result.error;
   }
