@@ -50,26 +50,29 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
       className="relative h-full w-full overflow-hidden select-none cursor-pointer"
       onClick={onTap}
     >
-      {/* Background image with crossfade */}
-      <AnimatePresence mode="wait">
+      {/* Background image stack — crossfade with overlap, no black flash */}
+      {slides.map((s, idx) => (
         <motion.div
-          key={current}
-          initial={{ opacity: 0, scale: 1.1 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 1.05 }}
-          transition={{ duration: 1.2, ease: 'easeInOut' }}
+          key={s.image}
+          initial={false}
+          animate={{
+            opacity: idx === current ? 1 : 0,
+            scale: idx === current ? 1 : 1.1,
+          }}
+          transition={{ duration: 1.4, ease: 'easeInOut' }}
           className="absolute inset-0"
+          style={{ zIndex: idx === current ? 1 : 0 }}
         >
           <img
-            src={slide.image}
-            alt={slide.title}
+            src={s.image}
+            alt={s.title}
             className="h-full w-full object-cover"
-
+            loading={idx === 0 ? 'eager' : 'lazy'}
           />
-          {/* Gradient overlay */}
+          {/* Gradient overlay — always visible beneath all images */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
         </motion.div>
-      </AnimatePresence>
+      ))}
 
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
