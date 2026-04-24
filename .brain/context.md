@@ -1,81 +1,167 @@
-# TPV Sorveteria Demo - Contexto Persistente
+# 🧠 TPV Sorveteria Demo — Contexto Persistente
+
+> **Este é o "dashboard" do projeto. Atualize-o após cada sessão significativa.**
+> Para entender o sistema completo de memória, leia: [[index]]
 
 ## Última Atualização
-2026-04-21
+**2026-04-23** — Fotos dos produtos substituídas por imagens profissionais em alta resolução (1920px). Build dos 4 apps ok.
 
-## Estado do Projeto
+### Fotos/Imagens
+- **Antes:** Imagens genéricas de 400px (`/assets/demo/`) — pixeladas em tela grande
+- **Depois:** Imagens profissionais em 1920px (`/assets/produtos/`) — copa sundae, cone, café, gelato, slushie, soufflé, etc.
+- **AttractScreen:** Unsplash atualizado para `w=3840&q=90` (máxima qualidade)
+- **Schemas SQL:** Todos os 4 arquivos SQL atualizados com novos paths
+- **Produtos locais:** `produtosLocal.ts` atualizado com novos paths
+
+---
+
+## 🏥 Estado de Saúde do Projeto
 
 ### Build Status
-- ✅ Cliente: compila e builda
-- ✅ Kiosk: compila e builda (redesign glassmorphism completo)
-- ✅ Admin: compila e builda
-- ✅ KDS: compila e builda
-- ✅ Tests: 73 unitários passando (4 suites)
-- ⚠️ E2E: 4 suites do Playwright (não rodadas pelo vitest — requerem servidor)
+| App | Status | Notas |
+|-----|--------|-------|
+| Cliente PWA | ✅ Compila | Scrollbars customizadas implementadas |
+| Kiosk | ✅ Compila | AttractScreen + LanguageSwiper implementados |
+| Admin | ✅ Compila | Funcional |
+| KDS | ✅ Compila | Aguardando fix de CORS para sync em produção |
+| Tests | ✅ 73/73 | Unitários passando |
+| E2E | ⚠️ 4 suites | Requerem servidor rodando; não rodadas no CI |
 
-### Supabase
-- URL: https://jmvikjujftidgcezmlfc.supabase.co
-- Schema definitivo: `supabase/schema-expanded.sql` (auto-contido)
-- Tabelas: `categories` (legado), `product_categories`, `products`, `flavors`, `toppings`, `orders`, `order_items`, `customers`, `store_settings`, `inventory_log`
-- RPCs funcionais:
-  - `create_order` ✅ (suporta formato novo `product` + legado `categoria`, agora com `customer_id`)
-  - `create_demo_order` ✅ (delega para `create_order`)
-  - `update_order_status` ✅
-  - `adjust_flavor_stock` ✅
-  - `set_flavor_availability` ✅
-  - `reset_demo_data` ✅
-  - `upsert_store_settings` ✅
-  - `get_products_by_category` ✅
-  - `update_product_stock` ✅
-  - `upsert_customer` ✅
-  - `generate_kiosk_code` ✅ (novo — gera código de 5 dígitos para login kiosk)
-  - `validate_kiosk_code` ✅ (novo — valida código e retorna customer_id)
-- Realtime publication configurada para todas as tabelas (incluindo `kiosk_codes`)
+### Conectividade (🔴 CRÍTICO)
+- **Localhost:** ✅ Supabase conecta, RPCs funcionam, Realtime funciona
+- **Vercel (Produção):** 🔴 **CORS bloqueando fetches para Edge Functions** (BUG-001)
+  - Sintoma: App carrega mas fica "offline"; pedidos falham com toast de erro
+  - Causa: Edge Functions não retornavam headers CORS (corrigido)
+  - Nota: A documentação do Supabase confirma que NÃO existe configuração de CORS no dashboard para origens específicas. O PostgREST gerencia CORS automaticamente via headers.
 
-### Modelo de Dados (Novo)
-- **Produtos fixos**: `copa-bahia`, `copa-oreo`, `cafe`, etc. — preço fixo, sem personalização
-- **Produtos personalizáveis**: `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` (tamanhos, sabores, toppings, frutas, extras) e `limites`
-- **Pedidos**: armazenam `product_snapshot` JSONB imutável + `selections` JSONB, agora com `customer_id` FK
-- **Estoque**: sabores artesanais com `stock_buckets` + `inventory_log` para auditoria
-- **Kiosk Codes**: nova tabela `kiosk_codes` para login rápido PWA ↔ Kiosk (código 5 dígitos, TTL 5 min)
-- **Compatibilidade**: campos legados (`category_sku`, `category_name`, `flavors`, `toppings`) populados automaticamente pela RPC para KDS/Admin legado
+---
 
-### Fluxo do Kiosk
-Hola → Cardapio → [Personalizacao opcional] → Carrinho → Pagamento → Confirmação → Reset
+## 🗄️ Supabase
 
-### Fluxo do Cliente PWA
-Cardápio → [PersonalizacaoDrawer opcional] → (fly-to-cart animation) → Tab Carrinho → Pagamento → Confirmação
+- **URL:** https://jmvikjujftidgcezmlfc.supabase.co
+- **Schema definitivo:** `supabase/schema-expanded.sql` (auto-contido, use este!)
 
-### Cliente PWA — UX Mobile
-- ✅ **Fly-to-cart animation**: quando adiciona produto, uma miniatura voa do botão até o ícone do carrinho na tab bar
-- ✅ **Badge bounce**: o contador do carrinho dá um bounce spring quando incrementa
-- ✅ **Não abre drawer automaticamente**: o carrinho só abre quando clica na tab "carrinho"
-- ✅ **PersonalizacaoDrawer**: produtos personalizáveis abrem drawer de seleção de opções
+### Tabelas
+`categories` (legado), `product_categories`, `products`, `flavors`, `toppings`, `orders`, `order_items`, `customers`, `store_settings`, `inventory_log`, `kiosk_codes`
 
-### KDS / Admin — Renderização de Pedidos
-- ✅ KDS renderiza `productName` + `selections` quando `itemType === 'product'`
-- ✅ Admin renderiza `productName` + `selections` no modal de detalhes e no CSV export
-- ✅ Legado (`itemType === 'legacy'`) continua funcionando como antes
+### RPCs Funcionais
+| RPC | Status | Notas |
+|-----|--------|-------|
+| `create_order` | ✅ | Suporta formato `product` + legado `categoria`; com `customer_id` |
+| `create_demo_order` | ✅ | Delega para `create_order` |
+| `update_order_status` | ✅ | |
+| `adjust_flavor_stock` | ✅ | |
+| `set_flavor_availability` | ✅ | |
+| `reset_demo_data` | ✅ | |
+| `upsert_store_settings` | ✅ | |
+| `get_products_by_category` | ✅ | |
+| `update_product_stock` | ✅ | |
+| `upsert_customer` | ✅ | |
+| `generate_kiosk_code` | ✅ | Novo — código 5 dígitos, TTL 5 min |
+| `validate_kiosk_code` | ✅ | Novo — valida e retorna `customer_id` |
 
-### Auris Bug Detector
-- ✅ Integrado nos 4 apps via `TPVBugDetectorProvider`
-- ✅ Botão flutuante 🐛 no canto inferior direito
-- ✅ Atalho: `Ctrl+Shift+D`
-- ✅ Guest mode ativado
+### Realtime
+- Publicação `supabase_realtime` configurada para todas as tabelas (incluindo `kiosk_codes`)
+- WebSocket funciona (testado via Node.js)
+- **Bloqueado em produção por CORS nas Edge Functions** (os fetches REST funcionam, mas Edge Functions falhavam por falta de headers CORS — corrigido)
 
-### Apps Atualizados
-- **Kiosk**: usa `CartItem` nativo, envia pedidos no formato novo para Supabase
-- **Cliente PWA**: usa `CartItem` nativo, fly-to-cart, PersonalizacaoDrawer, sem drawer automático
-- **KDS**: renderiza produtos do novo modelo (productName + selections)
-- **Admin**: renderiza produtos do novo modelo no modal e CSV
+---
 
-### Assets
-- Imagens dos produtos em `public/assets/demo/` (categorias) e `public/assets/sabores/` (sabores reais)
-- Todas as imagens dos produtos no catálogo apontam para assets locais (não mais Unsplash)
+## 📦 Modelo de Dados (Atual)
 
-### Pendente / Próximos Passos
-- [x] Aplicar migration SQL no Supabase remoto (tabela `kiosk_codes` + RPCs) — ✅ Aplicado em 2026-04-21
-- [x] Testar RPCs no Supabase remoto — ✅ generate_kiosk_code, validate_kiosk_code, create_order com customer_id — todas funcionando
-- [ ] Deploy para Vercel (4 apps)
-- [ ] Testar fluxo end-to-end no kiosk deployado
-- [ ] Adicionar imagens reais individuais de cada produto (atualmente usando imagens de categoria como placeholder)
+### Produtos
+- **Fixos:** `copa-bahia`, `copa-oreo`, `cafe`, `agua`, etc. — preço fixo, sem personalização
+- **Personalizáveis:** `acai`, `helado-terra`, `cono`, `gofre`, `granizado`, `batido`, `orxata`, `tarrina-nata` — com `opcoes` (tamanhos, sabores, toppings, frutas, extras) e `limites`
+
+### Pedidos
+- Armazenam `product_snapshot` JSONB imutável + `selections` JSONB
+- Agora com `customer_id` FK para vincular ao perfil
+- Campos legados (`category_sku`, `category_name`, `flavors`, `toppings`) populados automaticamente pela RPC
+
+### Estoque
+- Sabores artesanais com `stock_buckets` (float)
+- `inventory_log` para auditoria de movimentação
+- Consumo automático por categoria (copas: 0.1, helados: 0.052, conos: 0.031)
+
+---
+
+## 🎨 Fluxos de UX
+
+### Cliente PWA
+```
+Cardápio → [ProductDetailModal opcional] → Fly-to-cart → Tab Carrinho
+→ PagamentoModal → ProcessandoPagamento (2.5s) → ConfirmacaoPedido
+```
+
+### Kiosk
+```
+AttractScreen (produtos em loop) → HolaScreen (swipe idiomas) → CardapioScreen
+→ [PersonalizacaoScreen opcional] → CarrinhoScreen → Pagamento → Confirmacao
+→ Reset para AttractScreen
+```
+
+### KDS
+```
+Realtime sync → Filtra pedidos ativos → Cards com timer
+→ Clique avança status: pendiente → preparando → listo → entregado
+```
+
+---
+
+## 🚨 Problemas Ativos (Priorizados)
+
+| # | Bug | Severidade | Status | Persona |
+|---|-----|-----------|--------|---------|
+| 1 | **CORS bloqueando pedidos na Vercel** | 🔴 Crítica | **OPEN** | DevOps |
+| 2 | **Tela branca no ProductDetailModal (Cliente)** | 🔴 Crítica | Investigando | Surgeon |
+| 3 | **Kiosk: produtos fixos não adicionam ao carrinho** | 🔴 Crítica | **OPEN** | Product+Surgeon |
+| 4 | Onboarding aparece em cada reload | 🟡 Média | Pendente | Product |
+| 5 | Bug Detector usando Gemini (não Kimi) | 🟢 Baixa | Pendente | DevOps |
+
+Detalhes completos em: [[memory/bugs]]
+
+---
+
+## 🎯 Próximos Passos Imediatos
+
+1. **🔴 Corrigir CORS nas Edge Functions** (BUG-001)
+   - Headers CORS adicionados às 3 Edge Functions (corrigido)
+   - Deployar Edge Functions atualizadas
+   - Testar pedido end-to-end na Vercel
+
+2. **🔴 Corrigir ProductDetailModal WSOD** (BUG-003)
+   - Adicionar Error Boundary
+   - Simplificar useEffect do scrollRef
+   - Adicionar `key` ao AnimatePresence
+
+3. **🔴 Corrigir botão "Añadir" no Kiosk** (BUG-004)
+   - Remover `disabled={quantidade === 0}`
+   - Ajustar handler para fallback quantidade = 1
+
+4. **🟡 Deploy para Vercel** após correções
+   - `node scripts/deploy-all.mjs`
+   - Validar fluxo completo Cliente → KDS
+
+5. **🟢 Documentar lições em** `memory/decisions.md` e `memory/bugs.md`
+
+---
+
+## 📚 Links Rápidos do Brain
+
+- [[index]] — Guia de uso do sistema de memória
+- [[personas/architect]] — Arquiteto de software
+- [[personas/surgeon]] — Cirurgião de código / debugger
+- [[personas/product]] — Visionário de produto / UX
+- [[personas/devops]] — Engenheiro de infra / deploy
+- [[memory/decisions]] — ADRs (decisões arquiteturais)
+- [[memory/bugs]] — Registro de bugs e lições
+- [[memory/patterns]] — Padrões de código do projeto
+- [[knowledge/domain]] — Regras de negócio da sorveteria
+- [[knowledge/stack]] — Stack técnico e dependências
+- [[knowledge/api]] — Contratos de API e integrações
+
+---
+
+*Brain version: 2.0*
+*Sistema: PARA + Zettelkasten + 4 Personas especializadas*
+*Inspirado em: Tiago Forte, Niklas Luhmann, Anthropic, JetBrains, BMAD Method*

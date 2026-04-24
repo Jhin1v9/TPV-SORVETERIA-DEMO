@@ -183,7 +183,10 @@ async function fetchSupabaseSnapshot() {
   ].filter(Boolean);
 
   if (possibleErrors.length > 0) {
-    throw possibleErrors[0]!;
+    const err = possibleErrors[0]!;
+    // eslint-disable-next-line no-console
+    console.error('[fetchSupabaseSnapshot] Supabase query error:', err);
+    throw err;
   }
 
   return buildSnapshotFromSupabase({
@@ -319,7 +322,9 @@ class RealtimeManager {
       }
       setRuntimeMode('supabase');
       this.publishSnapshot(snapshot);
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('[RealtimeManager] refreshSnapshot failed:', err);
       if (this.disposed) {
         return;
       }
@@ -473,6 +478,8 @@ export async function createRemoteOrder(payload: {
   });
 
   if (result.error || !result.data) {
+    // eslint-disable-next-line no-console
+    console.error('[createRemoteOrder] RPC error:', result.error);
     throw result.error ?? new Error('Unable to create order');
   }
 
@@ -593,7 +600,7 @@ export async function upsertRemoteCustomer(payload: {
   if (getRuntimeMode() === 'standalone' || !supabase) {
     return crypto.randomUUID();
   }
-  const result = await supabase.rpc('upsert_customer', {
+  const result = await supabase.rpc('save_customer', {
     nome_input: payload.nome,
     telefone_input: payload.telefone,
     email_input: payload.email || null,
@@ -633,7 +640,7 @@ export async function updateRemoteSettings(establishment: EstablishmentSettings)
     return { snapshot };
   }
 
-  const result = await supabase.rpc('upsert_store_settings', {
+  const result = await supabase.rpc('save_store_settings', {
     setting_payload: establishment,
   });
   if (result.error) {
@@ -649,7 +656,7 @@ export async function resetRemoteDemo() {
     return { snapshot };
   }
 
-  const result = await supabase.rpc('reset_demo_data');
+  const result = await supabase.rpc('restore_demo_data');
   if (result.error) {
     throw result.error;
   }

@@ -1,0 +1,880 @@
+-- Fix missing functions after Supabase reset
+create or replace function public.serialize_flavors(flavor_ids text[])
+returns jsonb
+language sql
+stable
+set search_path = public
+as $$
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'id', f.id,
+        'nome', f.nome,
+        'categoria', f.categoria,
+        'corHex', f.cor_hex,
+        'imagemUrl', f.image_url,
+        'precoExtra', f.extra_price,
+        'stockBaldes', f.stock_buckets,
+        'alertaStock', f.low_stock_threshold,
+        'disponivel', f.available,
+        'badge', f.badge
+      )
+      order by array_position(flavor_ids, f.id)
+    ),
+    '[]'::jsonb
+  )
+  from public.flavors f
+  where f.id = any(flavor_ids);
+$$;
+
+create or replace function public.serialize_toppings(topping_ids text[])
+returns jsonb
+language sql
+stable
+set search_path = public
+as $$
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'id', t.id,
+        'nome', t.nome,
+        'preco', t.price,
+        'categoria', t.categoria,
+        'emoji', t.emoji
+      )
+      order by array_position(topping_ids, t.id)
+    ),
+    '[]'::jsonb
+  )
+  from public.toppings t
+  where t.id = any(topping_ids);
+$$;
+
+create or replace function public.debit_flavor_stock(
+  flavor_id_input text,
+  amount numeric,
+  order_id_input uuid,
+  motivo_input text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  stock_atual numeric(10,3);
+  stock_novo numeric(10,3);
+begin
+  select stock_buckets into stock_atual from public.flavors where id = flavor_id_input;
+  if stock_atual is null then
+    return;
+  end if;
+  stock_novo := greatest(0, round(stock_atual - amount, 3));
+
+  update public.flavors
+  set stock_buckets = stock_novo
+  where id = flavor_id_input;
+
+  insert into public.inventory_log (flavor_id, tipo, delta, stock_antes, stock_depois, order_id, motivo)
+  values (flavor_id_input, 'venda', -amount, stock_atual, stock_novo, order_id_input, motivo_input);
+end;
+$$;
+
+create or replace function public.calculate_flavor_consumption(category_id text, flavor_count integer)
+returns numeric
+language sql
+stable
+set search_path = public
+as $$
+  select round(
+    case
+      when category_id in ('copas', 'gofres', 'acai', 'batidos') then 0.100
+      when category_id in ('helados', 'granizados', 'orxata', 'cafes') then 0.052
+      when category_id = 'conos' then 0.031
+      when category_id in ('souffle', 'banana-split', 'para-llevar', 'tarrinas-nata') then 0.200
+      else 0.100
+    end / greatest(flavor_count, 1),
+    3
+  );
+$$;
+
+create or replace function public.create_order(
+  cart_payload jsonb,
+  payment_method_input text,
+  checkout_payload jsonb default '{}'::jsonb
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  item_record jsonb;
+  product_id text;
+  product_name text;
+  product_snapshot jsonb;
+  selections jsonb;
+  category_sku text;
+  category_name text;
+  flavor_ids text[];
+  topping_ids text[];
+  item_price numeric(10,2);
+  items_subtotal numeric(10,2) := 0;
+  extras_total numeric(10,2) := case when coalesce((checkout_payload->>'coffeeAdded')::boolean, false) then coalesce((checkout_payload->>'coffeePrice')::numeric, 1.50) else 0 end;
+  discount_rate numeric(10,4) := greatest(coalesce((checkout_payload->>'promoDiscountRate')::numeric, 0), 0);
+  discount_total numeric(10,2);
+  subtotal_total numeric(10,2);
+  iva_total numeric(10,2);
+  grand_total numeric(10,2);
+  order_id_output uuid;
+  order_number_output bigint;
+  item_index integer := 0;
+  order_origem text := coalesce(checkout_payload->>'origem', 'tpv');
+  order_nome_usuario text := nullif(checkout_payload->>'nomeUsuario', '');
+  order_customer_phone text := nullif(checkout_payload->>'notificationPhone', '');
+  order_customer_id uuid := nullif(checkout_payload->>'customerId', '')::uuid;
+  flavor_count integer;
+  consumption numeric(10,3);
+  selection_sabor jsonb;
+  selection_array jsonb;
+  is_legacy boolean;
+begin
+  if cart_payload is null or jsonb_typeof(cart_payload) <> 'array' or jsonb_array_length(cart_payload) = 0 then
+    raise exception 'cart_payload must contain at least one item';
+  end if;
+
+  -- Primeira passada: validação e cálculo de subtotal
+  for item_record in select value from jsonb_array_elements(cart_payload)
+  loop
+    is_legacy := item_record ? 'categoria';
+
+    if is_legacy then
+      -- Formato legado
+      category_sku := item_record->'categoria'->>'id';
+      select nome->>'es' into category_name from public.categories where id = category_sku and active = true;
+      if category_name is null then
+        raise exception 'Category % not found or inactive', category_sku;
+      end if;
+
+      select coalesce(array_agg(value->>'id'), array[]::text[])
+        into flavor_ids
+        from jsonb_array_elements(coalesce(item_record->'sabores', '[]'::jsonb));
+
+      select coalesce(array_agg(value->>'id'), array[]::text[])
+        into topping_ids
+        from jsonb_array_elements(coalesce(item_record->'toppings', '[]'::jsonb));
+
+      if coalesce(array_length(flavor_ids, 1), 0) = 0 then
+        raise exception 'Each legacy cart item must contain at least one flavor';
+      end if;
+
+      select count(*) into flavor_count from public.flavors where id = any(flavor_ids) and available = true;
+      if flavor_count <> array_length(flavor_ids, 1) then
+        raise exception 'One or more selected flavors are unavailable';
+      end if;
+
+      item_price := round(
+        (select c.base_price from public.categories c where c.id = category_sku)
+        + coalesce((select sum(f.extra_price) from public.flavors f where f.id = any(flavor_ids)), 0)
+        + coalesce((select sum(t.price) from public.toppings t where t.id = any(topping_ids)), 0),
+        2
+      );
+    else
+      -- Formato novo (produto)
+      product_id := item_record->'product'->>'id';
+      if product_id is null then
+        product_id := item_record->>'product_id';
+      end if;
+
+      if product_id is not null then
+        select p.nome->>'es' into product_name from public.products p where p.id = product_id and p.active = true;
+        if product_name is null then
+          raise exception 'Product % not found or inactive', product_id;
+        end if;
+      end if;
+
+      item_price := coalesce((item_record->>'unit_price')::numeric, (item_record->>'precoUnitario')::numeric, 0);
+    end if;
+
+    items_subtotal := items_subtotal + item_price;
+  end loop;
+
+  -- Cálculos finais
+  discount_total := round(items_subtotal * discount_rate, 2);
+  subtotal_total := round(items_subtotal + extras_total - discount_total, 2);
+  iva_total := round(subtotal_total * 0.10, 2);
+  grand_total := round(subtotal_total + iva_total, 2);
+
+  -- Inserir pedido
+  insert into public.orders (
+    status,
+    payment_method,
+    subtotal,
+    discount,
+    extras,
+    total,
+    iva,
+    customer_phone,
+    customer_id,
+    origem,
+    nome_usuario
+  )
+  values (
+    'pendiente',
+    payment_method_input,
+    subtotal_total,
+    discount_total,
+    extras_total,
+    grand_total,
+    iva_total,
+    order_customer_phone,
+    order_customer_id,
+    order_origem,
+    order_nome_usuario
+  )
+  returning id, numero_sequencial into order_id_output, order_number_output;
+
+  -- Gerar Verifactu QR
+  update public.orders
+  set verifactu_qr = jsonb_build_object(
+    'id', concat('pedido-', order_number_output),
+    'fecha', current_date,
+    'importe', to_char(grand_total, 'FM999999990.00'),
+    'establecimiento', (select name from public.store_settings where store_key = 'main')
+  )::text
+  where id = order_id_output;
+
+  -- Segunda passada: inserir itens e gerenciar estoque
+  for item_record in select value from jsonb_array_elements(cart_payload)
+  loop
+    item_index := item_index + 1;
+    is_legacy := item_record ? 'categoria';
+
+    if is_legacy then
+      -- ─── Formato legado ───
+      category_sku := item_record->'categoria'->>'id';
+      select nome->>'es' into category_name from public.categories where id = category_sku;
+
+      select coalesce(array_agg(value->>'id'), array[]::text[])
+        into flavor_ids
+        from jsonb_array_elements(coalesce(item_record->'sabores', '[]'::jsonb));
+
+      select coalesce(array_agg(value->>'id'), array[]::text[])
+        into topping_ids
+        from jsonb_array_elements(coalesce(item_record->'toppings', '[]'::jsonb));
+
+      item_price := round(
+        (select c.base_price from public.categories c where c.id = category_sku)
+        + coalesce((select sum(f.extra_price) from public.flavors f where f.id = any(flavor_ids)), 0)
+        + coalesce((select sum(t.price) from public.toppings t where t.id = any(topping_ids)), 0),
+        2
+      );
+
+      insert into public.order_items (
+        order_id, sort_order, item_type,
+        category_sku, category_name, flavors, toppings,
+        unit_price, quantity, notes
+      )
+      values (
+        order_id_output, item_index, 'legacy',
+        category_sku, category_name,
+        public.serialize_flavors(flavor_ids),
+        public.serialize_toppings(topping_ids),
+        item_price, 1,
+        nullif(item_record->>'notas', '')
+      );
+
+      -- Debitar estoque de sabores
+      consumption := public.calculate_flavor_consumption(category_sku, array_length(flavor_ids, 1));
+      for i in 1..coalesce(array_length(flavor_ids, 1), 0)
+      loop
+        perform public.debit_flavor_stock(flavor_ids[i], consumption, order_id_output, 'legacy order');
+      end loop;
+
+    else
+      -- ─── Formato novo (produto) ───
+      product_id := coalesce(item_record->'product'->>'id', item_record->>'product_id');
+      product_snapshot := coalesce(item_record->'product', item_record->'product_snapshot', '{}'::jsonb);
+      selections := coalesce(item_record->'selections', item_record->'selecoes', '[]'::jsonb);
+      item_price := coalesce((item_record->>'unit_price')::numeric, (item_record->>'precoUnitario')::numeric, 0);
+
+      if product_id is not null then
+        select p.nome->>'es' into product_name from public.products p where p.id = product_id;
+      else
+        product_name := product_snapshot->>'nome';
+        if product_name is null then
+          product_name := product_snapshot->'nome'->>'es';
+        end if;
+      end if;
+
+      -- Popular flavors/toppings a partir das selections para compatibilidade
+      flavor_ids := array[]::text[];
+      topping_ids := array[]::text[];
+
+      -- Extrair sabores das selections (se tiverem flavor_ref ou id matching)
+      if selections ? 'sabores' then
+        for selection_sabor in select value from jsonb_array_elements(selections->'sabores')
+        loop
+          if selection_sabor ? 'flavor_ref' then
+            flavor_ids := array_append(flavor_ids, selection_sabor->>'flavor_ref');
+          elsif selection_sabor ? 'id' and exists (select 1 from public.flavors f where f.id = selection_sabor->>'id') then
+            flavor_ids := array_append(flavor_ids, selection_sabor->>'id');
+          end if;
+        end loop;
+      end if;
+
+      -- Extrair toppings das selections
+      if selections ? 'toppings' then
+        for selection_array in select value from jsonb_array_elements(selections->'toppings')
+        loop
+          if selection_array ? 'id' and exists (select 1 from public.toppings t where t.id = selection_array->>'id') then
+            topping_ids := array_append(topping_ids, selection_array->>'id');
+          end if;
+        end loop;
+      end if;
+
+      insert into public.order_items (
+        order_id, sort_order, item_type,
+        product_id, product_name, product_snapshot, selections,
+        category_sku, category_name, flavors, toppings,
+        unit_price, quantity, notes
+      )
+      values (
+        order_id_output, item_index, 'product',
+        product_id, product_name, product_snapshot, selections,
+        product_snapshot->>'categoria', product_name,
+        public.serialize_flavors(flavor_ids),
+        public.serialize_toppings(topping_ids),
+        item_price,
+        coalesce((item_record->>'quantity')::integer, (item_record->>'quantidade')::integer, 1),
+        nullif(coalesce(item_record->>'notes', item_record->>'notas'), '')
+      );
+
+      -- Debitar estoque de sabores se houver match
+      if array_length(flavor_ids, 1) > 0 then
+        category_sku := product_snapshot->>'categoria';
+        consumption := public.calculate_flavor_consumption(category_sku, array_length(flavor_ids, 1));
+        for i in 1..array_length(flavor_ids, 1)
+        loop
+          perform public.debit_flavor_stock(flavor_ids[i], consumption, order_id_output, 'product order: ' || coalesce(product_name, 'unknown'));
+        end loop;
+      end if;
+
+    end if;
+  end loop;
+
+  return order_id_output;
+end;
+$$;
+
+create or replace function public.create_demo_order(
+  cart_payload jsonb,
+  payment_method_input text,
+  checkout_payload jsonb default '{}'::jsonb
+)
+returns uuid
+language sql
+security definer
+set search_path = public
+as $$
+  select public.create_order(cart_payload, payment_method_input, checkout_payload);
+$$;
+
+create or replace function public.update_order_status(order_id_input uuid, status_input text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.orders
+  set
+    status = status_input,
+    ready_at = case when status_input = 'listo' then now() else ready_at end
+  where id = order_id_input;
+end;
+$$;
+
+create or replace function public.adjust_flavor_stock(flavor_id_input text, delta_input numeric)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  stock_atual numeric(10,3);
+  stock_novo numeric(10,3);
+begin
+  select stock_buckets into stock_atual from public.flavors where id = flavor_id_input;
+  if stock_atual is null then
+    return;
+  end if;
+  stock_novo := greatest(0, round(stock_atual + delta_input, 3));
+
+  update public.flavors
+  set stock_buckets = stock_novo
+  where id = flavor_id_input;
+
+  insert into public.inventory_log (flavor_id, tipo, delta, stock_antes, stock_depois, motivo)
+  values (flavor_id_input, case when delta_input >= 0 then 'ajuste' else 'venda' end, delta_input, stock_atual, stock_novo, 'manual adjustment');
+end;
+$$;
+
+create or replace function public.set_flavor_availability(flavor_id_input text, available_input boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.flavors
+  set available = available_input
+  where id = flavor_id_input;
+end;
+$$;
+
+create or replace function public.upsert_store_settings(setting_payload jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.store_settings (
+    store_key, name, nif, address, summer_hours, winter_hours
+  )
+  values (
+    'main',
+    coalesce(setting_payload->>'name', 'Heladeria Sabadell Nord'),
+    coalesce(setting_payload->>'nif', 'B-12345678'),
+    coalesce(setting_payload->>'address', 'Carrer de la Concepcio, 23, 08201 Sabadell, Barcelona'),
+    coalesce(setting_payload->>'summerHours', '16:00 - 23:00'),
+    coalesce(setting_payload->>'winterHours', '17:00 - 22:00')
+  )
+  on conflict (store_key) do update
+  set
+    name = excluded.name,
+    nif = excluded.nif,
+    address = excluded.address,
+    summer_hours = excluded.summer_hours,
+    winter_hours = excluded.winter_hours,
+    updated_at = now();
+end;
+$$;
+
+create or replace function public.get_products_by_category(categoria_input text)
+returns setof public.products
+language sql
+stable
+set search_path = public
+as $$
+  select * from public.products
+  where categoria_id = categoria_input and em_estoque = true and active = true
+  order by display_order asc, created_at desc;
+$$;
+
+create or replace function public.update_product_stock(product_id_input text, em_estoque_input boolean)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update public.products
+  set em_estoque = em_estoque_input
+  where id = product_id_input;
+end;
+$$;
+
+create or replace function public.upsert_customer(
+  nome_input text,
+  telefone_input text,
+  email_input text default null,
+  alergias_input jsonb default '[]'::jsonb
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  customer_id uuid;
+begin
+  insert into public.customers (nome, telefone, email, alergias)
+  values (nome_input, telefone_input, email_input, alergias_input)
+  on conflict (telefone) do update
+  set nome = excluded.nome, email = coalesce(excluded.email, customers.email), alergias = excluded.alergias
+  returning id into customer_id;
+
+  return customer_id;
+end;
+$$;
+
+create or replace function public.reset_demo_data()
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  order_one uuid;
+  order_two uuid;
+  order_three uuid;
+begin
+  truncate table public.inventory_log restart identity cascade;
+  truncate table public.order_items, public.orders restart identity cascade;
+  truncate table public.customers, public.products, public.product_categories, public.categories, public.flavors, public.toppings, public.store_settings cascade;
+
+  -- Categorias legadas (compatibilidade)
+  insert into public.categories (id, nome, base_price, max_flavors, cor_hex, active, display_order, image_url, badge) values
+    ('copo300', '{"ca":"Got 300ml","es":"Vaso 300ml","en":"Cup 300ml","pt":"Copo 300ml"}', 3.50, 2, '#4ECDC4', true, 0, '/assets/produtos/coffee.jpg', 'Popular'),
+    ('copo500', '{"ca":"Got 500ml","es":"Vaso 500ml","en":"Cup 500ml","pt":"Copo 500ml"}', 4.80, 3, '#FF6B9D', true, 1, '/assets/produtos/copa-sundae.jpg', 'Mas valor'),
+    ('cone',    '{"ca":"Cucurutxo","es":"Cono","en":"Cone","pt":"Cone"}', 3.20, 2, '#D2691E', true, 2, '/assets/produtos/cone.jpg', null),
+    ('pote1l',  '{"ca":"Tarrina 1L","es":"Tarrina 1L","en":"Tub 1L","pt":"Pote 1L"}', 12.00, 4, '#98D8C8', true, 3, '/assets/produtos/ice-cream-tub.jpg', 'Para llevar');
+
+  -- Categorias do cardápio real
+  insert into public.product_categories (id, nome, emoji, display_order, active) values
+    ('copas',      '{"ca":"Copes","es":"Copas","pt":"Copas","en":"Cups"}',      '🍨', 1, true),
+    ('gofres',     '{"ca":"Gofres","es":"Gofres","pt":"Waffles","en":"Waffles"}', '🧇', 2, true),
+    ('souffle',    '{"ca":"Soufflé","es":"Soufflé","pt":"Soufflé","en":"Soufflé"}', '🍫', 3, true),
+    ('banana-split', '{"ca":"Banana Split","es":"Banana Split","pt":"Banana Split","en":"Banana Split"}', '🍌', 4, true),
+    ('acai',       '{"ca":"Açaí","es":"Açaí","pt":"Açaí","en":"Açaí"}',         '🫐', 5, true),
+    ('helados',    '{"ca":"Gelats","es":"Helados","pt":"Sorvetes","en":"Ice Cream"}', '🍦', 6, true),
+    ('conos',      '{"ca":"Cucurutxos","es":"Conos","pt":"Cones","en":"Cones"}', '🍦', 7, true),
+    ('granizados', '{"ca":"Granissats","es":"Granizados","pt":"Granizados","en":"Slushies"}', '🥤', 8, true),
+    ('batidos',    '{"ca":"Batuts","es":"Batidos","pt":"Batidos","en":"Shakes"}', '🥛', 9, true),
+    ('orxata',     '{"ca":"Orxata / Llet Merengada","es":"Orxata / Llet Merengada","pt":"Orxata / Leite Merengado","en":"Horchata / Merengada"}', '🥛', 10, true),
+    ('cafes',      '{"ca":"Cafès i Begudes","es":"Cafés y Bebidas","pt":"Cafés e Bebidas","en":"Coffee & Drinks"}', '☕', 11, true),
+    ('tarrinas-nata', '{"ca":"Tarrines Nata","es":"Tarrinas Nata","pt":"Potes de Chantilly","en":"Cream Tubs"}', '🥣', 12, true),
+    ('para-llevar', '{"ca":"Per Emportar","es":"Para Llevar","pt":"Para Levar","en":"Take Away"}', '📦', 13, true);
+
+  -- Produtos fixos (cardápio real)
+  insert into public.products (id, nome, descricao, preco, imagem, categoria_id, em_estoque, alergenos, is_personalizavel, active, display_order) values
+    ('copa-bahia',        '{"ca":"Copa Bahia","es":"Copa Bahia","pt":"Copa Bahia","en":"Bahia Cup"}',        '{"ca":"Helado de vainilla, fresa, crocanti, sirope de fresa y galleta","es":"Helado de vainilla, fresa, crocanti, sirope de fresa y galleta","pt":"Sorvete de baunilha, morango, crocante, calda de morango e biscoito","en":"Vanilla, strawberry, crunchy, strawberry syrup and cookie"}', 8.10, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 0),
+    ('copa-oreo',         '{"ca":"Copa Oreo","es":"Copa Oreo","pt":"Copa Oreo","en":"Oreo Cup"}',         '{"ca":"2 bolas de helado Oreo, nata montada, sirope y galletas Oreo","es":"2 bolas de helado Oreo, nata montada, sirope y galletas Oreo","pt":"2 bolas de sorvete Oreo, chantilly, calda e biscoitos Oreo","en":"2 scoops Oreo ice cream, whipped cream, syrup and Oreo cookies"}', 9.10, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 1),
+    ('copa-sao-paulo',    '{"ca":"Copa Sao Paulo","es":"Copa Sao Paulo","pt":"Copa Sao Paulo","en":"Sao Paulo Cup"}',    '{"ca":"3 bolas de helado a su elección, con nata montada, crocanti, sirope y galleta","es":"3 bolas de helado a su elección, con nata montada, crocanti, sirope y galleta","pt":"3 bolas de sorvete à escolha, com chantilly, crocante, calda e biscoito","en":"3 scoops of your choice, with whipped cream, crunchy, syrup and cookie"}', 9.30, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 2),
+    ('copa-cancun',       '{"ca":"Copa Cancún","es":"Copa Cancún","pt":"Copa Cancún","en":"Cancun Cup"}',       '{"ca":"Helado de coco, limón, fresa, yogurt con amarenas, trozos de melocotón, crocanti, sirope de fresa y galleta","es":"Helado de coco, limón, fresa, yogurt con amarenas, trozos de melocotón, crocanti, sirope de fresa y galleta","pt":"Sorvete de coco, limão, morango, iogurte com amarena, pedaços de pêssego, crocante, calda de morango e biscoito","en":"Coconut, lemon, strawberry, yogurt with amarena, peach chunks, crunchy, strawberry syrup and cookie"}', 9.30, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 3),
+    ('copa-caracolino',   '{"ca":"Copa Caracolino","es":"Copa Caracolino","pt":"Copa Caracolino","en":"Caracolino Cup"}',   '{"ca":"Helado de chocolate y fresa silvestre, nata montada, sirope de fresa y galleta","es":"Helado de chocolate y fresa silvestre, nata montada, sirope de fresa y galleta","pt":"Sorvete de chocolate e morango silvestre, chantilly, calda de morango e biscoito","en":"Chocolate and wild strawberry ice cream, whipped cream, strawberry syrup and cookie"}', 8.30, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 4),
+    ('copa-4-estaciones', '{"ca":"Copa 4 Estacions","es":"Copa 4 Estaciones","pt":"Copa 4 Estações","en":"4 Seasons Cup"}', '{"ca":"4 bolas de helado a su elección y galleta","es":"4 bolas de helado a su elección y galleta","pt":"4 bolas de sorvete à escolha e biscoito","en":"4 scoops of your choice and cookie"}', 8.50, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 5),
+    ('copa-frutas',       '{"ca":"Copa Fruites Variades","es":"Copa Frutas Variadas","pt":"Copa Frutas Variadas","en":"Mixed Fruits Cup"}', '{"ca":"Helado de frutas variadas con nata montada y galleta","es":"Helado de frutas variadas con nata montada y galleta","pt":"Sorvete de frutas variadas com chantilly e biscoito","en":"Mixed fruit ice cream with whipped cream and cookie"}', 8.40, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 6),
+    ('copa-fresas-nata',  '{"ca":"Copa Maduixes + Nata + 1 Bola","es":"Copa Fresas + Nata + 1 Bola","pt":"Copa Morangos + Chantilly + 1 Bola","en":"Strawberry + Cream + 1 Scoop Cup"}', '{"ca":"Fresas con nata montada y 1 bola de helado a elegir","es":"Fresas con nata montada y 1 bola de helado a elegir","pt":"Morangos com chantilly e 1 bola de sorvete à escolha","en":"Strawberries with whipped cream and 1 scoop of your choice"}', 8.00, '/assets/produtos/copa-sundae.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 7),
+    ('copa-tropicale',    '{"ca":"Copa Tropicale","es":"Copa Tropicale","pt":"Copa Tropicale","en":"Tropicale Cup"}',    '{"ca":"Helado de vainilla, fresa, chocolate y manzana verde. Combinación de frutas variadas con nata montada, crocanti, sirope y galleta","es":"Helado de vainilla, fresa, chocolate y manzana verde. Combinación de frutas variadas con nata montada, crocanti, sirope y galleta","pt":"Sorvete de baunilha, morango, chocolate e maçã verde. Combinação de frutas variadas com chantilly, crocante, calda e biscoito","en":"Vanilla, strawberry, chocolate and green apple ice cream. Mixed fruits with whipped cream, crunchy, syrup and cookie"}', 15.30, '/assets/produtos/coffee.jpg', 'copas', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"ovos","nivel":"pode_conter"}]', false, true, 8),
+
+    ('souffle-solo',      '{"ca":"Soufflé Solo","es":"Soufflé Solo","pt":"Soufflé Solo","en":"Solo Soufflé"}',      '{"ca":"Soufflé de chocolate fundido","es":"Soufflé de chocolate fundido","pt":"Soufflé de chocolate derretido","en":"Molten chocolate soufflé"}', 7.10, '/assets/produtos/ice-cream-tub.jpg', 'souffle', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"ovos","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"}]', false, true, 0),
+    ('souffle-1b',        '{"ca":"Soufflé + 1 Bola","es":"Soufflé + 1 Bola","pt":"Soufflé + 1 Bola","en":"Soufflé + 1 Scoop"}',        '{"ca":"Soufflé de chocolate fundido con 1 bola de helado","es":"Soufflé de chocolate fundido con 1 bola de helado","pt":"Soufflé de chocolate derretido com 1 bola de sorvete","en":"Molten chocolate soufflé with 1 scoop"}', 8.80, '/assets/produtos/ice-cream-tub.jpg', 'souffle', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"ovos","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"}]', false, true, 1),
+    ('souffle-2b',        '{"ca":"Soufflé + 2 Bolas","es":"Soufflé + 2 Bolas","pt":"Soufflé + 2 Bolas","en":"Soufflé + 2 Scoops"}',        '{"ca":"Soufflé de chocolate fundido con 2 bolas de helado","es":"Soufflé de chocolate fundido con 2 bolas de helado","pt":"Soufflé de chocolate derretido com 2 bolas de sorvete","en":"Molten chocolate soufflé with 2 scoops"}', 9.50, '/assets/produtos/ice-cream-tub.jpg', 'souffle', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"ovos","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"}]', false, true, 2),
+
+    ('banana-split',      '{"ca":"Banana Split","es":"Banana Split","pt":"Banana Split","en":"Banana Split"}',      '{"ca":"Helado de fresa, chocolate y vainilla, plátano natural, nata montada, sirope de fresa, sirope de chocolate y galletas","es":"Helado de fresa, chocolate y vainilla, plátano natural, nata montada, sirope de fresa, sirope de chocolate y galletas","pt":"Sorvete de morango, chocolate e baunilha, banana natural, chantilly, calda de morango, calda de chocolate e biscoitos","en":"Strawberry, chocolate and vanilla ice cream, natural banana, whipped cream, strawberry syrup, chocolate syrup and cookies"}', 12.30, '/assets/produtos/ice-cream-tub.jpg', 'banana-split', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"gluten","nivel":"contem"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"}]', false, true, 0),
+
+    ('cafe',              '{"ca":"Café","es":"Café","pt":"Café","en":"Coffee"}',              null, 1.80, '/assets/produtos/coffee.jpg', 'cafes', true, '[{"alergeno":"leite","nivel":"pode_conter"}]', false, true, 0),
+    ('cafe-leche',        '{"ca":"Café amb Llet","es":"Café con Leche","pt":"Café com Leite","en":"Coffee with Milk"}',        null, 2.00, '/assets/produtos/coffee.jpg', 'cafes', true, '[{"alergeno":"leite","nivel":"pode_conter"}]', false, true, 1),
+    ('cortado',           '{"ca":"Cortat","es":"Cortado","pt":"Cortado","en":"Cortado"}',           null, 1.90, '/assets/produtos/coffee.jpg', 'cafes', true, '[{"alergeno":"leite","nivel":"pode_conter"}]', false, true, 2),
+    ('capuccino',         '{"ca":"Caputxino","es":"Capuccino","pt":"Capuccino","en":"Cappuccino"}',         null, 2.80, '/assets/produtos/coffee.jpg', 'cafes', true, '[{"alergeno":"leite","nivel":"pode_conter"}]', false, true, 3),
+    ('agua',              '{"ca":"Aigua","es":"Agua","pt":"Água","en":"Water"}',              null, 1.30, '/assets/produtos/coffee.jpg', 'cafes', true, '[]', false, true, 4),
+    ('refresco',          '{"ca":"Refresc","es":"Refresco","pt":"Refrigerante","en":"Soft Drink"}',          null, 2.20, '/assets/produtos/coffee.jpg', 'cafes', true, '[]', false, true, 5);
+
+  -- Produtos personalizáveis
+  insert into public.products (id, nome, descricao, preco_base, imagem, categoria_id, em_estoque, alergenos, is_personalizavel, opcoes, limites, active, display_order) values
+    ('acai', '{"ca":"Açaí","es":"Açaí","pt":"Açaí","en":"Açaí"}', '{"ca":"Açaí con toppings y frutas a elegir","es":"Açaí con toppings y frutas a elegir","pt":"Açaí com toppings e frutas à escolha","en":"Açaí with toppings and fruits of your choice"}', 7.90, '/assets/produtos/copa-sundae.jpg', 'acai', true, '[{"alergeno":"frutos_casca_rija","nivel":"pode_conter"},{"alergeno":"leite","nivel":"pode_conter"},{"alergeno":"gluten","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"acai-petit","nome":{"ca":"Petit — 2 toppings + 1 fruta","es":"Petit — 2 toppings + 1 fruta","pt":"Pequeno — 2 toppings + 1 fruta","en":"Small — 2 toppings + 1 fruit"},"preco":7.90,"tipo":"tamanho"},{"id":"acai-mitja","nome":{"ca":"Mitjà — 3 toppings + 2 frutas","es":"Mitjà — 3 toppings + 2 frutas","pt":"Médio — 3 toppings + 2 frutas","en":"Medium — 3 toppings + 2 fruits"},"preco":8.90,"tipo":"tamanho"},{"id":"acai-gran","nome":{"ca":"Gran — 4 toppings + 3 frutas","es":"Gran — 4 toppings + 3 frutas","pt":"Grande — 4 toppings + 3 frutas","en":"Large — 4 toppings + 3 fruits"},"preco":10.90,"tipo":"tamanho"}],"toppings":[{"id":"top-granola","nome":{"ca":"Granola","es":"Granola","pt":"Granola","en":"Granola"},"preco":0,"tipo":"topping","emoji":"🌾"},{"id":"top-leche-condensada","nome":{"ca":"Llet Condensada","es":"Leche Condensada","pt":"Leite Condensado","en":"Condensed Milk"},"preco":0,"tipo":"topping","emoji":"🥛"},{"id":"top-dulce-leche","nome":{"ca":"Dolç de Llet","es":"Dulce de Leche","pt":"Doce de Leite","en":"Dulce de Leche"},"preco":0,"tipo":"topping","emoji":"🍯"},{"id":"top-lacasitos","nome":{"ca":"Lacasitos","es":"Lacasitos","pt":"Lacasitos","en":"Lacasitos"},"preco":0,"tipo":"topping","emoji":"🍬"}],"frutas":[{"id":"fruta-maduixa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"fruta","emoji":"🍓"},{"id":"fruta-kiwi","nome":{"ca":"Kiwi","es":"Kiwi","pt":"Kiwi","en":"Kiwi"},"preco":0,"tipo":"fruta","emoji":"🥝"},{"id":"fruta-platan","nome":{"ca":"Plàtan","es":"Plátano","pt":"Banana","en":"Banana"},"preco":0,"tipo":"fruta","emoji":"🍌"}],"extras":[{"id":"extra-nutella","nome":{"ca":"Nutela","es":"Nutella","pt":"Nutella","en":"Nutella"},"preco":1.00,"tipo":"extra","emoji":"🌰"},{"id":"extra-crema-pistacho","nome":{"ca":"Crema de Festuc","es":"Crema de Pistacho","pt":"Creme de Pistache","en":"Pistachio Cream"},"preco":1.00,"tipo":"extra","emoji":"🟢"}]}',
+      '{"maxToppings":4,"maxFrutas":3}', true, 0),
+
+    ('helado-terra', '{"ca":"Gelat en Terrina","es":"Helado en Terrina","pt":"Sorvete no Pote","en":"Ice Cream Tub"}', '{"ca":"Helado artesanal en terrina. Elige tamaño y sabores.","es":"Helado artesanal en terrina. Elige tamaño y sabores.","pt":"Sorvete artesanal no pote. Escolha o tamanho e os sabores.","en":"Artisan ice cream in tub. Choose size and flavors."}', 3.00, '/assets/produtos/coffee.jpg', 'helados', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"helado-petit","nome":{"ca":"Petit — 1 sabor / 1 bola","es":"Petit — 1 sabor / 1 bola","pt":"Pequeno — 1 sabor / 1 bola","en":"Small — 1 flavor / 1 scoop"},"preco":3.00,"tipo":"tamanho"},{"id":"helado-mitja","nome":{"ca":"Mitjà — 2 sabores / 2 bolas","es":"Mitjà — 2 sabores / 2 bolas","pt":"Médio — 2 sabores / 2 bolas","en":"Medium — 2 flavors / 2 scoops"},"preco":4.00,"tipo":"tamanho"},{"id":"helado-gran","nome":{"ca":"Gran — 3 sabores / 3 bolas","es":"Gran — 3 sabores / 3 bolas","pt":"Grande — 3 sabores / 3 bolas","en":"Large — 3 flavors / 3 scoops"},"preco":5.30,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor","flavor_ref":"vainilla_madagascar"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor","flavor_ref":"choco_negro"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor","flavor_ref":"frutos_rojos"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor","flavor_ref":"coco_tropical"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor","flavor_ref":"menta_fresca"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor","flavor_ref":"cafe_espresso"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor","flavor_ref":"limon_siciliano"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor","flavor_ref":"pistacho"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor","flavor_ref":"tiramisu"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"},{"id":"sab-nata","nome":{"ca":"Nata","es":"Nata","pt":"Chantilly","en":"Cream"},"preco":0,"tipo":"sabor"},{"id":"sab-yogurt","nome":{"ca":"Iogurt","es":"Yogurt","pt":"Iogurte","en":"Yogurt"},"preco":0,"tipo":"sabor","flavor_ref":"yogurt_griego"}],"extras":[{"id":"extra-nata","nome":{"ca":"Extra de Nata","es":"Extra de Nata","pt":"Extra de Chantilly","en":"Extra Cream"},"preco":1.00,"tipo":"extra","emoji":"🥛"}]}',
+      '{"maxSabores":3}', true, 0),
+
+    ('cono', '{"ca":"Cucurutxo","es":"Cono","pt":"Cone","en":"Cone"}', '{"ca":"Cono artesanal con helado a elegir","es":"Cono artesanal con helado a elegir","pt":"Cone artesanal com sorvete à escolha","en":"Artisan cone with ice cream of your choice"}', 3.50, '/assets/produtos/cone.jpg', 'conos', true, '[{"alergeno":"gluten","nivel":"contem"},{"alergeno":"leite","nivel":"contem"},{"alergeno":"ovos","nivel":"pode_conter"},{"alergeno":"soja","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"cono-petit-1","nome":{"ca":"Petit Xocolata — 1 bola","es":"Petit Chocolate — 1 bola","pt":"Pequeno Chocolate — 1 bola","en":"Small Chocolate — 1 scoop"},"preco":3.50,"tipo":"tamanho"},{"id":"cono-petit-2","nome":{"ca":"Petit Xocolata — 2 bolas","es":"Petit Chocolate — 2 bolas","pt":"Pequeno Chocolate — 2 bolas","en":"Small Chocolate — 2 scoops"},"preco":4.50,"tipo":"tamanho"},{"id":"cono-mitja-1","nome":{"ca":"Mitjà Ametllat — 1 bola","es":"Mitjà Almendrado — 1 bola","pt":"Médio Amêndoa — 1 bola","en":"Medium Almond — 1 scoop"},"preco":4.20,"tipo":"tamanho"},{"id":"cono-mitja-2","nome":{"ca":"Mitjà Ametllat — 2 bolas","es":"Mitjà Almendrado — 2 bolas","pt":"Médio Amêndoa — 2 bolas","en":"Medium Almond — 2 scoops"},"preco":5.20,"tipo":"tamanho"},{"id":"cono-gran-2","nome":{"ca":"Gran Artesà — 2 bolas","es":"Gran Artesano — 2 bolas","pt":"Grande Artesanal — 2 bolas","en":"Large Artisan — 2 scoops"},"preco":5.90,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor","flavor_ref":"vainilla_madagascar"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor","flavor_ref":"choco_negro"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor","flavor_ref":"frutos_rojos"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor","flavor_ref":"coco_tropical"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor","flavor_ref":"menta_fresca"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor","flavor_ref":"cafe_espresso"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor","flavor_ref":"limon_siciliano"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor","flavor_ref":"pistacho"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor","flavor_ref":"tiramisu"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"},{"id":"sab-nata","nome":{"ca":"Nata","es":"Nata","pt":"Chantilly","en":"Cream"},"preco":0,"tipo":"sabor"},{"id":"sab-yogurt","nome":{"ca":"Iogurt","es":"Yogurt","pt":"Iogurte","en":"Yogurt"},"preco":0,"tipo":"sabor","flavor_ref":"yogurt_griego"}],"extras":[{"id":"extra-nata","nome":{"ca":"Extra de Nata","es":"Extra de Nata","pt":"Extra de Chantilly","en":"Extra Cream"},"preco":1.00,"tipo":"extra","emoji":"🥛"}]}',
+      '{"maxSabores":2}', true, 0),
+
+    ('gofre', '{"ca":"Gofre","es":"Gofre","pt":"Waffle","en":"Waffle"}', '{"ca":"Gofre con helado, frutas y sirope a elegir","es":"Gofre con helado, frutas y sirope a elegir","pt":"Waffle com sorvete, frutas e calda à escolha","en":"Waffle with ice cream, fruits and syrup of your choice"}', 4.90, '/assets/produtos/ice-cream-tub.jpg', 'gofres', true, '[{"alergeno":"gluten","nivel":"contem"},{"alergeno":"leite","nivel":"contem"},{"alergeno":"ovos","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"gofre-solo","nome":{"ca":"Solo","es":"Solo","pt":"Solo","en":"Plain"},"preco":4.90,"tipo":"tamanho"},{"id":"gofre-sirope","nome":{"ca":"Con Sirope","es":"Con Sirope","pt":"Com Calda","en":"With Syrup"},"preco":5.20,"tipo":"tamanho"},{"id":"gofre-1b","nome":{"ca":"Con 1 bola","es":"Con 1 bola","pt":"Com 1 bola","en":"With 1 scoop"},"preco":5.90,"tipo":"tamanho"},{"id":"gofre-2b","nome":{"ca":"Con 2 bolas","es":"Con 2 bolas","pt":"Com 2 bolas","en":"With 2 scoops"},"preco":6.80,"tipo":"tamanho"},{"id":"gofre-1b-1f","nome":{"ca":"1 bola + 1 fruta","es":"1 bola + 1 fruta","pt":"1 bola + 1 fruta","en":"1 scoop + 1 fruit"},"preco":6.40,"tipo":"tamanho"},{"id":"gofre-1b-2f","nome":{"ca":"1 bola + 2 frutas","es":"1 bola + 2 frutas","pt":"1 bola + 2 frutas","en":"1 scoop + 2 fruits"},"preco":6.70,"tipo":"tamanho"},{"id":"gofre-2b-1f","nome":{"ca":"2 bolas + 1 fruta","es":"2 bolas + 1 fruta","pt":"2 bolas + 1 fruta","en":"2 scoops + 1 fruit"},"preco":7.10,"tipo":"tamanho"},{"id":"gofre-2b-2f","nome":{"ca":"2 bolas + 2 frutas","es":"2 bolas + 2 frutas","pt":"2 bolas + 2 frutas","en":"2 scoops + 2 fruits"},"preco":7.60,"tipo":"tamanho"},{"id":"gofre-1f","nome":{"ca":"1 fruta","es":"1 fruta","pt":"1 fruta","en":"1 fruit"},"preco":5.70,"tipo":"tamanho"},{"id":"gofre-2f","nome":{"ca":"2 frutas","es":"2 frutas","pt":"2 frutas","en":"2 fruits"},"preco":6.20,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"}],"frutas":[{"id":"fruta-maduixa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"fruta","emoji":"🍓"},{"id":"fruta-kiwi","nome":{"ca":"Kiwi","es":"Kiwi","pt":"Kiwi","en":"Kiwi"},"preco":0,"tipo":"fruta","emoji":"🥝"},{"id":"fruta-platan","nome":{"ca":"Plàtan","es":"Plátano","pt":"Banana","en":"Banana"},"preco":0,"tipo":"fruta","emoji":"🍌"},{"id":"fruta-pressec","nome":{"ca":"Préssec","es":"Melocotón","pt":"Pêssego","en":"Peach"},"preco":0,"tipo":"fruta","emoji":"🍑"}],"extras":[{"id":"extra-nata","nome":{"ca":"Extra de Nata","es":"Extra de Nata","pt":"Extra de Chantilly","en":"Extra Cream"},"preco":1.00,"tipo":"extra","emoji":"🥛"}]}',
+      null, true, 0),
+
+    ('granizado', '{"ca":"Granissat","es":"Granizado","pt":"Granizado","en":"Slushie"}', '{"ca":"Granizado natural. Elige sabor y tamaño.","es":"Granizado natural. Elige sabor y tamaño.","pt":"Granizado natural. Escolha o sabor e o tamanho.","en":"Natural slushie. Choose flavor and size."}', 4.20, '/assets/produtos/coffee.jpg', 'granizados', true, '[{"alergeno":"sulfitos","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"gran-petit","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":4.20,"tipo":"tamanho"},{"id":"gran-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":5.60,"tipo":"tamanho"}],"sabores":[{"id":"gran-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"gran-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"gran-naranja","nome":{"ca":"Taronja","es":"Naranja","pt":"Laranja","en":"Orange"},"preco":0,"tipo":"sabor"},{"id":"gran-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"gran-pina","nome":{"ca":"Pinya Colada","es":"Piña Colada","pt":"Piña Colada","en":"Piña Colada"},"preco":0,"tipo":"sabor"},{"id":"gran-manzana-kiwi","nome":{"ca":"Poma-Kiwi","es":"Manzana-Kiwi","pt":"Maçã-Kiwi","en":"Apple-Kiwi"},"preco":0,"tipo":"sabor"},{"id":"gran-maracuya","nome":{"ca":"Maracujà","es":"Maracuyá","pt":"Maracujá","en":"Passion Fruit"},"preco":0,"tipo":"sabor"}]}',
+      null, true, 0),
+
+    ('granizado-yogurt', '{"ca":"Granissat Iogurt","es":"Granizado Yogurt","pt":"Granizado Iogurte","en":"Yogurt Slushie"}', '{"ca":"Granizado de yogurt natural. Elige sabor y tamaño.","es":"Granizado de yogurt natural. Elige sabor y tamaño.","pt":"Granizado de iogurte natural. Escolha o sabor e o tamanho.","en":"Yogurt slushie. Choose flavor and size."}', 4.80, '/assets/produtos/coffee.jpg', 'granizados', true, '[{"alergeno":"sulfitos","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"gry-petit","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":4.80,"tipo":"tamanho"},{"id":"gry-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":6.20,"tipo":"tamanho"}],"sabores":[{"id":"gran-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"gran-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"gran-naranja","nome":{"ca":"Taronja","es":"Naranja","pt":"Laranja","en":"Orange"},"preco":0,"tipo":"sabor"},{"id":"gran-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"gran-pina","nome":{"ca":"Pinya Colada","es":"Piña Colada","pt":"Piña Colada","en":"Piña Colada"},"preco":0,"tipo":"sabor"},{"id":"gran-manzana-kiwi","nome":{"ca":"Poma-Kiwi","es":"Manzana-Kiwi","pt":"Maçã-Kiwi","en":"Apple-Kiwi"},"preco":0,"tipo":"sabor"},{"id":"gran-maracuya","nome":{"ca":"Maracujà","es":"Maracuyá","pt":"Maracujá","en":"Passion Fruit"},"preco":0,"tipo":"sabor"}]}',
+      null, true, 1),
+
+    ('batido', '{"ca":"Batut de Gelat","es":"Batido de Helado","pt":"Batido de Sorvete","en":"Milkshake"}', '{"ca":"Batido con helado artesanal. Elige tamaño y extras.","es":"Batido con helado artesanal. Elige tamaño y extras.","pt":"Batido com sorvete artesanal. Escolha o tamanho e os extras.","en":"Milkshake with artisan ice cream. Choose size and extras."}', 5.80, '/assets/produtos/coffee.jpg', 'batidos', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"bat-petit","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":5.80,"tipo":"tamanho"},{"id":"bat-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":6.80,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"}],"extras":[{"id":"bat-1b","nome":{"ca":"+1 bola de gelat","es":"+1 bola de helado","pt":"+1 bola de sorvete","en":"+1 scoop"},"preco":0.80,"tipo":"extra"},{"id":"bat-2b","nome":{"ca":"+2 boles de gelat","es":"+2 bolas de helado","pt":"+2 bolas de sorvete","en":"+2 scoops"},"preco":1.50,"tipo":"extra"}]}',
+      null, true, 0),
+
+    ('orxata', '{"ca":"Orxata de Xufa","es":"Orxata de Chufa","pt":"Orxata de Chufa","en":"Horchata"}', '{"ca":"Orxata de chufa tradicional valenciana","es":"Orxata de chufa tradicional valenciana","pt":"Orxata de chufa tradicional valenciana","en":"Traditional Valencian horchata"}', 4.20, '/assets/produtos/coffee.jpg', 'orxata', true, '[{"alergeno":"frutos_casca_rija","nivel":"contem"}]', true,
+      '{"tamanhos":[{"id":"orx-petit","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":4.20,"tipo":"tamanho"},{"id":"orx-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":5.60,"tipo":"tamanho"}]}',
+      null, true, 0),
+
+    ('llet-merengada', '{"ca":"Llet Merengada","es":"Leche Merengada","pt":"Leite Merengado","en":"Merengada Milk"}', '{"ca":"Leche merengada tradicional","es":"Leche merengada tradicional","pt":"Leite merengado tradicional","en":"Traditional merengada milk"}', 4.20, '/assets/produtos/coffee.jpg', 'orxata', true, '[{"alergeno":"frutos_casca_rija","nivel":"contem"}]', true,
+      '{"tamanhos":[{"id":"orx-petit","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":4.20,"tipo":"tamanho"},{"id":"orx-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":5.60,"tipo":"tamanho"}]}',
+      null, true, 1),
+
+    ('tarrina-nata', '{"ca":"Tarrina de Nata","es":"Tarrina de Nata","pt":"Pote de Chantilly","en":"Cream Tub"}', '{"ca":"Nata montada para llevar","es":"Nata montada para llevar","pt":"Chantilly para levar","en":"Whipped cream to go"}', 1.00, '/assets/produtos/ice-cream-tub.jpg', 'tarrinas-nata', true, '[{"alergeno":"leite","nivel":"contem"}]', true,
+      '{"tamanhos":[{"id":"tn-peq","nome":{"ca":"Petita","es":"Pequeña","pt":"Pequena","en":"Small"},"preco":1.00,"tipo":"tamanho"},{"id":"tn-med","nome":{"ca":"Mitjana","es":"Mediana","pt":"Média","en":"Medium"},"preco":2.00,"tipo":"tamanho"},{"id":"tn-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":3.00,"tipo":"tamanho"},{"id":"tn-500","nome":{"ca":"½ litre","es":"½ litro","pt":"½ litro","en":"½ liter"},"preco":5.00,"tipo":"tamanho"},{"id":"tn-1l","nome":{"ca":"1 litre","es":"1 litro","pt":"1 litro","en":"1 liter"},"preco":8.00,"tipo":"tamanho"}]}',
+      null, true, 0),
+
+    ('tarrina-vacia', '{"ca":"Tarrina Buida","es":"Tarrina Vacía","pt":"Pote Vazio","en":"Empty Tub"}', '{"ca":"Tarrina vacía para llevar","es":"Tarrina vacía para llevar","pt":"Pote vazio para levar","en":"Empty tub to go"}', 0.20, '/assets/produtos/ice-cream-tub.jpg', 'para-llevar', true, '[{"alergeno":"leite","nivel":"pode_conter"},{"alergeno":"gluten","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"tv-peq","nome":{"ca":"Petita","es":"Pequeña","pt":"Pequena","en":"Small"},"preco":0.20,"tipo":"tamanho"},{"id":"tv-med","nome":{"ca":"Mitjana","es":"Mediana","pt":"Média","en":"Medium"},"preco":0.30,"tipo":"tamanho"},{"id":"tv-gran","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":0.50,"tipo":"tamanho"}]}',
+      null, true, 0),
+
+    ('llevar-granizado', '{"ca":"Granissat Per Emportar","es":"Granizado Para Llevar","pt":"Granizado Para Levar","en":"Slushie To Go"}', '{"ca":"Granizado para llevar en vaso","es":"Granizado para llevar en vaso","pt":"Granizado para levar no copo","en":"Slushie to go in cup"}', 3.70, '/assets/produtos/coffee.jpg', 'para-llevar', true, '[{"alergeno":"leite","nivel":"pode_conter"},{"alergeno":"gluten","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"llg-p","nome":{"ca":"Petit","es":"Pequeño","pt":"Pequeno","en":"Small"},"preco":3.70,"tipo":"tamanho"},{"id":"llg-m","nome":{"ca":"Mitjà","es":"Mediano","pt":"Médio","en":"Medium"},"preco":4.70,"tipo":"tamanho"},{"id":"llg-g","nome":{"ca":"Gran","es":"Grande","pt":"Grande","en":"Large"},"preco":5.70,"tipo":"tamanho"}],"sabores":[{"id":"gran-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"gran-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"gran-naranja","nome":{"ca":"Taronja","es":"Naranja","pt":"Laranja","en":"Orange"},"preco":0,"tipo":"sabor"},{"id":"gran-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"gran-pina","nome":{"ca":"Pinya Colada","es":"Piña Colada","pt":"Piña Colada","en":"Piña Colada"},"preco":0,"tipo":"sabor"},{"id":"gran-manzana-kiwi","nome":{"ca":"Poma-Kiwi","es":"Manzana-Kiwi","pt":"Maçã-Kiwi","en":"Apple-Kiwi"},"preco":0,"tipo":"sabor"},{"id":"gran-maracuya","nome":{"ca":"Maracujà","es":"Maracuyá","pt":"Maracujá","en":"Passion Fruit"},"preco":0,"tipo":"sabor"}]}',
+      null, true, 1),
+
+    ('llevar-pote-500ml', '{"ca":"Gelat Emportar (½ litre)","es":"Helado Llevar (½ litro)","pt":"Sorvete Levar (½ litro)","en":"Ice Cream To Go (½ liter)"}', '{"ca":"½ litro de gelat artesà per emportar","es":"½ litro de helado artesanal para llevar","pt":"½ litro de sorvete artesanal para levar","en":"½ liter of artisan ice cream to go"}', 9.00, '/assets/produtos/ice-cream-tub.jpg', 'para-llevar', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"llp-500","nome":{"ca":"½ litre (fins a 3 sabors)","es":"½ litro (hasta 3 sabores)","pt":"½ litro (até 3 sabores)","en":"½ liter (up to 3 flavors)"},"preco":9.00,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"}]}',
+      '{"maxSabores":3}', true, 2),
+
+    ('llevar-pote-1l', '{"ca":"Gelat Emportar (1 litre)","es":"Helado Llevar (1 litro)","pt":"Sorvete Levar (1 litro)","en":"Ice Cream To Go (1 liter)"}', '{"ca":"1 litre de gelat artesà per emportar","es":"1 litro de helado artesanal para llevar","pt":"1 litro de sorvete artesanal para levar","en":"1 liter of artisan ice cream to go"}', 16.00, '/assets/produtos/ice-cream-tub.jpg', 'para-llevar', true, '[{"alergeno":"leite","nivel":"contem"},{"alergeno":"soja","nivel":"pode_conter"},{"alergeno":"frutos_casca_rija","nivel":"pode_conter"}]', true,
+      '{"tamanhos":[{"id":"llp-1l","nome":{"ca":"1 litre (fins a 3 sabors)","es":"1 litro (hasta 3 sabores)","pt":"1 litro (até 3 sabores)","en":"1 liter (up to 3 flavors)"},"preco":16.00,"tipo":"tamanho"}],"sabores":[{"id":"sab-vainilla","nome":{"ca":"Vainilla","es":"Vainilla","pt":"Baunilha","en":"Vanilla"},"preco":0,"tipo":"sabor"},{"id":"sab-chocolate","nome":{"ca":"Xocolata","es":"Chocolate","pt":"Chocolate","en":"Chocolate"},"preco":0,"tipo":"sabor"},{"id":"sab-fresa","nome":{"ca":"Maduixa","es":"Fresa","pt":"Morango","en":"Strawberry"},"preco":0,"tipo":"sabor"},{"id":"sab-coco","nome":{"ca":"Coco","es":"Coco","pt":"Coco","en":"Coconut"},"preco":0,"tipo":"sabor"},{"id":"sab-menta","nome":{"ca":"Menta","es":"Menta","pt":"Menta","en":"Mint"},"preco":0,"tipo":"sabor"},{"id":"sab-cafe","nome":{"ca":"Cafè","es":"Café","pt":"Café","en":"Coffee"},"preco":0,"tipo":"sabor"},{"id":"sab-limon","nome":{"ca":"Llimona","es":"Limón","pt":"Limão","en":"Lemon"},"preco":0,"tipo":"sabor"},{"id":"sab-pistacho","nome":{"ca":"Festuc","es":"Pistacho","pt":"Pistache","en":"Pistachio"},"preco":0.50,"tipo":"sabor"},{"id":"sab-tiramisu","nome":{"ca":"Tiramisú","es":"Tiramisú","pt":"Tiramisù","en":"Tiramisu"},"preco":0.50,"tipo":"sabor"},{"id":"sab-oreo","nome":{"ca":"Oreo","es":"Oreo","pt":"Oreo","en":"Oreo"},"preco":0.50,"tipo":"sabor"}]}',
+      '{"maxSabores":3}', true, 3);
+
+  -- Sabores artesanais
+  insert into public.flavors (id, nome, categoria, cor_hex, image_url, extra_price, stock_buckets, low_stock_threshold, available, badge) values
+    ('crema_catalana',    '{"ca":"Crema Catalana","es":"Crema Catalana","pt":"Creme Catalã","en":"Crema Catalana"}', 'cremoso', '#FFF8E7', '/assets/sabores/sabor-crema-catalana-real.jpg', 0, 2.5, 1.0, true, null),
+    ('choco_negro',       '{"ca":"Xocolata Negre 70%","es":"Chocolate Negro 70%","pt":"Chocolate Preto 70%","en":"Dark Chocolate 70%"}', 'chocolate', '#3C1414', '/assets/sabores/sabor-choco-negro-real.jpg', 0, 5.0, 1.0, true, null),
+    ('vainilla_madagascar','{"ca":"Vainilla Madagascar","es":"Vainilla Madagascar","pt":"Baunilha Madagascar","en":"Madagascar Vanilla"}', 'cremoso', '#F3E5AB', '/assets/sabores/sabor-vainilla-madagascar-real.jpg', 0, 3.0, 1.0, true, null),
+    ('menta_fresca',      '{"ca":"Menta Fresca","es":"Menta Fresca","pt":"Menta Fresca","en":"Fresh Mint"}', 'especial', '#98FF98', '/assets/sabores/sabor-menta-fresca-real.jpg', 0, 1.5, 1.0, true, null),
+    ('stracciatella',     '{"ca":"Stracciatella","es":"Stracciatella","pt":"Stracciatella","en":"Stracciatella"}', 'especial', '#FFFFF0', '/assets/sabores/sabor-stracciatella-real.jpg', 0.50, 4.0, 1.0, true, 'Premium'),
+    ('cafe_espresso',     '{"ca":"Cafe Espresso","es":"Cafe Espresso","pt":"Café Espresso","en":"Espresso Coffee"}', 'especial', '#6F4E37', '/assets/sabores/sabor-cafe-espresso-real.jpg', 0.30, 2.0, 1.0, true, null),
+    ('tiramisu',          '{"ca":"Tiramisu","es":"Tiramisu","pt":"Tiramisu","en":"Tiramisu"}', 'especial', '#D2B48C', '/assets/sabores/sabor-tiramisu-real.jpg', 0.50, 1.8, 1.0, true, null),
+    ('coco_tropical',     '{"ca":"Coco Tropical","es":"Coco Tropical","pt":"Coco Tropical","en":"Tropical Coconut"}', 'fruta', '#FFF5EE', '/assets/sabores/sabor-coco-tropical-real.jpg', 0, 2.2, 1.0, true, null),
+    ('pistacho',          '{"ca":"Festuc Premium","es":"Pistacho Premium","pt":"Pistacho Premium","en":"Premium Pistachio"}', 'frutos_secos', '#93C572', '/assets/sabores/sabor-pistacho-real.jpg', 0.80, 0.8, 1.0, true, 'Premium'),
+    ('frutos_rojos',      '{"ca":"Fruits Vermells","es":"Frutos Rojos","pt":"Frutos Vermelhos","en":"Red Berries"}', 'sorbete', '#DC143C', '/assets/sabores/sabor-frutos-rojos-real.jpg', 0, 1.2, 1.0, true, null),
+    ('mango_alphonso',    '{"ca":"Mango Alphonso","es":"Mango Alphonso","pt":"Mango Alphonso","en":"Alphonso Mango"}', 'sorbete', '#FF8C00', '/assets/sabores/sabor-mango-alphonso-real.jpg', 0, 1.5, 1.0, true, null),
+    ('limon_siciliano',   '{"ca":"Llimona Siciliana","es":"Limon Siciliano","pt":"Limão Siciliano","en":"Sicilian Lemon"}', 'sorbete', '#FAFAD2', '/assets/sabores/sabor-limon-siciliano-real.jpg', 0, 2.0, 1.0, true, null),
+    ('turron_jijona',     '{"ca":"Turro de Jijona","es":"Turron de Jijona","pt":"Torrão de Jijona","en":"Jijona Nougat"}', 'especial', '#CD853F', '/assets/sabores/sabor-turron-jijona-real.jpg', 0.60, 1.0, 1.0, true, 'Temporada'),
+    ('yogurt_griego',     '{"ca":"Iogurt Grec","es":"Yogurt Griego","pt":"Iogurte Grego","en":"Greek Yogurt"}', 'cremoso', '#F5F5DC', '/assets/sabores/sabor-yogurt-griego-real.jpg', 0, 3.5, 1.0, true, null),
+    ('amarena',           '{"ca":"Amarena","es":"Amarena","pt":"Amarena","en":"Amarena Cherry"}', 'especial', '#8B0000', '/assets/sabores/sabor-amarena-real.jpg', 0.70, 0.5, 1.0, true, 'Ultimas');
+
+  -- Toppings
+  insert into public.toppings (id, nome, price, categoria, emoji) values
+    ('choco_negro_derretido', '{"ca":"Xocolata Negra","es":"Chocolate Negro","pt":"Chocolate Preto","en":"Dark Chocolate"}', 0.50, 'cobertura', '🍫'),
+    ('choco_blanco_derretido', '{"ca":"Xocolata Blanca","es":"Chocolate Blanco","pt":"Chocolate Branco","en":"White Chocolate"}', 0.50, 'cobertura', '🤍'),
+    ('nata_montada', '{"ca":"Nata Muntada","es":"Nata Montada","pt":"Chantilly","en":"Whipped Cream"}', 0.60, 'crema', '🥛'),
+    ('almendras_caramelizadas', '{"ca":"Ametlles Caramel·litzades","es":"Almendras Caramelizadas","pt":"Amêndoas Caramelizadas","en":"Caramelized Almonds"}', 0.80, 'crocante', '🌰'),
+    ('nueces_praline', '{"ca":"Nous Praline","es":"Nueces Praline","pt":"Nozes Praliné","en":"Praline Nuts"}', 0.80, 'crocante', '🥜'),
+    ('virutas_choco', '{"ca":"Virutes de Xocolata","es":"Virutas de Chocolate","pt":"Lascas de Chocolate","en":"Chocolate Shavings"}', 0.40, 'decoracion', '🍪'),
+    ('sirope_fresa', '{"ca":"Xarop de Maduixa","es":"Sirope de Fresa","pt":"Xarope de Morango","en":"Strawberry Syrup"}', 0.30, 'cobertura', '🍓'),
+    ('sirope_caramelo', '{"ca":"Xarop de Caramel","es":"Sirope de Caramelo Salado","pt":"Xarope de Caramelo Salgado","en":"Salted Caramel Syrup"}', 0.40, 'cobertura', '🍯'),
+    ('galleta_oreo', '{"ca":"Galeta Oreo Triturada","es":"Galleta Oreo Triturada","pt":"Biscoito Oreo Triturado","en":"Crushed Oreo Cookie"}', 0.60, 'mix-in', '🖤'),
+    ('brownie_pieces', '{"ca":"Trossos de Brownie","es":"Trocitos de Brownie","pt":"Pedacinhos de Brownie","en":"Brownie Pieces"}', 0.70, 'mix-in', '🟫');
+
+  -- Configurações
+  perform public.upsert_store_settings(
+    jsonb_build_object(
+      'name', 'Heladeria Tropicale',
+      'nif', 'B-12345678',
+      'address', 'Avda. Francesc Macià, 43, 08201 Sabadell, Barcelona',
+      'summerHours', '16:00 - 23:00',
+      'winterHours', '17:00 - 22:00'
+    )
+  );
+
+  -- Pedidos demo
+  insert into public.orders (numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, customer_phone, origem, nome_usuario)
+  values (1, 'entregado', '2026-04-18T10:05:00Z', '2026-04-18T10:09:00Z', 'tarjeta', 8.91, 0, 0, 9.80, 0.89, null, 'kiosk', null)
+  returning id into order_one;
+
+  insert into public.order_items (order_id, sort_order, item_type, product_id, product_name, product_snapshot, selections, unit_price, quantity)
+  values (order_one, 1, 'product', 'copa-bahia', 'Copa Bahia',
+    '{"id":"copa-bahia","nome":{"ca":"Copa Bahia","es":"Copa Bahia","pt":"Copa Bahia","en":"Bahia Cup"},"preco":8.10,"categoria":"copas"}'::jsonb,
+    '[]'::jsonb, 8.10, 1);
+
+  insert into public.orders (numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, customer_phone, origem, nome_usuario)
+  values (2, 'entregado', '2026-04-18T10:15:00Z', '2026-04-18T10:19:00Z', 'efectivo', 7.18, 0, 0, 7.90, 0.72, null, 'pwa', 'María García')
+  returning id into order_two;
+
+  insert into public.order_items (order_id, sort_order, item_type, product_id, product_name, product_snapshot, selections, unit_price, quantity)
+  values (order_two, 1, 'product', 'acai', 'Açaí',
+    '{"id":"acai","nome":{"ca":"Açaí","es":"Açaí","pt":"Açaí","en":"Açaí"},"precoBase":7.90,"categoria":"acai"}'::jsonb,
+    '{"tamanhos":[{"id":"acai-mitja","nome":{"es":"Mitjà — 3 toppings + 2 frutas"},"preco":8.90,"tipo":"tamanho"}],"toppings":[{"id":"top-granola","nome":{"es":"Granola"},"preco":0,"tipo":"topping"}],"frutas":[{"id":"fruta-maduixa","nome":{"es":"Fresa"},"preco":0,"tipo":"fruta"}]}'::jsonb,
+    8.90, 1);
+
+  insert into public.orders (numero_sequencial, status, created_at, ready_at, payment_method, subtotal, discount, extras, total, iva, customer_phone, origem, nome_usuario)
+  values (3, 'preparando', '2026-04-18T10:35:00Z', null, 'bizum', 3.18, 0, 0, 3.50, 0.32, '612345678', 'pwa', 'Carlos Ruiz')
+  returning id into order_three;
+
+  insert into public.order_items (order_id, sort_order, item_type, product_id, product_name, product_snapshot, selections, unit_price, quantity)
+  values (order_three, 1, 'product', 'cafe-leche', 'Café con Leche',
+    '{"id":"cafe-leche","nome":{"ca":"Café amb Llet","es":"Café con Leche","pt":"Café com Leite","en":"Coffee with Milk"},"preco":2.00,"categoria":"cafes"}'::jsonb,
+    '[]'::jsonb, 2.00, 1);
+
+  insert into public.order_items (order_id, sort_order, item_type, product_id, product_name, product_snapshot, selections, unit_price, quantity)
+  values (order_three, 2, 'product', 'copa-oreo', 'Copa Oreo',
+    '{"id":"copa-oreo","nome":{"ca":"Copa Oreo","es":"Copa Oreo","pt":"Copa Oreo","en":"Oreo Cup"},"preco":9.10,"categoria":"copas"}'::jsonb,
+    '[]'::jsonb, 9.10, 1);
+
+  update public.orders
+  set verifactu_qr = jsonb_build_object(
+    'id', concat('pedido-', numero_sequencial),
+    'fecha', created_at::date,
+    'importe', to_char(total, 'FM999999990.00'),
+    'establecimento', 'Heladeria Sabadell Nord'
+  )::text;
+
+  perform setval(pg_get_serial_sequence('public.orders', 'numero_sequencial'), coalesce((select max(numero_sequencial) from public.orders), 1), true);
+end;
+$$;
+
+create or replace function public.generate_kiosk_code(customer_id_input uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_code text;
+  code_exists boolean;
+begin
+  -- Invalida códigos antigos do mesmo customer
+  update public.kiosk_codes
+  set used_at = now()
+  where customer_id = customer_id_input and used_at is null;
+
+  -- Gera código único de 5 dígitos
+  loop
+    new_code := lpad(floor(random() * 100000)::text, 5, '0');
+    select exists(select 1 from public.kiosk_codes where code = new_code and used_at is null and expires_at > now())
+    into code_exists;
+    exit when not code_exists;
+  end loop;
+
+  insert into public.kiosk_codes (code, customer_id, expires_at)
+  values (new_code, customer_id_input, now() + interval '5 minutes');
+
+  return new_code;
+end;
+$$;
+
+create or replace function public.validate_kiosk_code(code_input text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_id uuid;
+begin
+  select id into matched_id
+  from public.kiosk_codes
+  where code = code_input
+    and used_at is null
+    and expires_at > now()
+  for update skip locked;
+
+  if matched_id is null then
+    raise exception 'Código inválido ou expirado';
+  end if;
+
+  update public.kiosk_codes
+  set used_at = now()
+  where id = matched_id;
+
+  return (select customer_id from public.kiosk_codes where id = matched_id);
+end;
+$$;
+
+grant execute on function public.create_order(jsonb, text, jsonb) to anon, authenticated;
+grant execute on function public.create_demo_order(jsonb, text, jsonb) to anon, authenticated;
+grant execute on function public.update_order_status(uuid, text) to anon, authenticated;
+grant execute on function public.adjust_flavor_stock(text, numeric) to anon, authenticated;
+grant execute on function public.set_flavor_availability(text, boolean) to anon, authenticated;
+grant execute on function public.upsert_store_settings(jsonb) to anon, authenticated;
+grant execute on function public.reset_demo_data() to anon, authenticated;
+grant execute on function public.get_products_by_category(text) to anon, authenticated;
+grant execute on function public.update_product_stock(text, boolean) to anon, authenticated;
+grant execute on function public.upsert_customer(text, text, text, jsonb) to anon, authenticated;
+grant execute on function public.debit_flavor_stock(text, numeric, uuid, text) to anon, authenticated;
+grant execute on function public.calculate_flavor_consumption(text, integer) to anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- RPCs KIOSK CODES
+-- ═══════════════════════════════════════════════════════════════════
+
+-- Gera um código de 5 dígitos para vincular pedido kiosk ao perfil PWA
+create or replace function public.generate_kiosk_code(customer_id_input uuid)
+returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  new_code text;
+  code_exists boolean;
+begin
+  -- Invalida códigos antigos do mesmo customer
+  update public.kiosk_codes
+  set used_at = now()
+  where customer_id = customer_id_input and used_at is null;
+
+  -- Gera código único de 5 dígitos
+  loop
+    new_code := lpad(floor(random() * 100000)::text, 5, '0');
+    select exists(select 1 from public.kiosk_codes where code = new_code and used_at is null and expires_at > now())
+    into code_exists;
+    exit when not code_exists;
+  end loop;
+
+  insert into public.kiosk_codes (code, customer_id, expires_at)
+  values (new_code, customer_id_input, now() + interval '5 minutes');
+
+  return new_code;
+end;
+$$;
+
+-- Valida um código de kiosk e retorna o customer_id
+create or replace function public.validate_kiosk_code(code_input text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matched_id uuid;
+begin
+  select id into matched_id
+  from public.kiosk_codes
+  where code = code_input
+    and used_at is null
+    and expires_at > now()
+  for update skip locked;
+
+  if matched_id is null then
+    raise exception 'Código inválido ou expirado';
+  end if;
+
+  update public.kiosk_codes
+  set used_at = now()
+  where id = matched_id;
+
+  return (select customer_id from public.kiosk_codes where id = matched_id);
+end;
+$$;
+
+grant execute on function public.generate_kiosk_code(uuid) to anon, authenticated;
+grant execute on function public.validate_kiosk_code(text) to anon, authenticated;
+
+-- ═══════════════════════════════════════════════════════════════════
+-- REALTIME
+-- ═══════════════════════════════════════════════════════════════════
+
+do $$
+begin
+  begin alter publication supabase_realtime add table public.categories; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.product_categories; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.products; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.flavors; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.toppings; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.store_settings; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.customers; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.orders; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.order_items; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.inventory_log; exception when duplicate_object then null; end;
+  begin alter publication supabase_realtime add table public.kiosk_codes; exception when duplicate_object then null; end;
+end $$;
+
+-- Inicializa dados
+select public.reset_demo_data();
