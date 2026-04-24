@@ -77,16 +77,16 @@ from origin 'https://cliente-pearl.vercel.app' has been blocked by CORS policy
 
 ### BUG-004 — Kiosk: Produtos fixos não adicionam ao carrinho
 **Data:** 2026-04-21
-**Status:** 🔴 OPEN
+**Status:** ✅ FIXED (2026-04-24)
 **Severidade:** 🔴 Crítica
 **Persona:** Product + Surgeon
 **Sintoma:** No Kiosk, produtos fixos (café, água, copa-bahia) não são adicionados ao carrinho ao clicar "Añadir".
-**Causa Raiz:** Botão "Añadir" está `disabled={quantidade === 0}`. Como a quantidade inicial é 0, o botão está DESABILITADO e o clique não dispara o handler. O fallback `onAddToCart(produto, 1)` no handler NUNCA é alcançado porque o botão não clica.
-**Fix:** PENDENTE — Remover `disabled` do botão ou ajustar handler para `quantidadeFinal = qtd > 0 ? qtd : 1`.
+**Causa Raiz:** Botão "Añadir" estava `disabled={quantidade === 0}`. Como a quantidade inicial era 0, o botão ficava DESABILITADO.
+**Fix:** Código já corrigido em sessão anterior. Botão "Añadir" não tem mais `disabled`, e handler `handleAdd` usa fallback `quantidadeFinal = qtd > 0 ? qtd : 1`. Testado E2E — pedido #003 confirmado com produto fixo "Copa Bahia".
 **Lição:**
 - 🧠 UX: botão desabilitado sem indicação visual clara = confusão do usuário
-- 🧠 Código morto: fallback que nunca executa = deuda técnica
-**Links:** `apps/kiosk/src/screens/CardapioScreen.tsx` linhas 151, 162-168
+- 🧠 Sempre re-testar bugs após mudanças de código, mesmo que não documentadas
+**Links:** `apps/kiosk/src/screens/CardapioScreen.tsx` linhas 44-54, 251-257
 
 ---
 
