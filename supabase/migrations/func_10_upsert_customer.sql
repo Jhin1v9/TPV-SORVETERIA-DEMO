@@ -11,9 +11,14 @@ SET search_path = public
 AS $$
 DECLARE
   customer_id uuid;
+  normalized_phone text := public.normalize_es_phone(telefone_input);
 BEGIN
+  IF normalized_phone IS NULL OR char_length(normalized_phone) <> 9 THEN
+    RAISE EXCEPTION 'telefone_input must be a valid Spanish phone';
+  END IF;
+
   INSERT INTO public.customers (nome, telefone, email, alergias)
-  VALUES (nome_input, telefone_input, email_input, alergias_input)
+  VALUES (nome_input, normalized_phone, email_input, alergias_input)
   ON CONFLICT (telefone) DO UPDATE
   SET nome = excluded.nome,
       email = COALESCE(excluded.email, customers.email),

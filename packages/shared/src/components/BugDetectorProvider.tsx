@@ -237,6 +237,8 @@ export function TPVBugDetectorProvider({ children }: { children: ReactNode }) {
         useCORS: true,
         allowTaint: true,
         scale: 1,
+        ignoreElements: (element) =>
+          element instanceof HTMLElement && Boolean(element.closest('[data-bug-detector-ui]')),
       });
       setScreenshotDataUrl(canvas.toDataURL('image/png'));
     } catch {
@@ -246,6 +248,8 @@ export function TPVBugDetectorProvider({ children }: { children: ReactNode }) {
 
   const openReport = useCallback(() => {
     setIsOpen(false);
+    setIsPanelOpen(false);
+    setIsWorkspaceOpen(false);
     setSelectedElement(null);
     setScreenshotDataUrl(null);
     detectorRef.current?.activate();
@@ -276,6 +280,37 @@ export function TPVBugDetectorProvider({ children }: { children: ReactNode }) {
     setIsWorkspaceOpen(false);
   }, []);
 
+  useEffect(() => {
+    if (!isAnyOverlayOpen) return;
+
+    const handleEscapeToCloseActiveOverlay = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (isOpen) {
+        closeReport();
+        return;
+      }
+
+      if (isPanelOpen) {
+        closePanel();
+        return;
+      }
+
+      if (isWorkspaceOpen) {
+        closeWorkspace();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscapeToCloseActiveOverlay, true);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscapeToCloseActiveOverlay, true);
+    };
+  }, [closePanel, closeReport, closeWorkspace, isAnyOverlayOpen, isOpen, isPanelOpen, isWorkspaceOpen]);
+
   const updateMeta = useCallback((reportId: string, updater: (meta: WorkspaceMeta) => WorkspaceMeta) => {
     setWorkspace((current) => {
       const base = current[reportId] ?? createDefaultMeta({ id: reportId, severity: 'medium' } as BugReport);
@@ -290,11 +325,12 @@ export function TPVBugDetectorProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const handleElementClick = useCallback(
-    async (element: InspectedElement) => {
+    (element: InspectedElement) => {
       setSelectedElement(element);
       detectorRef.current?.deactivate();
-      await capturePageScreenshot();
       setIsOpen(true);
+      setScreenshotDataUrl(null);
+      void capturePageScreenshot();
     },
     [capturePageScreenshot]
   );
@@ -515,11 +551,19 @@ export function TPVBugDetectorProvider({ children }: { children: ReactNode }) {
       {isAnyOverlayOpen && <BugDetectorInteractionShield />}
 
       <BugDetectorCommandDock
+        isOverlayActive={isAnyOverlayOpen}
         isInspecting={isInspecting}
         isKimiReady={Boolean(KIMI_API_KEY)}
         stats={stats}
         workspaceCount={Object.keys(workspace).length}
-        onInspect={openReport}
+        onInspect={() => {
+          if (isInspecting) {
+            detectorRef.current?.deactivate();
+            return;
+          }
+
+          openReport();
+        }}
         onOpenPanel={openPanel}
         onOpenWorkspace={() => openWorkspace()}
         onPrint={printAllReports}
@@ -832,6 +876,7 @@ function BugDetectorInteractionShield() {
 }
 
 function BugDetectorCommandDock({
+  isOverlayActive,
   isInspecting,
   isKimiReady,
   stats,
@@ -841,6 +886,7 @@ function BugDetectorCommandDock({
   onOpenWorkspace,
   onPrint,
 }: {
+  isOverlayActive: boolean;
   isInspecting: boolean;
   isKimiReady: boolean;
   stats: BugStats;
@@ -860,6 +906,8 @@ function BugDetectorCommandDock({
       clearTimeout(end);
     };
   }, []);
+
+  if (isOverlayActive || isInspecting) return null;
 
   return (
     <>
@@ -896,11 +944,7 @@ function BugDetectorCommandDock({
             backdropFilter: 'blur(16px)',
           }}
         >
-          <DockButton
-            label={isInspecting ? 'Selecionando...' : 'Inspecionar'}
-            accent={isInspecting ? '#ef4444' : '#4CAF50'}
-            onClick={onInspect}
-          />
+          <DockButton label="Inspecionar" accent="#4CAF50" onClick={onInspect} />
           <DockButton label={`Nativo ${stats.total}`} accent="#0ea5e9" onClick={onOpenPanel} />
           <DockButton
             label={`Workspace ${workspaceCount}`}
@@ -943,16 +987,14 @@ function BugDetectorCommandDock({
 
         <button
           onClick={onInspect}
-          title={isInspecting ? 'Selecione um elemento para criar o report' : 'Inspecionar elemento'}
+          title="Inspecionar elemento"
           data-bug-detector-ui
           style={{
             minWidth: 146,
             height: 58,
             padding: '0 20px',
             borderRadius: 999,
-            background: isInspecting
-              ? 'linear-gradient(135deg, #d85858, #ef7c63)'
-              : 'linear-gradient(135deg, #1d8c5d, #4fd08b 58%, #f4c96b 130%)',
+            background: 'linear-gradient(135deg, #1d8c5d, #4fd08b 58%, #f4c96b 130%)',
             color: '#fff',
             border: '1px solid rgba(255,255,255,0.18)',
             boxShadow: '0 18px 40px rgba(35, 157, 103, 0.32)',
@@ -961,7 +1003,7 @@ function BugDetectorCommandDock({
             fontWeight: 800,
             letterSpacing: 0.2,
             transition: 'transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease',
-            animation: pulse && !isInspecting ? 'tpv-bug-detector-pulse 1.8s ease-in-out' : 'none',
+            animation: pulse ? 'tpv-bug-detector-pulse 1.8s ease-in-out' : 'none',
           }}
           onMouseEnter={(event) => {
             event.currentTarget.style.transform = 'translateY(-1px)';
@@ -972,7 +1014,7 @@ function BugDetectorCommandDock({
             event.currentTarget.style.boxShadow = '0 10px 30px rgba(76, 175, 80, 0.24)';
           }}
         >
-          {isInspecting ? 'Escolher alvo' : 'Bug Detector'}
+          Bug Detector
         </button>
       </div>
     </>

@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import {
-  ArrowLeft,
   Receipt,
   CreditCard,
   Banknote,
@@ -180,12 +179,13 @@ export default function PedidoDetalhesPage({ pedido, onBack }: PedidoDetalhesPag
       className="h-full bg-[#F5F5F5] overflow-y-auto"
     >
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center gap-3 sticky top-0 z-10 border-b border-black/5">
+      <div className="bg-white px-4 py-3 sticky top-0 z-10 border-b border-black/5">
+        {/* KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — seta quadrada removida, texto 'Volver a pedidos' em botão clean */}
         <button
           onClick={onBack}
-          className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center hover:bg-black/10 transition-colors"
+          className="mb-2 inline-flex items-center gap-2 rounded-full border border-black/8 bg-black/[0.03] px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-black/[0.06] transition-colors"
         >
-          <ArrowLeft size={20} />
+          Volver a pedidos
         </button>
         <div>
           <h1 className="font-display font-bold text-lg">

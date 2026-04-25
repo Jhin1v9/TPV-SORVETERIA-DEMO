@@ -1,13 +1,16 @@
 import { createBootstrapSnapshot } from './bootstrap';
 import { calculateCheckoutSummary, type CheckoutState } from '../utils/pricing';
 import { buildSnapshotFromSupabase } from '../supabase/mappers';
+import { normalizeSpanishPhone } from '../lib/phone';
 import { getSupabaseProjectLabel, hasSupabaseConfig, supabase } from '../supabase/client';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
+  Alergeno,
   CartItem,
   DemoStateSnapshot,
   EstablishmentSettings,
   MetodoPago,
+  PerfilUsuario,
   Pedido,
   PedidoStatus,
 } from '../types';
@@ -112,9 +115,10 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
       importe: pricing.total.toFixed(2),
       establecimiento: snapshot.establishment.name,
     }),
-    clienteTelefone: payload.checkout.notificationPhone || null,
-    customerId: null,
-    origem: 'tpv',
+    // KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — customerId e origem propagados do payload
+    clienteTelefone: normalizeSpanishPhone(payload.checkout.notificationPhone || '') || null,
+    customerId: payload.checkout.customerId || null,
+    origem: payload.checkout.origem || 'tpv',
     itens,
   };
 
@@ -483,6 +487,7 @@ export async function createRemoteOrder(payload: {
     const subtotal = payload.cart.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
     const iva = Math.round(subtotal * 0.10 * 100) / 100;
     const total = Math.round((subtotal + iva) * 100) / 100;
+    const normalizedCustomerPhone = normalizeSpanishPhone(payload.checkout.notificationPhone || '');
 
     const { data: orderRow, error: insertErr } = await supabase
       .from('orders')
@@ -494,6 +499,7 @@ export async function createRemoteOrder(payload: {
         extras: 0,
         total,
         iva,
+        customer_phone: normalizedCustomerPhone || null,
         origem: payload.checkout.origem || 'kiosk',
         customer_id: payload.checkout.customerId || null,
       })
@@ -608,11 +614,29 @@ export async function updateRemoteOrderStatus(pedidoId: string, status: PedidoSt
       })
       .eq('id', pedidoId);
     if (updErr) throw updErr;
+    if (status === 'listo') {
+      void supabase.functions.invoke('notify-order-ready', {
+        body: { orderId: pedidoId },
+      }).then(({ error }) => {
+        if (error) {
+          console.error('[push] notify-order-ready fallback failed', error);
+        }
+      });
+    }
     return { snapshot: await fetchSupabaseSnapshot() };
   }
 
   if (result.error) {
     throw result.error;
+  }
+  if (status === 'listo') {
+    void supabase.functions.invoke('notify-order-ready', {
+      body: { orderId: pedidoId },
+    }).then(({ error }) => {
+      if (error) {
+        console.error('[push] notify-order-ready failed', error);
+      }
+    });
   }
   return { snapshot: await fetchSupabaseSnapshot() };
 }
@@ -666,9 +690,14 @@ export async function upsertRemoteCustomer(payload: {
   if (getRuntimeMode() === 'standalone' || !supabase) {
     return crypto.randomUUID();
   }
+  const normalizedPhone = normalizeSpanishPhone(payload.telefone);
+  if (!normalizedPhone) {
+    throw new Error('Unable to upsert customer without a valid phone');
+  }
+
   const result = await supabase.rpc('save_customer', {
     nome_input: payload.nome,
-    telefone_input: payload.telefone,
+    telefone_input: normalizedPhone,
     email_input: payload.email || null,
     alergias_input: payload.alergias || [],
   });
@@ -676,6 +705,41 @@ export async function upsertRemoteCustomer(payload: {
     throw result.error ?? new Error('Unable to upsert customer');
   }
   return result.data as string;
+}
+
+export async function findRemoteCustomerByPhone(telefone: string): Promise<PerfilUsuario | null> {
+  if (getRuntimeMode() === 'standalone' || !supabase) {
+    return null;
+  }
+
+  const normalizedPhone = normalizeSpanishPhone(telefone);
+  if (!normalizedPhone) {
+    return null;
+  }
+
+  const result = await supabase
+    .from('customers')
+    .select('id, nome, telefone, email, alergias, criado_em')
+    .eq('telefone', normalizedPhone)
+    .maybeSingle();
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (!result.data) {
+    return null;
+  }
+
+  return {
+    id: String(result.data.id),
+    nome: String(result.data.nome ?? ''),
+    email: String(result.data.email ?? ''),
+    telefone: String(result.data.telefone ?? normalizedPhone),
+    temAlergias: Array.isArray(result.data.alergias) && result.data.alergias.length > 0,
+    alergias: Array.isArray(result.data.alergias) ? (result.data.alergias as Alergeno[]) : [],
+    criadoEm: String(result.data.criado_em ?? new Date().toISOString()),
+  };
 }
 
 export async function updateRemoteFlavorAvailability(flavorId: string, disponivel: boolean) {

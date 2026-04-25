@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { User, Phone, ShieldCheck, Loader2, LogIn, UserPlus } from 'lucide-react';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { registerUser, loginByPhone } from '@tpv/shared/lib/authMock';
+import { formatSpanishPhoneDisplay, isValidSpanishPhone, normalizeSpanishPhone } from '@tpv/shared/lib/phone';
 import type { PerfilUsuario } from '@tpv/shared/types';
+import { findPerfilUsuarioByPhone, resolvePerfilUsuarioByPhone, syncPerfilUsuarioWithRemote } from '../../lib/customerProfile';
 
 interface QuickRegisterProps {
   onComplete: () => void;
@@ -29,7 +31,7 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
       name: 'Nom',
       phone: 'Telèfon',
       placeholderName: 'El teu nom',
-      placeholderPhone: '+34 612 345 678',
+      placeholderPhone: '612 345 678',
       secure: 'Les teves dades estan segures',
       ctaRegister: 'CREAR COMPTE',
       ctaLogin: 'ENTRAR',
@@ -51,7 +53,7 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
       name: 'Nombre',
       phone: 'Teléfono',
       placeholderName: 'Tu nombre',
-      placeholderPhone: '+34 612 345 678',
+      placeholderPhone: '612 345 678',
       secure: 'Tus datos están seguros',
       ctaRegister: 'CREAR CUENTA',
       ctaLogin: 'ENTRAR',
@@ -73,7 +75,7 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
       name: 'Nome',
       phone: 'Telefone',
       placeholderName: 'Seu nome',
-      placeholderPhone: '+34 612 345 678',
+      placeholderPhone: '612 345 678',
       secure: 'Seus dados estão seguros',
       ctaRegister: 'CRIAR CONTA',
       ctaLogin: 'ENTRAR',
@@ -95,7 +97,7 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
       name: 'Name',
       phone: 'Phone',
       placeholderName: 'Your name',
-      placeholderPhone: '+34 612 345 678',
+      placeholderPhone: '612 345 678',
       secure: 'Your data is secure',
       ctaRegister: 'CREATE ACCOUNT',
       ctaLogin: 'SIGN IN',
@@ -112,63 +114,95 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
   }[locale || 'es'];
 
   const formatPhone = (val: string) => {
-    const digits = val.replace(/\D/g, '').slice(0, 11);
-    if (digits.length === 0) return '';
-    if (digits.length <= 3) return `+${digits}`;
-    if (digits.length <= 6) return `+${digits.slice(0, 3)} ${digits.slice(3)}`;
-    if (digits.length <= 9) return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6)}`;
-    return `+${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 9)} ${digits.slice(9)}`;
+    return formatSpanishPhoneDisplay(val);
   };
 
   const validatePhone = (phone: string): boolean => {
-    const digits = phone.replace(/\D/g, '');
-    return digits.length >= 9;
+    return isValidSpanishPhone(phone);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (!telefone.trim() || !validatePhone(telefone)) {
+    const normalizedPhone = normalizeSpanishPhone(telefone);
+
+    if (!normalizedPhone || !validatePhone(telefone)) {
       setError(t.phoneInvalid);
       return;
     }
 
     setLoading(true);
 
-    setTimeout(() => {
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    try {
       if (mode === 'register') {
         if (!nome.trim()) {
           setError(t.required);
           setLoading(false);
           return;
         }
-        const perfil: PerfilUsuario = {
-          id: crypto.randomUUID(),
+
+        const perfil = await resolvePerfilUsuarioByPhone({
           nome: nome.trim(),
+          telefone: normalizedPhone,
           email: '',
-          telefone: telefone.trim(),
-          temAlergias: false,
           alergias: [],
-          criadoEm: new Date().toISOString(),
-        };
+        });
+
+        if (!perfil) {
+          throw new Error('Unable to resolve customer profile');
+        }
+
         registerUser(perfil);
         setPerfilUsuario(perfil);
         setLoading(false);
         onComplete();
-      } else {
-        // Login
-        const user = loginByPhone(telefone.trim());
-        if (user) {
-          setPerfilUsuario(user);
-          setLoading(false);
-          onComplete();
-        } else {
-          setError(t.userNotFound);
-          setLoading(false);
-        }
+        return;
       }
-    }, 800);
+
+      const localUser = loginByPhone(normalizedPhone);
+      const remoteUser = localUser ? null : await findPerfilUsuarioByPhone(normalizedPhone);
+      const baseUser = localUser ?? remoteUser;
+
+      if (!baseUser) {
+        setError(t.userNotFound);
+        setLoading(false);
+        return;
+      }
+
+      const syncedUser = await syncPerfilUsuarioWithRemote({
+        ...baseUser,
+        telefone: normalizedPhone,
+      });
+
+      const perfil = syncedUser ?? baseUser;
+      registerUser(perfil);
+      setPerfilUsuario(perfil);
+      setLoading(false);
+      onComplete();
+    } catch {
+      if (mode === 'register') {
+        const fallbackPerfil: PerfilUsuario = {
+          id: crypto.randomUUID(),
+          nome: nome.trim(),
+          email: '',
+          telefone: normalizedPhone,
+          temAlergias: false,
+          alergias: [],
+          criadoEm: new Date().toISOString(),
+        };
+        registerUser(fallbackPerfil);
+        setPerfilUsuario(fallbackPerfil);
+        setLoading(false);
+        onComplete();
+        return;
+      }
+
+      setError(t.userNotFound);
+      setLoading(false);
+    }
   };
 
   return (
@@ -280,7 +314,7 @@ export default function QuickRegister({ onComplete, onBack }: QuickRegisterProps
               autoFocus={mode === 'login'}
             />
             <p className="text-white/20 text-[10px] mt-1">
-              {mode === 'login' ? 'Ej: +34 612 345 678' : ''}
+              {mode === 'login' ? 'Ej: 612 345 678' : ''}
             </p>
           </motion.div>
 

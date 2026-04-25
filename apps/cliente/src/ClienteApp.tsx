@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster } from 'sonner';
 import { useStore } from '@tpv/shared/stores/useStore';
@@ -10,14 +10,30 @@ import PedidosPage from './pages/PedidosPage';
 import ConfigPage from './pages/ConfigPage';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useOnboarding } from './hooks/useOnboarding';
+import { syncPushSubscriptionForPerfil } from './lib/pushNotifications';
 
 type ClienteTab = 'cardapio' | 'carrinho' | 'pedidos' | 'config';
+const CLIENTE_LOGO_SRC = '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png';
 
 export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
   useRealtimeSync();
-  const { locale } = useStore();
+  const { locale, perfilUsuario } = useStore();
   const [tab, setTab] = useState<ClienteTab>('cardapio');
   const onboarding = useOnboarding();
+  const isOnboardingActive = onboarding.step !== 'complete';
+
+  useEffect(() => {
+    if (isOnboardingActive || !perfilUsuario) {
+      return;
+    }
+
+    void syncPushSubscriptionForPerfil(perfilUsuario, {
+      locale,
+      requestPermission: false,
+    }).catch((error) => {
+      console.warn('[push] silent sync failed', error);
+    });
+  }, [isOnboardingActive, locale, perfilUsuario]);
 
   const tabs: { id: ClienteTab; label: string; icon: string }[] = [
     { id: 'cardapio', label: t('menu', locale), icon: '🍨' },
@@ -25,8 +41,6 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
     { id: 'pedidos', label: t('myOrders', locale), icon: '📋' },
     { id: 'config', label: t('settings', locale), icon: '⚙️' },
   ];
-
-  const isOnboardingActive = onboarding.step !== 'complete';
 
   return (
     <>
@@ -46,12 +60,23 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
         <div className="h-screen w-screen bg-[#F5F5F5] flex flex-col overflow-hidden">
           {/* Header */}
           <header className="bg-white/80 backdrop-blur border-b border-black/5 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-            <button onClick={onBack} className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center hover:bg-black/10 transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="font-display font-bold text-lg">Tropicale</h1>
+            {/* KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — seta só aparece quando onBack existe; logo centralizada */}
+            {onBack ? (
+              <button onClick={onBack} className="w-10 h-10 rounded-xl bg-black/5 flex items-center justify-center hover:bg-black/10 transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+            ) : (
+              <div className="w-10 h-10" aria-hidden="true" />
+            )}
+            <div className="flex flex-1 justify-center px-3">
+              <img
+                src={CLIENTE_LOGO_SRC}
+                alt="Tropicale"
+                className="h-12 w-auto max-w-[180px] object-contain"
+              />
+            </div>
             <div className="w-10" />
           </header>
 

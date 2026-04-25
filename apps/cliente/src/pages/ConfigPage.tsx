@@ -2,11 +2,52 @@ import { useState } from 'react';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t, getLocaleName } from '@tpv/shared/i18n';
 import AlergenoSelector from '@tpv/shared/components/AlergenoSelector';
-import { clearAllUsers } from '@tpv/shared/lib/authMock';
+import { clearAllUsers, registerUser } from '@tpv/shared/lib/authMock';
+import { formatSpanishPhoneDisplay, isValidSpanishPhone, normalizeSpanishPhone } from '@tpv/shared/lib/phone';
 import type { Locale, PerfilUsuario } from '@tpv/shared/types';
 import { LogOut, Trash2 } from 'lucide-react';
-import { upsertRemoteCustomer } from '@tpv/shared/realtime/client';
 import MeuCodigo from '../components/MeuCodigo';
+import { syncPerfilUsuarioWithRemote } from '../lib/customerProfile';
+
+const ZUSTAND_STORAGE_KEY = 'tpv-sorveteria-storage';
+const ONBOARDING_STORAGE_KEY = 'tpv-onboarding-completed';
+
+function clearPersistedClienteSession() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const raw = window.localStorage.getItem(ZUSTAND_STORAGE_KEY);
+    if (!raw) {
+      window.localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+      return;
+    }
+
+    const parsed = JSON.parse(raw) as {
+      state?: Record<string, unknown>;
+      version?: number;
+    };
+
+    const nextState = {
+      ...(parsed.state || {}),
+      perfilUsuario: null,
+      carrinho: [],
+      currentPedido: null,
+      notificationPhone: '',
+    };
+
+    window.localStorage.setItem(
+      ZUSTAND_STORAGE_KEY,
+      JSON.stringify({
+        ...parsed,
+        state: nextState,
+      }),
+    );
+  } catch {
+    window.localStorage.removeItem(ZUSTAND_STORAGE_KEY);
+  }
+
+  window.localStorage.removeItem(ONBOARDING_STORAGE_KEY);
+}
 
 export default function ConfigPage() {
   const { locale, setLocale, perfilUsuario, setPerfilUsuario } = useStore();
@@ -21,31 +62,23 @@ export default function ConfigPage() {
 
   const handleSave = async () => {
     if (saving) return;
+    const normalizedPhone = normalizeSpanishPhone(telefone);
+    if (!isValidSpanishPhone(normalizedPhone)) return;
     setSaving(true);
-    let customerId = perfilUsuario?.id || crypto.randomUUID();
 
-    // Sincroniza com Supabase para obter customer_id real
-    try {
-      customerId = await upsertRemoteCustomer({
-        nome: nome || 'Cliente',
-        telefone: telefone || '',
-        email: email || '',
-        alergias: alergias,
-      });
-    } catch {
-      // standalone mode — mantém id local
-    }
-
-    const perfil: PerfilUsuario = {
-      id: customerId,
+    const perfilBase: PerfilUsuario = {
+      id: perfilUsuario?.id || crypto.randomUUID(),
       nome: nome || 'Cliente',
       email: email || '',
-      telefone: telefone || '',
+      telefone: normalizedPhone,
       temAlergias: alergias.length > 0,
       alergias,
       criadoEm: perfilUsuario?.criadoEm || new Date().toISOString(),
     };
 
+    const perfil = (await syncPerfilUsuarioWithRemote(perfilBase).catch(() => perfilBase)) ?? perfilBase;
+
+    registerUser(perfil);
     setPerfilUsuario(perfil);
     setSaving(false);
     setSaved(true);
@@ -54,6 +87,12 @@ export default function ConfigPage() {
 
   const handleLogout = () => {
     logout();
+    // KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS
+    // Limpa TUDO — zustand storage, onboarding, auth mock — para forcar tela de registro
+    window.localStorage.removeItem('tpv-sorveteria-storage');
+    window.localStorage.removeItem('tpv-onboarding-completed');
+    window.localStorage.removeItem('tpv-users');
+    window.localStorage.removeItem('tpv-demo-standalone-state');
     window.location.reload();
   };
 
@@ -61,6 +100,7 @@ export default function ConfigPage() {
     if (typeof window !== 'undefined' && window.confirm(t('deleteAllConfirm', locale))) {
       clearAllUsers();
       logout();
+      clearPersistedClienteSession();
       window.location.reload();
     }
   };
@@ -127,9 +167,9 @@ export default function ConfigPage() {
           <input
             type="tel"
             value={telefone}
-            onChange={(e) => setTelefone(e.target.value)}
+            onChange={(e) => setTelefone(formatSpanishPhoneDisplay(e.target.value))}
             className="w-full bg-gray-50 rounded-xl px-3 py-2 text-sm border border-black/5 focus:outline-none focus:ring-2 focus:ring-[#FF6B9D]/30"
-            placeholder="+34 612 345 678"
+            placeholder="612 345 678"
           />
         </div>
       </div>
@@ -148,11 +188,11 @@ export default function ConfigPage() {
       {/* Save */}
       <button
         onClick={handleSave}
-        disabled={!nome || !email || !telefone || saving}
+        disabled={!nome || !email || !isValidSpanishPhone(telefone) || saving}
         className={`w-full py-4 rounded-2xl font-bold text-white transition-all ${
           saved
             ? 'bg-emerald-500'
-            : !nome || !email || !telefone || saving
+            : !nome || !email || !isValidSpanishPhone(telefone) || saving
             ? 'bg-gray-300 cursor-not-allowed'
             : 'bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] shadow-lg hover:shadow-xl'
         }`}

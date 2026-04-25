@@ -1,15 +1,15 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import ClienteApp from './ClienteApp'
-import { TPVBugDetectorProvider } from '@tpv/shared/components/BugDetectorProvider'
+import { registerClienteServiceWorker } from './lib/pushNotifications'
 
 // Import shared styles
 import '@tpv/shared/index.css'
 
+void registerClienteServiceWorker()
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <TPVBugDetectorProvider>
-      <ClienteApp />
-    </TPVBugDetectorProvider>
+    <ClienteApp />
   </StrictMode>,
 )

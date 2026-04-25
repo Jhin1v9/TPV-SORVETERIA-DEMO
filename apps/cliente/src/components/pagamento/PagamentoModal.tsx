@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, CreditCard, Smartphone, Banknote, ChevronRight, ShieldCheck, Lock, Wallet, Apple } from 'lucide-react';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
+import { formatSpanishPhoneDisplay, isValidSpanishPhone, normalizeSpanishPhone } from '@tpv/shared/lib/phone';
 
 export type MetodoPagamento = 'tarjeta' | 'bizum' | 'efectivo' | 'apple_pay' | 'google_pay';
 
@@ -64,7 +65,7 @@ export default function PagamentoModal({
       if (tarjetaCvv.length < 3) errs.cvv = t('cardCvvInvalid', locale);
     }
     if (metodo === 'bizum') {
-      if (!/^\d{9}$/.test(bizumTelefono.replace(/\s/g, ''))) errs.telefono = t('phoneInvalid', locale);
+      if (!isValidSpanishPhone(bizumTelefono)) errs.telefono = t('phoneInvalid', locale);
     }
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -90,7 +91,7 @@ export default function PagamentoModal({
         },
       }),
       ...(metodo === 'bizum' && {
-        bizum: { telefono: bizumTelefono.replace(/\s/g, '') },
+        bizum: { telefono: normalizeSpanishPhone(bizumTelefono) },
       }),
     };
     onSubmit(data);
@@ -433,7 +434,7 @@ export default function PagamentoModal({
                     inputMode="tel"
                     placeholder="612 345 678"
                     value={bizumTelefono}
-                    onChange={(e) => setBizumTelefono(e.target.value.replace(/\D/g, '').slice(0, 9))}
+                    onChange={(e) => setBizumTelefono(formatSpanishPhoneDisplay(e.target.value))}
                     className={`w-full bg-gray-50 rounded-xl px-4 py-3 text-sm border-2 transition-colors outline-none focus:border-pink-400 ${errors.telefono ? 'border-red-300' : 'border-transparent'}`}
                   />
                   {errors.telefono && <p className="text-red-500 text-xs mt-1">{errors.telefono}</p>}

@@ -12,6 +12,9 @@ import {
   ReceiptSelector,
 } from '../components/pagamento';
 import type { PagamentoData } from '../components/pagamento';
+import { syncPerfilUsuarioWithRemote } from '../lib/customerProfile';
+import { syncPushSubscriptionForPerfil } from '../lib/pushNotifications';
+import { supabase } from '@tpv/shared/supabase/client';
 
 interface CarrinhoPageProps {
   onNavigateToTab?: (tab: 'cardapio' | 'carrinho' | 'pedidos' | 'config') => void;
@@ -25,7 +28,7 @@ const isStripeEnabled = Boolean(
 const isPhysicalKiosk = import.meta.env.VITE_KIOSK_MODE === 'physical';
 
 export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
-  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario } = useStore();
+  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario, setPerfilUsuario } = useStore();
   const toast = useClienteToast();
 
   // Estados do fluxo de pagamento
@@ -64,21 +67,16 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
     if (isStripeEnabled && (data.metodo === 'tarjeta' || data.metodo === 'apple_pay' || data.metodo === 'google_pay')) {
       setStatusMessage('Conectando con Stripe...');
       try {
-        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-payment-intent`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({
+        const res = await supabase?.functions.invoke('create-payment-intent', {
+          body: {
             amount: Math.round(total * 1.10 * 100),
             currency: 'eur',
             description: `Heladeria Tropicale`,
             customerEmail: perfilUsuario?.email,
-          }),
+          },
         });
-        if (res.ok) {
-          await res.json();
+        if (res?.error) {
+          throw res.error;
         }
       } catch {
         // Se Edge Function não existir, continua com mock
@@ -89,6 +87,11 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     try {
+      const perfilSincronizado = await syncPerfilUsuarioWithRemote(perfilUsuario).catch(() => perfilUsuario);
+      if (perfilSincronizado && perfilSincronizado.id !== perfilUsuario?.id) {
+        setPerfilUsuario(perfilSincronizado);
+      }
+
       const response = await createRemoteOrder({
         cart: carrinho,
         metodoPago: data.metodo,
@@ -98,15 +101,24 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
           promoDiscountRate: 0,
           coffeeAdded: false,
           coffeePrice: 1.5,
-          notificationPhone: data.bizum?.telefono || perfilUsuario?.telefone || '',
+          notificationPhone: data.bizum?.telefono || perfilSincronizado?.telefone || perfilUsuario?.telefone || '',
           origem: 'pwa',
-          customerId: perfilUsuario?.id || undefined,
-          customerEmail: perfilUsuario?.email,
+          customerId: perfilSincronizado?.id || perfilUsuario?.id || undefined,
+          customerEmail: perfilSincronizado?.email || perfilUsuario?.email,
         },
       });
 
       hydrateRemoteState(response.snapshot);
       clearCarrinho();
+
+      if (perfilSincronizado) {
+        await syncPushSubscriptionForPerfil(perfilSincronizado, {
+          locale,
+          requestPermission: true,
+        }).catch((error) => {
+          console.warn('[push] unable to sync after checkout', error);
+        });
+      }
 
       setUltimoPedido({
         numero: response.pedido.numeroSequencial,
@@ -123,7 +135,7 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
       setShowProcessando(false);
       toast.connectionError();
     }
-  }, [carrinho, clearCarrinho, hydrateRemoteState, toast, total, perfilUsuario]);
+  }, [carrinho, clearCarrinho, hydrateRemoteState, locale, toast, total, perfilUsuario, setPerfilUsuario]);
 
   const handleConfirmacaoClose = () => {
     setShowConfirmacao(false);
@@ -139,19 +151,18 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
     if (!ultimoPedido) return;
     // Enviar comprovante via Edge Function
     try {
-      await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-receipt`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-        },
-        body: JSON.stringify({
+      const response = await supabase?.functions.invoke('send-receipt', {
+        body: {
           orderId: ultimoPedido.id,
           email,
           orderNumber: ultimoPedido.numero,
           total: ultimoPedido.total,
-        }),
+        },
       });
+
+      if (response?.error) {
+        throw response.error;
+      }
     } catch {
       // Se não existir, apenas simula sucesso
     }

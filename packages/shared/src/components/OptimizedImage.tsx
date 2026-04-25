@@ -13,7 +13,7 @@ interface OptimizedImageProps {
 
 /**
  * Componente de imagem otimizada com:
- * - WebP via <picture> com fallback JPEG
+ * - Mantém o formato real do arquivo para evitar requests fantasma
  * - Lazy loading nativo
  * - Skeleton/gradient placeholder durante carregamento
  * - Fallback com emoji + gradiente se imagem falhar
@@ -47,11 +47,9 @@ export default function OptimizedImage({
     background: `linear-gradient(135deg, hsl(${gradientHue}, 70%, 85%), hsl(${(gradientHue + 40) % 360}, 60%, 75%))`,
   };
 
-  // Gera URLs WebP e JPEG
+  // Mantem a URL original para evitar 404 de formatos que nao existem no deploy.
   const hasExtension = /\.(jpg|jpeg|png|webp)(\?.*)?$/i.test(src);
-  const baseSrc = hasExtension ? src.replace(/\.(jpg|jpeg|png|webp)(\?.*)?$/i, '') : src;
-  const webpSrc = hasExtension ? `${baseSrc}.webp` : src;
-  const jpegSrc = hasExtension ? `${baseSrc}.jpg` : src;
+  const imageSrc = hasExtension ? src : src;
 
   if (error) {
     return (
@@ -92,9 +90,8 @@ export default function OptimizedImage({
 
       {/* Imagem otimizada */}
       <picture className="w-full h-full">
-        {hasExtension && <source srcSet={webpSrc} type="image/webp" />}
         <img
-          src={hasExtension ? jpegSrc : src}
+          src={imageSrc}
           alt={alt}
           loading="lazy"
           decoding="async"

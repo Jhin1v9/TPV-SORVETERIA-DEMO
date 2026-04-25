@@ -11,6 +11,7 @@
  */
 
 import type { PerfilUsuario } from '../types';
+import { normalizeSpanishPhone } from './phone';
 
 const USERS_KEY = 'tpv-auth-users';
 
@@ -35,8 +36,8 @@ function saveUsers(users: PerfilUsuario[]) {
  * FUTURO: supabase.from('profiles').select('*').eq('phone', telefone).single()
  */
 export function findUserByPhone(telefone: string): PerfilUsuario | null {
-  const normalized = telefone.replace(/\D/g, '');
-  return getUsers().find((u) => u.telefone.replace(/\D/g, '') === normalized) || null;
+  const normalized = normalizeSpanishPhone(telefone);
+  return getUsers().find((u) => normalizeSpanishPhone(u.telefone) === normalized) || null;
 }
 
 /**
@@ -50,7 +51,7 @@ export function registerUser(perfil: PerfilUsuario): PerfilUsuario {
   if (exists) {
     // Atualiza dados se já existe (mesmo telefone, novo nome)
     const updated = users.map((u) =>
-      u.telefone.replace(/\D/g, '') === perfil.telefone.replace(/\D/g, '') ? perfil : u
+      normalizeSpanishPhone(u.telefone) === normalizeSpanishPhone(perfil.telefone) ? perfil : u
     );
     saveUsers(updated);
     return perfil;

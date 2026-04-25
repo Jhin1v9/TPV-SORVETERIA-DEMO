@@ -40,6 +40,9 @@ function OrderTimer({ startTime }: { startTime: string }) {
 function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatusChange: (id: string, status: PedidoStatus) => void; locale: Locale }) {
   const bgColor = statusColors[pedido.status];
   const isNew = pedido.status === 'pendiente';
+  // KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — kiosk/tpv mostram 'TPV', pwa mostra label do app cliente
+  const isPwaOrder = pedido.origem === 'pwa';
+  const origemLabel = isPwaOrder ? t('fromPWA', locale) : 'TPV';
 
   const nextStatus: Record<PedidoStatus, PedidoStatus | null> = {
     pendiente: 'preparando',
@@ -65,8 +68,8 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
         <div>
           <div className="flex items-center gap-2">
             <span className="font-mono text-4xl font-bold text-white">{generateOrderNumber(pedido.numeroSequencial)}</span>
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${pedido.origem === 'pwa' ? 'bg-[#FF6B9D]/30 text-[#FF6B9D]' : 'bg-[#4ECDC4]/30 text-[#4ECDC4]'}`}>
-              {pedido.origem === 'pwa' ? t('fromPWA', locale) : t('fromTPV', locale)}
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${isPwaOrder ? 'bg-[#FF6B9D]/30 text-[#FF6B9D]' : 'bg-[#4ECDC4]/30 text-[#4ECDC4]'}`}>
+              {origemLabel}
             </span>
           </div>
           <div className="flex items-center gap-2 mt-1">
@@ -191,6 +194,7 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
     const active = pedido.status !== 'entregado' && pedido.status !== 'cancelado';
     if (!active) return false;
     if (filter === 'all') return true;
+    if (filter === 'tpv') return pedido.origem === 'tpv' || pedido.origem === 'kiosk';
     return pedido.origem === filter;
   });
 

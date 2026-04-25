@@ -85,3 +85,34 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.calculate_flavor_consumption(text, integer) TO anon, authenticated;
+
+CREATE OR REPLACE FUNCTION public.normalize_es_phone(phone_input text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = public
+AS $$
+DECLARE
+  digits_only text;
+BEGIN
+  IF phone_input IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  digits_only := regexp_replace(phone_input, '\D', '', 'g');
+
+  IF digits_only = '' THEN
+    RETURN NULL;
+  END IF;
+
+  IF digits_only LIKE '0034%' THEN
+    digits_only := substring(digits_only FROM 5);
+  ELSIF digits_only LIKE '34%' AND char_length(digits_only) = 11 THEN
+    digits_only := substring(digits_only FROM 3);
+  END IF;
+
+  RETURN digits_only;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.normalize_es_phone(text) TO anon, authenticated;

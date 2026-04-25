@@ -1,4 +1,33 @@
-﻿CREATE OR REPLACE FUNCTION public.create_order(
+CREATE OR REPLACE FUNCTION public.normalize_es_phone(phone_input text)
+RETURNS text
+LANGUAGE plpgsql
+IMMUTABLE
+SET search_path = public
+AS $$
+DECLARE
+  digits_only text;
+BEGIN
+  IF phone_input IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  digits_only := regexp_replace(phone_input, '\D', '', 'g');
+
+  IF digits_only = '' THEN
+    RETURN NULL;
+  END IF;
+
+  IF digits_only LIKE '0034%' THEN
+    digits_only := substring(digits_only FROM 5);
+  ELSIF digits_only LIKE '34%' AND char_length(digits_only) = 11 THEN
+    digits_only := substring(digits_only FROM 3);
+  END IF;
+
+  RETURN digits_only;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.create_order(
   cart_payload jsonb,
   payment_method_input text,
   checkout_payload jsonb DEFAULT '{}'::jsonb
@@ -218,4 +247,45 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.create_order(jsonb, text, jsonb) TO anon, authenticated;
+CREATE OR REPLACE FUNCTION public.upsert_customer(
+  nome_input text,
+  telefone_input text,
+  email_input text DEFAULT NULL,
+  alergias_input jsonb DEFAULT '[]'::jsonb
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  customer_id uuid;
+  normalized_phone text := public.normalize_es_phone(telefone_input);
+BEGIN
+  IF normalized_phone IS NULL OR char_length(normalized_phone) <> 9 THEN
+    RAISE EXCEPTION 'telefone_input must be a valid Spanish phone';
+  END IF;
+
+  INSERT INTO public.customers (nome, telefone, email, alergias)
+  VALUES (nome_input, normalized_phone, email_input, alergias_input)
+  ON CONFLICT (telefone) DO UPDATE
+  SET nome = excluded.nome,
+      email = COALESCE(excluded.email, customers.email),
+      alergias = excluded.alergias
+  RETURNING id INTO customer_id;
+
+  RETURN customer_id;
+END;
+$$;
+
+UPDATE public.customers
+SET telefone = public.normalize_es_phone(telefone)
+WHERE telefone IS NOT NULL;
+
+UPDATE public.orders
+SET customer_phone = public.normalize_es_phone(customer_phone)
+WHERE customer_phone IS NOT NULL;
+
+UPDATE public.push_subscriptions
+SET telefone = public.normalize_es_phone(telefone)
+WHERE telefone IS NOT NULL;

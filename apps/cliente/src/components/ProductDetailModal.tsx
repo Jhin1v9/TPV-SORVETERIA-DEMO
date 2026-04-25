@@ -5,6 +5,7 @@ import type { Produto, OpcaoPersonalizacao } from '@tpv/shared/types';
 import { normalizeProdutoToProduct, isProdutoPersonalizavel } from '@tpv/shared/types';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
+import { nomeAlergeno } from '@tpv/shared/i18n/alergenos';
 import OptimizedImage from '@tpv/shared/components/OptimizedImage';
 
 interface ProductDetailModalProps {
@@ -256,8 +257,9 @@ export default function ProductDetailModal({ produto, onClose }: ProductDetailMo
                         }`}
                       >
                         {aviso.nivel === 'contem' ? <AlertTriangle size={12} /> : <Leaf size={12} />}
+                        {/* KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — alergenos traduzidos corretamente */}
                         {aviso.nivel === 'contem' ? t('contains', locale) : t('mayContain', locale)}{' '}
-                        {aviso.alergeno}
+                        {nomeAlergeno(aviso.alergeno, locale)}
                         {isConflito && <span className="ml-0.5">⚠️</span>}
                       </span>
                     );

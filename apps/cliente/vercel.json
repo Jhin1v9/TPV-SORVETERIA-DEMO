@@ -4,7 +4,8 @@
   "outputDirectory": "dist/cliente",
   "framework": "vite",
   "env": {
-    "VITE_SUPABASE_URL": "https://jmvikjujftidgcezmlfc.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_oSg8rtPqfJnPCrl_Axw-_g_rRvugcnV"
+    "VITE_SUPABASE_URL": "https://dproxlygtabihfhtxdvm.supabase.co",
+    "VITE_SUPABASE_ANON_KEY": "sb_publishable_k8YlmjNQ-f5NmnEjR5oLuQ_XWEbyJkJ",
+    "VITE_WEB_PUSH_PUBLIC_KEY": "BGlt6kHZ9ReemyWQqwYpjhtsdm_O0D_jdKzXyhBB7uctpuDoJxqtH1waCIwKNEqBC5uiFF_6x_3HM-DE7O_izmA"
   }
 }
