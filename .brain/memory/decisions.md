@@ -152,3 +152,16 @@ Cada decisão segue o formato:
 
 *Atualizado em: 2026-04-23*
 *Próxima revisão: quando nova decisão arquitetural for necessária*
+
+### ADR-010 - Manager-Worker como padrao de subagentes
+**Data:** 2026-04-25
+**Status:** ACCEPTED
+**Contexto:** O projeto precisa de um modelo estavel para delegar pesquisa, leitura de codigo, implementacao e verificacao sem perder coerencia entre agentes.
+**Decisao:** Adotar `manager-worker` como padrao oficial de subagentes, com `MAMIS/1` como protocolo de comunicacao, registry versionado e geracao automatica de times via `scripts/subagent-fabric.mjs`.
+**Consequencias:**
+- Menos improviso na delegacao
+- Roles e ownership claros
+- Melhor sintese entre CODEX e KIMI como agentes principais
+- Mais rastreabilidade no `.brain` e nos artefatos de equipe
+- Custo adicional de coordenacao quando a tarefa e pequena
+**Links:** `.brain-orchestrator/OPERACAO_AGENTES.md`, `.brain-orchestrator/SUBAGENT_REGISTRY.json`, `.brain-orchestrator/SUBAGENT_PROMPTS.md`, `.brain/knowledge/subagent-scientific-operating-system.md`

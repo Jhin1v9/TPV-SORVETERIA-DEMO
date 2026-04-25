@@ -67,7 +67,7 @@ export default function CodigoAppScreen({ onBack, onVinculado }: CodigoAppScreen
         <img
           src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
           alt="Tropicale"
-          className="h-9 w-auto max-w-[140px] object-contain"
+          className="h-12 w-auto max-w-[140px] object-contain"
         />
         <div className="w-24" />
       </div>

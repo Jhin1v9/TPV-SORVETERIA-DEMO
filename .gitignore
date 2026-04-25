@@ -30,3 +30,7 @@ tmp-*.cjs
 
 # Relatorios de analise gerados automaticamente
 ANALISE_COMPORTAMENTAL_*.md
+
+# Brain/worktree staging noise
+.brain-orchestrator-new/
+apps/*.zip

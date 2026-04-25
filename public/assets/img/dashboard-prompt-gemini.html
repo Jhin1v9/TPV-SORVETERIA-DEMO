@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsMaster - Dashboard Tropicale v6.0</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; line-height: 1.6; }
+        .container { max-width: 950px; margin: 0 auto; background: #1e293b; padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.5); }
+        h1 { color: #f8fafc; border-bottom: 3px solid #f97316; padding-bottom: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .section { background: #334155; padding: 25px; border: 1px solid #475569; border-radius: 10px; margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #fb923c; display: flex; align-items: center; gap: 8px; }
+        label { display: block; margin-top: 15px; font-weight: 600; font-size: 0.9rem; color: #cbd5e1; }
+        select, input { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #64748b; border-radius: 6px; box-sizing: border-box; font-size: 1rem; background: #1e293b; color: white; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        button { flex: 2; background-color: #ea580c; color: white; border: none; padding: 16px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
+        button:hover { background-color: #c2410c; transform: translateY(-1px); }
+        
+        #btn-copy { flex: 1; background-color: #10b981; }
+        #btn-copy:hover { background-color: #059669; }
+        #btn-copy.copied { background-color: #6366f1; }
+
+        .output-box { margin-top: 30px; }
+        textarea { width: 100%; height: 260px; padding: 20px; border: 2px solid #fdba74; border-radius: 8px; resize: vertical; font-family: 'Courier New', monospace; font-size: 0.95rem; background-color: #0f172a; color: #fb923c; line-height: 1.5; box-sizing: border-box; }
+        .hidden { display: none; }
+        .badge { background: #ffedd5; color: #9a3412; font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1> 🌴 OpsMaster Dashboard <span class="badge">v6.0 Takeaway & Realismo</span></h1>
+    
+    <div class="section">
+        <label>Categoría de Producto (Menú App):</label>
+        <select id="categoria" onchange="toggleSections()">
+            <option value="copa">🍨 Copas (Cristal)</option>
+            <option value="tarrina">🍧 Tarrinas (Cartón)</option>
+            <option value="cono">🍦 Conos</option>
+            <option value="souffle">🍮 Soufflés (Tarrina Plástico)</option>
+            <option value="gofre">🧇 Gofres Cuadrados (Bandeja)</option>
+            <option value="banana">🍌 Banana Split (Barqueta Plástico)</option>
+            <option value="batido">🥤 Batidos (Vaso Plástico)</option>
+            <option value="granizado">🧊 Granizados (Vaso Plástico)</option>
+            <option value="orxata">🥛 Orxata / Llet Merengada (Vaso Plástico)</option>
+        </select>
+    </div>
+
+    <div id="section-copa" class="section">
+        <h3>Menú de Copas</h3>
+        <select id="tipo-copa">
+            <option value="Copa Bahia">Copa Bahia</option>
+            <option value="Copa Oreo">Copa Oreo</option>
+            <option value="Copa Tropicale">Copa Tropicale</option>
+        </select>
+    </div>
+
+    <div id="section-tarrina" class="section hidden">
+        <h3>Tarrinas</h3>
+        <select id="tipo-tarrina"><option value="small white paper cup">Petita</option><option value="medium white paper cup">Mitjana</option><option value="large white paper cup">Gran</option></select>
+        <input type="text" id="tarrina-sabor" placeholder="Sabores (Ej: Vainilla y Fresa)" style="margin-top:10px;" value="Vainilla">
+    </div>
+
+    <div id="section-cono" class="section hidden">
+        <h3>Conos</h3>
+        <select id="tipo-cono"><option value="classic brown waffle cone">Clásico</option><option value="wafer cone 100% fully dipped in dark chocolate">Xocolata Negra</option></select>
+        <input type="text" id="cono-sabor" placeholder="Sabor" style="margin-top:10px;" value="Fresa">
+    </div>
+
+    <div id="section-souffle" class="section hidden">
+        <h3>Soufflés (En tarrina de plástico)</h3>
+        <select id="tipo-souffle">
+            <option value="Soufflé Solo">Soufflé Solo</option>
+            <option value="Soufflé + 1 Bola">Soufflé + 1 Bola (Vainilla)</option>
+        </select>
+    </div>
+
+    <div id="section-gofre" class="section hidden">
+        <h3>Gofres Cuadrados (En bandeja)</h3>
+        <select id="tipo-gofre">
+            <option value="Gofre Solo">Solo (Azúcar glass)</option>
+            <option value="Gofre con Chocolate">Sirope de Chocolate</option>
+            <option value="Gofre Tropicale">Frutas Variadas (Plátano, fresa, nata)</option>
+        </select>
+    </div>
+
+    <div id="section-banana" class="section hidden">
+        <h3>Banana Split</h3>
+        <select id="tipo-banana">
+            <option value="Banana Split">Banana Split Tradicional</option>
+        </select>
+    </div>
+
+    <div id="section-batido" class="section hidden">
+        <h3>Batidos (Vaso takeaway)</h3>
+        <select id="tipo-batido">
+            <option value="Batido Clásico">Batido de Helado con Nata y Sirope</option>
+        </select>
+        <input type="text" id="batido-sabor" placeholder="Sabor del batido (Ej: Chocolate)" style="margin-top:10px;" value="Chocolate">
+    </div>
+
+    <div id="section-granizado" class="section hidden">
+        <h3>Granizados (Vaso takeaway)</h3>
+        <select id="tipo-granizado">
+            <option value="Granizado Fruta">Granizado Natural</option>
+            <option value="Granizado Yogurt">Granizado Yogurt</option>
+        </select>
+        <input type="text" id="granizado-sabor" placeholder="Sabor (Ej: Limón)" style="margin-top:10px;" value="Limón">
+    </div>
+
+    <div id="section-orxata" class="section hidden">
+        <h3>Orxata / Llet Merengada</h3>
+        <select id="tipo-orxata">
+            <option value="Orxata">Orxata de Chufa</option>
+            <option value="Leche Merengada">Leche Merengada</option>
+        </select>
+    </div>
+
+    <div class="btn-group">
+        <button onclick="generarPrompt()">⚙️ Generar Prompt Maestro</button>
+        <button id="btn-copy" onclick="copiarPrompt()">📋 Copiar Prompt</button>
+    </div>
+
+    <div class="output-box">
+        <textarea id="output-prompt" readonly placeholder="El prompt sincronizado aparecerá aquí..."></textarea>
+    </div>
+</div>
+
+<script>
+    const menuData = {
+        copa: { "Copa Bahia": "vanilla and strawberry gelato scoops, topped with whipped cream, crocanti, strawberry syrup, cookies and wafer rolls", "Copa Oreo": "Oreo gelato, whipped cream, chocolate syrup, whole Oreo cookies", "Copa Tropicale": "vanilla, strawberry, chocolate, and green apple gelato scoops mixed with fresh assorted fruits, topped with whipped cream and syrup" },
+        souffle: { "Soufflé Solo": "a warm, molten chocolate soufflé with a rich gooey center", "Soufflé + 1 Bola": "a warm, molten chocolate soufflé with a gooey center, placed next to a scoop of vanilla gelato" },
+        gofre: { "Gofre Solo": "a thick, square-shaped authentic Belgian waffle, lightly dusted with powdered sugar", "Gofre con Chocolate": "a thick, square-shaped authentic Belgian waffle, generously drizzled with rich melted dark chocolate syrup", "Gofre Tropicale": "a thick, square-shaped authentic Belgian waffle, topped with fresh sliced strawberries, banana slices, whipped cream, and chocolate syrup" },
+        banana: { "Banana Split": "a whole halved banana, scoops of strawberry, chocolate, and vanilla gelato, generously topped with whipped cream, strawberry and chocolate syrup, and cookies" },
+        batido: { "Batido Clásico": "a thick, rich, creamy artisan milkshake, luxuriously topped with whipped cream and dripping syrup" },
+        granizado: { "Granizado Fruta": "a refreshing, brightly colored icy fruit slushie drink", "Granizado Yogurt": "a creamy frozen yogurt and fruit slushie drink" },
+        orxata: { "Orxata": "a creamy, chilled traditional Spanish horchata drink", "Leche Merengada": "a chilled creamy milk drink with cinnamon and lemon zest" }
+    };
+
+    function toggleSections() {
+        const cat = document.getElementById('categoria').value;
+        document.querySelectorAll('.section[id^="section-"]').forEach(s => s.classList.add('hidden'));
+        document.getElementById(`section-${cat}`).classList.remove('hidden');
+    }
+
+    function generarPrompt() {
+        const cat = document.getElementById('categoria').value;
+        let p = "Professional studio food photography, hero shot of a premium artisan takeaway dessert. ";
+        const style = "High-end commercial style, vibrant appetizing colors. Lighting: Bright commercial softbox lighting with realistic reflections. Style: Hyper-realistic, 8k resolution, food photography. Background: Solid isolated pure white background. No extra text, no watermarks.";
+
+        // VARIABLES DE LOGO Y ENVASE REALISTAS
+        const logoPegatina = `The container features a crisp, brightly colored sticker decal of the official logo: an orange palm tree silhouette, with the exact text 'GELATS TROPICALE', 'SABADELL', and 'SINCE 1998' clearly printed on it. `;
+        const logoCarton = `The paper material is printed with the official logo: an orange palm tree silhouette, with the exact text 'GELATS TROPICALE', 'SABADELL', and 'SINCE 1998'. `;
+        const logoCristal = `The glass features a crisp, frosted engraving of the official logo: an orange palm tree silhouette, with the text 'GELATS TROPICALE', 'SABADELL', and 'SINCE 1998'. `;
+
+        if (cat === 'copa') {
+            const item = document.getElementById('tipo-copa').value;
+            p += `Served in a high-end clear glass goblet. ${logoCristal} Composition: ${menuData.copa[item]}. `;
+        } else if (cat === 'tarrina') {
+            const item = document.getElementById('tipo-tarrina').value;
+            const sabor = document.getElementById('tarrina-sabor').value;
+            p += `Served in a ${item} takeaway bowl. ${logoCarton} Composition: overflowing scoops of ${sabor} gelato protruding high above the cup rim. `;
+        } else if (cat === 'cono') {
+            const item = document.getElementById('tipo-cono').value;
+            const sabor = document.getElementById('cono-sabor').value;
+            p += `Gelato in a ${item}. The base of the cone is wrapped in a red and white striped paper napkin label. ${logoCarton} Composition: a massive scoop of ${sabor} gelato. `;
+        } else if (cat === 'souffle') {
+            const item = document.getElementById('tipo-souffle').value;
+            p += `Served inside a premium clear plastic round takeaway dessert tub. ${logoPegatina} Composition: ${menuData.souffle[item]}. `;
+        } else if (cat === 'gofre') {
+            const item = document.getElementById('tipo-gofre').value;
+            p += `Served in a branded open cardboard takeaway tray. ${logoCarton} Composition: ${menuData.gofre[item]}. The square waffle fills the tray perfectly. `;
+        } else if (cat === 'banana') {
+            p += `Served inside a clear plastic takeaway banana boat container. ${logoPegatina} Composition: ${menuData.banana['Banana Split']}. `;
+        } else if (cat === 'batido') {
+            const sabor = document.getElementById('batido-sabor').value;
+            p += `Served in a tall clear plastic takeaway cup with a dome lid and a straw. ${logoPegatina} Composition: ${sabor} flavor, ${menuData.batido['Batido Clásico']}. `;
+        } else if (cat === 'granizado') {
+            const item = document.getElementById('tipo-granizado').value;
+            const sabor = document.getElementById('granizado-sabor').value;
+            p += `Served in a tall clear plastic takeaway cup with a dome lid and a straw. ${logoPegatina} Composition: ${sabor} flavor, ${menuData.granizado[item]}. `;
+        } else if (cat === 'orxata') {
+            const item = document.getElementById('tipo-orxata').value;
+            p += `Served in a clear plastic takeaway cup with a flat lid. ${logoPegatina} Composition: ${menuData.orxata[item]}. `;
+        }
+
+        document.getElementById('output-prompt').value = p + style;
+    }
+
+    async function copiarPrompt() {
+        const text = document.getElementById('output-prompt').value;
+        const btn = document.getElementById('btn-copy');
+        if(!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            btn.innerText = "¡Copiado!";
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerText = "📋 Copiar Prompt"; btn.classList.remove('copied'); }, 2000);
+        } catch (err) { alert("Error al copiar."); }
+    }
+</script>
+</body>
+</html>

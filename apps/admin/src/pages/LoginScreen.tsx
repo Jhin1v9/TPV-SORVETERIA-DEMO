@@ -29,7 +29,7 @@ export default function LoginScreen() {
           <img
             src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
             alt="Tropicale"
-            className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain"
+            className="w-20 h-20 mx-auto mb-4 rounded-2xl object-contain"
           />
           <p className="text-gray-400 text-sm mt-1">{t('loginTitle', locale)}</p>
         </div>

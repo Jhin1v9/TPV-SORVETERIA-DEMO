@@ -61,7 +61,7 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           <img
             src={CLIENTE_LOGO_SRC}
             alt="Tropicale"
-            className="h-28 w-auto max-w-[220px] object-contain drop-shadow-2xl"
+            className="h-40 w-auto max-w-[300px] object-contain drop-shadow-2xl"
           />
         </motion.div>
 

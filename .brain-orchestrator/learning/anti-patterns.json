@@ -1,0 +1,112 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-04-08",
+  "description": "Anti-patterns identificados e como evitá-los",
+  "antiPatterns": [
+    {
+      "id": "ANTI-001",
+      "title": "any Type",
+      "personalidade": "TYPESCRIPT_MASTER",
+      "severidade": "critical",
+      "problema": "Uso de 'any' quebra type safety",
+      "consequencia": "Erros em runtime, difícil refatorar",
+      "solucao": "Usar 'unknown' + type guards, ou tipar corretamente",
+      "exemplo": {
+        "errado": "function process(data: any) { ... }",
+        "certo": "function process(data: unknown) {\n  if (isValidData(data)) { ... }\n}"
+      },
+      "deteccao": "Buscar por ': any' ou 'as any' no código"
+    },
+    {
+      "id": "ANTI-002",
+      "title": "Inline Objects in Render",
+      "personalidade": "PERFORMANCE",
+      "severidade": "high",
+      "problema": "Objetos/arrays criados direto no render causam re-render desnecessária",
+      "consequencia": "Child components re-renderam a cada pai",
+      "solucao": "useMemo para objetos, useCallback para funções",
+      "exemplo": {
+        "errado": "<Child style={{ color: 'red' }} items={[]} />",
+        "certo": "const style = useMemo(() => ({ color: 'red' }), []);\n<Child style={style} />"
+      }
+    },
+    {
+      "id": "ANTI-003",
+      "title": "useEffect for Derived State",
+      "personalidade": "REACT_SPECIALIST",
+      "severidade": "high",
+      "problema": "Usar useEffect para calcular valor que pode ser derivado diretamente",
+      "consequencia": "Complexidade desnecessária, bugs de sincronização",
+      "solucao": "Calcular no render ou usar useMemo",
+      "exemplo": {
+        "errado": "const [fullName, setFullName] = useState('');\nuseEffect(() => {\n  setFullName(first + ' ' + last);\n}, [first, last]);",
+        "certo": "const fullName = useMemo(() => first + ' ' + last, [first, last]);"
+      }
+    },
+    {
+      "id": "ANTI-004",
+      "title": "Index as Key",
+      "personalidade": "REACT_SPECIALIST",
+      "severidade": "medium",
+      "problema": "Usar índice de array como key em listas",
+      "consequencia": "Problemas de reordenação, estado inconsistente",
+      "solucao": "Usar ID único do item",
+      "exemplo": {
+        "errado": "{items.map((item, i) => <div key={i}>...</div>)}",
+        "certo": "{items.map(item => <div key={item.id}>...</div>)}"
+      }
+    },
+    {
+      "id": "ANTI-005",
+      "title": "Direct State Mutation",
+      "personalidade": "ARQUITETO",
+      "severidade": "critical",
+      "problema": "Mutar estado diretamente (ex: push, splice)",
+      "consequencia": "React não detecta mudança, UI não atualiza",
+      "solucao": "Sempre criar novo objeto/array",
+      "exemplo": {
+        "errado": "items.push(newItem); setItems(items);",
+        "certo": "setItems([...items, newItem]);"
+      }
+    },
+    {
+      "id": "ANTI-006",
+      "title": "Missing Cleanup Effects",
+      "personalidade": "REACT_SPECIALIST",
+      "severidade": "high",
+      "problema": "Esquecer cleanup em useEffect (subscriptions, timers, listeners)",
+      "consequencia": "Memory leaks, comportamento inesperado",
+      "solucao": "Sempre retornar função de cleanup",
+      "exemplo": {
+        "errado": "useEffect(() => {\n  window.addEventListener('resize', handler);\n}, []);",
+        "certo": "useEffect(() => {\n  window.addEventListener('resize', handler);\n  return () => window.removeEventListener('resize', handler);\n}, []);"
+      }
+    },
+    {
+      "id": "ANTI-007",
+      "title": "Prop Drilling",
+      "personalidade": "ARQUITETO",
+      "severidade": "medium",
+      "problema": "Passar props através de múltiplos níveis",
+      "consequencia": "Código acoplado, difícil manutenção",
+      "solucao": "Context API, Zustand, ou composition",
+      "exemplo": {
+        "errado": "<Parent user={user}> → <Child user={user}> → <GrandChild user={user}>",
+        "certo": "// Usar Context ou Zustand para dados globais"
+      }
+    },
+    {
+      "id": "ANTI-008",
+      "title": "Non-Semantic HTML",
+      "personalidade": "CSS_TAILWIND",
+      "severidade": "medium",
+      "problema": "Usar divs para tudo, ignorando tags semânticas",
+      "consequencia": "Problemas de acessibilidade, SEO ruim",
+      "solucao": "Usar tags apropriadas: nav, main, article, button",
+      "exemplo": {
+        "errado": "<div onClick={handleClick}>Botão</div>",
+        "certo": "<button onClick={handleClick}>Botão</button>"
+      }
+    }
+  ]
+}

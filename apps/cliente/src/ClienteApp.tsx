@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Toaster } from 'sonner';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { useRealtimeSync } from '@tpv/shared';
 import { t } from '@tpv/shared/i18n';
+import { useIdleTimeout } from '@tpv/shared/hooks/useIdleTimeout';
+import IdleTimeoutModal from '@tpv/shared/components/IdleTimeoutModal';
 import CardapioPage from './pages/CardapioPage';
 import CarrinhoPage from './pages/CarrinhoPage';
 import PedidosPage from './pages/PedidosPage';
@@ -42,8 +44,30 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
     { id: 'config', label: t('settings', locale), icon: '⚙️' },
   ];
 
+  // Idle timeout — só ativa quando onboarding está completo e usuário está no app
+  const handleIdleTimeout = useCallback(() => {
+    setTab('cardapio');
+    // Não limpa carrinho no cliente — usuário pode querer retomar depois
+  }, []);
+
+  const { isWarningVisible, secondsRemaining, reset: resetIdle } = useIdleTimeout({
+    idleTimeout: 30000,      // 30s de inatividade → mostra aviso
+    warningTimeout: 10000,   // 10s para responder → reseta
+    onTimeout: handleIdleTimeout,
+    enabled: !isOnboardingActive,
+  });
+
   return (
     <>
+      {/* Modal de inatividade */}
+      <IdleTimeoutModal
+        visible={isWarningVisible}
+        secondsRemaining={secondsRemaining}
+        onContinue={resetIdle}
+        onReset={handleIdleTimeout}
+        appName="pedido"
+      />
+
       {/* Onboarding fica por cima do app enquanto não estiver completo */}
       {isOnboardingActive && (
         <OnboardingFlow

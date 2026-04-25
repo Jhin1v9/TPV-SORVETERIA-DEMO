@@ -1,0 +1,143 @@
+{
+  "version": "1.0",
+  "default_pattern": "manager-worker",
+  "protocol": "MAMIS/1",
+  "naming": {
+    "format": "<ROLE>-<CALLSIGN>-<ID>",
+    "adjectives": [
+      "amber",
+      "cinder",
+      "ivory",
+      "jade",
+      "lunar",
+      "onyx",
+      "quartz",
+      "sable",
+      "slate",
+      "swift"
+    ],
+    "nouns": [
+      "atlas",
+      "beacon",
+      "delta",
+      "forge",
+      "grid",
+      "harbor",
+      "node",
+      "river",
+      "signal",
+      "vector"
+    ]
+  },
+  "roles": [
+    {
+      "role": "WEB_SCOUT",
+      "category": "external-intelligence",
+      "can_write": false,
+      "best_for": [
+        "web research",
+        "docs lookup",
+        "benchmark lookup",
+        "source gathering"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "evidence",
+        "links",
+        "risks"
+      ]
+    },
+    {
+      "role": "CODE_SCOUT",
+      "category": "repo-intelligence",
+      "can_write": false,
+      "best_for": [
+        "file discovery",
+        "dependency tracing",
+        "ownership mapping",
+        "hotspot analysis"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "files",
+        "evidence",
+        "risks"
+      ]
+    },
+    {
+      "role": "SURGEON",
+      "category": "implementation",
+      "can_write": true,
+      "best_for": [
+        "bounded code changes",
+        "bug fixes",
+        "refactors with clear ownership"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "files",
+        "risks",
+        "next"
+      ]
+    },
+    {
+      "role": "VERIFIER",
+      "category": "validation",
+      "can_write": false,
+      "best_for": [
+        "build validation",
+        "tests",
+        "smoke checks",
+        "regression checks"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "evidence",
+        "risks"
+      ]
+    },
+    {
+      "role": "REVIEWER",
+      "category": "quality",
+      "can_write": false,
+      "best_for": [
+        "code review",
+        "risk review",
+        "test gap review"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "evidence",
+        "risks",
+        "next"
+      ]
+    },
+    {
+      "role": "SYNTHESIZER",
+      "category": "consolidation",
+      "can_write": false,
+      "best_for": [
+        "merge findings",
+        "state consolidation",
+        "final truth drafting"
+      ],
+      "required_output": [
+        "status",
+        "summary",
+        "evidence",
+        "next"
+      ]
+    }
+  ],
+  "spawn_policy": {
+    "default_max_parallel": 3,
+    "never_parallelize_same_file_writes": true,
+    "prefer_single_agent_for_small_linear_tasks": true,
+    "prefer_parallel_for_breadth_first_research": true
+  }
+}

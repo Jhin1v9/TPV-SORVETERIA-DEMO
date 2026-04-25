@@ -115,3 +115,8 @@ Exemplo:
 
 *Última atualização: 2026-04-23*
 *Versão do brain: 2.0 (modular + personas)*
+
+## Regra adicional - Delegacao cientifica
+- Se a tarefa pedir subagentes, o fluxo oficial agora passa por `.brain-orchestrator/OPERACAO_AGENTES.md` e pelo protocolo `MAMIS/1`.
+- Para gerar uma equipe automaticamente, use `npm run agent:fabric -- --goal "<objetivo>"`.
+- O artefato de time gerado vira insumo para CODEX ou KIMI operarem como agente principal.

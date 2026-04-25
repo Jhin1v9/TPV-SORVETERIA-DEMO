@@ -93,7 +93,7 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
           <img
             src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
             alt="Tropicale"
-            className="h-14 w-auto max-w-[180px] object-contain drop-shadow-lg"
+            className="h-44 w-auto max-w-[320px] object-contain drop-shadow-2xl"
           />
         </motion.div>
 

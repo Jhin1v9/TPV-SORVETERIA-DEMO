@@ -77,7 +77,7 @@ export default function LoginKioskScreen({ onLogin, onSkip }: LoginKioskScreenPr
         <img
           src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
           alt="Tropicale"
-          className="h-10 w-auto max-w-[160px] object-contain"
+          className="h-14 w-auto max-w-[160px] object-contain"
         />
       </div>
 

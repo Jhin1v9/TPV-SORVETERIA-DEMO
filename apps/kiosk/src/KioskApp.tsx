@@ -1,8 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { useRealtimeSync } from '@tpv/shared';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
+import { useIdleTimeout } from '@tpv/shared/hooks/useIdleTimeout';
+import IdleTimeoutModal from '@tpv/shared/components/IdleTimeoutModal';
 import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
 import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
 import AttractScreen from './screens/AttractScreen';
@@ -26,31 +28,24 @@ export default function KioskApp() {
   const [paymentError, setPaymentError] = useState('');
   const [linkedCustomerId, setLinkedCustomerId] = useState<string | null>(null);
   const [linkedCustomerName, setLinkedCustomerName] = useState<string | null>(null);
-  const inactivityTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Idle timeout com modal "¿Sigues aquí?"
+  // Só ativa em telas interativas (não no attract nem confirmação)
+  const idleEnabled = screen !== 'attract' && screen !== 'confirmacao';
 
-  // Inactivity timeout
-  const resetInactivityTimer = useCallback(() => {
-    if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-    inactivityTimer.current = setTimeout(() => {
-      if (screen !== 'attract' && screen !== 'confirmacao') {
-        clearCarrinho();
-        setLinkedCustomerId(null);
-        setLinkedCustomerName(null);
-        setScreen('attract');
-      }
-    }, 60000);
-  }, [screen, clearCarrinho]);
+  const handleIdleTimeout = useCallback(() => {
+    clearCarrinho();
+    setLinkedCustomerId(null);
+    setLinkedCustomerName(null);
+    setProdutoPersonalizando(null);
+    setScreen('attract');
+  }, [clearCarrinho]);
 
-  useEffect(() => {
-    resetInactivityTimer();
-    const events = ['click', 'touchstart'];
-    const handler = () => resetInactivityTimer();
-    events.forEach((e) => window.addEventListener(e, handler));
-    return () => {
-      events.forEach((e) => window.removeEventListener(e, handler));
-      if (inactivityTimer.current) clearTimeout(inactivityTimer.current);
-    };
-  }, [resetInactivityTimer]);
+  const { isWarningVisible, secondsRemaining, reset: resetIdle } = useIdleTimeout({
+    idleTimeout: 30000,      // 30s de inatividade → mostra aviso
+    warningTimeout: 10000,   // 10s para responder → reseta
+    onTimeout: handleIdleTimeout,
+    enabled: idleEnabled,
+  });
 
   const { carrinho, addToCarrinho, removeFromCarrinho } = useStore();
   const cartCount = carrinho.reduce((sum, item) => sum + item.quantity, 0);
@@ -169,6 +164,15 @@ export default function KioskApp() {
           Sin conexión — usando modo local
         </div>
       )}
+
+      {/* Modal de inatividade */}
+      <IdleTimeoutModal
+        visible={isWarningVisible}
+        secondsRemaining={secondsRemaining}
+        onContinue={resetIdle}
+        onReset={handleIdleTimeout}
+        appName="pedido"
+      />
 
       <AnimatePresence mode="wait">
         {screen === 'attract' && (

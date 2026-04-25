@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpsMaster - Dashboard Tropicale v4.5</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; color: #1a1a1a; padding: 20px; line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); }
+        h1 { color: #1e293b; border-bottom: 3px solid #f97316; padding-bottom: 12px; margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+        .section { background: #fff7ed; padding: 25px; border: 1px solid #ffedd5; border-radius: 10px; margin-bottom: 20px; }
+        h3 { margin-top: 0; color: #ea580c; display: flex; align-items: center; gap: 8px; }
+        label { display: block; margin-top: 15px; font-weight: 600; font-size: 0.9rem; color: #475569; }
+        select, input { width: 100%; padding: 12px; margin-top: 6px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 25px; }
+        button { flex: 2; background-color: #ea580c; color: white; border: none; padding: 16px; font-size: 1rem; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.2s; }
+        button:hover { background-color: #c2410c; transform: translateY(-1px); }
+        
+        #btn-copy { flex: 1; background-color: #10b981; }
+        #btn-copy:hover { background-color: #059669; }
+        #btn-copy.copied { background-color: #6366f1; }
+
+        .output-box { margin-top: 30px; }
+        textarea { width: 100%; height: 260px; padding: 20px; border: 2px solid #fdba74; border-radius: 8px; resize: vertical; font-family: 'Courier New', monospace; font-size: 0.95rem; background-color: #fffaf5; color: #431407; line-height: 1.5; box-sizing: border-box; }
+        .hidden { display: none; }
+        .badge { background: #ffedd5; color: #9a3412; font-size: 0.7rem; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1> 🌴 OpsMaster Dashboard <span class="badge">v4.5 Logo-Safe</span></h1>
+    
+    <div class="section">
+        <label>Categoría de Producto:</label>
+        <select id="categoria" onchange="toggleSections()">
+            <option value="cono">🍦 Conos (Cucurutxos)</option>
+            <option value="tarrina">🍧 Tarrinas (Terrines)</option>
+            <option value="acai">🫐 Açaí Bowls</option>
+        </select>
+    </div>
+
+    <div id="section-cono" class="section">
+        <h3>Configuración del Cono</h3>
+        <label>Tipo de Cobertura:</label>
+        <select id="tipo-cono">
+            <option value="classic brown waffle cone">Petit / Clásico (Sin chocolate)</option>
+            <option value="wafer cone 100% fully dipped in thick smooth dark chocolate, NO brown waffle visible">Xocolata Llisa Negra (Baño Total)</option>
+            <option value="wafer cone 100% fully dipped in creamy white chocolate, NO brown waffle visible">Xocolata Llisa Blanca (Baño Total)</option>
+            <option value="wafer cone fully dipped in dark chocolate and encrusted with crunchy almonds">Ametllat Negre (Baño Total + Almendras)</option>
+            <option value="wafer cone fully dipped in white chocolate and encrusted with crunchy almonds">Ametllat Blanc (Baño Total + Almendras)</option>
+        </select>
+        <label>Bolas:</label>
+        <select id="bolas-cono" onchange="updateFlavors('cono')">
+            <option value="1">1 Sabor (Bola masiva)</option>
+            <option value="2">2 Sabores (Bolas masivas apiladas)</option>
+        </select>
+        <input type="text" id="cono-sabor1" placeholder="Sabor Bola Abajo" style="margin-top:10px;" value="Fresa">
+        <input type="text" id="cono-sabor2" placeholder="Sabor Bola Arriba" class="hidden" style="margin-top:10px;">
+    </div>
+
+    <div id="section-tarrina" class="section hidden">
+        <h3>Configuración de la Tarrina</h3>
+        <label>Tamaño:</label>
+        <select id="tipo-tarrina" onchange="syncTarrinaBolas()">
+            <option value="small white paper cup" data-bolas="1">Petita (1 bola masiva)</option>
+            <option value="medium white paper cup" data-bolas="2">Mitjana (2 bolas masivas)</option>
+            <option value="large white paper cup" data-bolas="3">Gran (3 bolas masivas)</option>
+        </select>
+        <input type="text" id="tarrina-sabor1" placeholder="Sabor 1" style="margin-top:10px;" value="Vainilla">
+        <input type="text" id="tarrina-sabor2" placeholder="Sabor 2" class="hidden" style="margin-top:10px;">
+        <input type="text" id="tarrina-sabor3" placeholder="Sabor 3" class="hidden" style="margin-top:10px;">
+    </div>
+
+    <div class="btn-group">
+        <button onclick="generarPrompt()">⚙️ Generar Prompt Maestro</button>
+        <button id="btn-copy" onclick="copiarPrompt()">📋 Copiar Prompt</button>
+    </div>
+
+    <div class="output-box">
+        <textarea id="output-prompt" readonly placeholder="El prompt con el logo original aparecerá aquí..."></textarea>
+    </div>
+</div>
+
+<script>
+    function toggleSections() {
+        const cat = document.getElementById('categoria').value;
+        ['cono', 'tarrina'].forEach(s => document.getElementById(`section-${s}`).classList.add('hidden'));
+        if(cat !== 'acai') document.getElementById(`section-${cat}`).classList.remove('hidden');
+    }
+
+    function updateFlavors(type) {
+        const bolas = document.getElementById(`bolas-${type}`).value;
+        document.getElementById(`${type}-sabor2`).classList.toggle('hidden', bolas < 2);
+    }
+
+    function syncTarrinaBolas() {
+        const sel = document.getElementById('tipo-tarrina');
+        const bolas = parseInt(sel.options[sel.selectedIndex].getAttribute('data-bolas'));
+        document.getElementById('tarrina-sabor2').classList.toggle('hidden', bolas < 2);
+        document.getElementById('tarrina-sabor3').classList.toggle('hidden', bolas < 3);
+    }
+
+    function generarPrompt() {
+        const cat = document.getElementById('categoria').value;
+        let p = "Professional studio food photography, hero shot of a premium artisan gelato. ";
+        
+        // DESCRIPCIÓN TÉCNICA DEL LOGO ORIGINAL
+        const logoDescription = `The branding on the container features the official "Tropicale" logo: a small green palm tree icon to the left, followed by the word "Tropicale" in a stylized font with an orange-to-yellow gradient. Below it, the words "Gelats Artesanals" are written in an elegant, thin cursive script. In the base, the text "Sabadell" is clearly visible in clean, dark sans-serif letters. `;
+        
+        const style = ". High-end commercial style, vibrant colors. Lighting: Bright commercial softbox lighting with realistic reflections. Style: Hyper-realistic, 8k resolution. Background: Solid isolated pure white background. No extra text, no watermarks.";
+
+        if(cat === 'cono') {
+            const tipo = document.getElementById('tipo-cono').value;
+            const b = document.getElementById('bolas-cono').value;
+            const s1 = document.getElementById('cono-sabor1').value;
+            const s2 = document.getElementById('cono-sabor2').value;
+            
+            let dipLogic = tipo.includes("fully dipped") ? "The chocolate coating is thick and covers the entire waffle down to the paper label. " : "";
+            let sizeDesc = b == 1 ? "one massive, oversized spherical scoop" : "two massive, oversized spherical scoops stacked vertically";
+            
+            p += `gelato in a ${tipo}. ${dipLogic}${logoDescription} Composition: ${sizeDesc} (flavors: ${s1}${s2 ? ' and '+s2 : ''}). The gelato is much wider than the cone, looking generous. The base is wrapped in a red and white striped paper label.`;
+            
+        } else if(cat === 'tarrina') {
+            const tipo = document.getElementById('tipo-tarrina').value;
+            const sel = document.getElementById('tipo-tarrina');
+            const bCount = sel.options[sel.selectedIndex].getAttribute('data-bolas');
+            const s1 = document.getElementById('tarrina-sabor1').value;
+            const s2 = document.getElementById('tarrina-sabor2').value;
+            const s3 = document.getElementById('tarrina-sabor3').value;
+            
+            p += `gelato in a ${tipo}. ${logoDescription} Composition: ${bCount} huge overflowing scoops of ${s1}${s2 ? ', '+s2 : ''}${s3 ? ' and '+s3 : ''} arranged beautifully. The gelato protrudes high above the cup rim.`;
+        }
+
+        document.getElementById('output-prompt').value = p + style;
+    }
+
+    async function copiarPrompt() {
+        const text = document.getElementById('output-prompt').value;
+        const btn = document.getElementById('btn-copy');
+        if(!text) return;
+        try {
+            await navigator.clipboard.writeText(text);
+            btn.innerText = "¡Copiado!";
+            btn.classList.add('copied');
+            setTimeout(() => { btn.innerText = "📋 Copiar Prompt"; btn.classList.remove('copied'); }, 2000);
+        } catch (err) { alert("Error al copiar."); }
+    }
+</script>
+</body>
+</html>

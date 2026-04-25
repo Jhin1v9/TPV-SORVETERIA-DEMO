@@ -214,7 +214,7 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
             <img
               src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
               alt="Tropicale"
-              className="h-5 w-auto max-w-[80px] object-contain opacity-50"
+              className="h-6 w-auto max-w-[80px] object-contain opacity-50"
             />
           </div>
         </div>

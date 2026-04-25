@@ -235,3 +235,41 @@ const { user } = useStore();
 - toda decisao relevante do bug detector fica rastreavel nos dois lugares
 **Quando usar:** Sempre que houver mudanca relevante no bug detector, demo, visual, fluxo ou integracoes.
 **Quando NAO usar:** Ajustes descartaveis sem impacto no comportamento, sem valor de historico ou sem reflexo na versao final.
+
+## P10: Manager-Worker Subagent Pattern
+**Contexto:** Uma tarefa grande precisa de pesquisa, mapeamento tecnico, implementacao e verificacao sem colapsar tudo numa thread so.
+**Solucao:**
+```text
+1. O agente principal mantem o contexto do usuario
+2. Subagentes recebem ownership fechado
+3. O padrao default e manager-worker
+4. A sintese final sempre volta ao agente principal
+```
+**Quando usar:** Pesquisa ampla, auditoria pesada, verificacao paralela, trabalho sidecar.
+**Quando NAO usar:** Bug linear, edicao pequena, mesma trilha e mesmo arquivo sem ganho real.
+
+## P11: MAMIS/1 Protocol Pattern
+**Contexto:** Subagentes precisam se comunicar com maxima densidade informacional e minimo ruido.
+**Solucao:**
+```text
+MAMIS/1
+ROLE
+GOAL
+SCOPE
+INPUTS
+OUTPUT
+DONE
+RISK
+```
+Resposta padrao:
+```text
+MAMIS/1
+STATUS
+SUMMARY
+EVIDENCE
+FILES
+RISKS
+NEXT
+```
+**Quando usar:** Toda interacao IA -> IA dentro do sistema de subagentes.
+**Quando NAO usar:** Conversa final com humano.

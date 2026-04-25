@@ -24,7 +24,18 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui"
+    "test:ui": "vitest --ui",
+    "agent:fabric": "node scripts/subagent-fabric.mjs",
+    "agent:mission": "node scripts/subagent-mission.mjs",
+    "agent:learn": "node scripts/subagent-learn.mjs",
+    "brain:sync:principal": "node scripts/sync-principal-brain.mjs",
+    "brain:sync:watch": "node scripts/watch-principal-brain-sync.mjs",
+    "brain:dashboard": "node scripts/principal-brain-dashboard.mjs",
+    "brain:snapshot": "node scripts/principal-brain-snapshot.mjs",
+    "brain:rollback": "node scripts/principal-brain-rollback.mjs",
+    "brain:watch:install": "powershell -ExecutionPolicy Bypass -File scripts/install-brain-sync-watch.ps1",
+    "brain:watch:uninstall": "powershell -ExecutionPolicy Bypass -File scripts/uninstall-brain-sync-watch.ps1",
+    "repo:sync": "node scripts/project-repo-sync.mjs"
   },
   "dependencies": {
     "@auris/bug-detector": "file:auris-bug-detector.tgz",

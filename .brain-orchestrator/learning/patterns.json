@@ -1,0 +1,84 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-04-08",
+  "description": "Padrões de código positivos descobertos no desenvolvimento do Auris OS",
+  "patterns": [
+    {
+      "id": "PAT-001",
+      "title": "Zustand Date Serialization",
+      "personalidade": "ARQUITETO",
+      "categoria": "state-management",
+      "impacto": "high",
+      "contexto": ["zustand", "dates", "serialization"],
+      "problema": "Dates não podem ser serializados pelo Zustand persist",
+      "solucao": "Converter Date → ISO string antes de salvar, reconstruir ao ler",
+      "codigo": {
+        "antes": "// ❌ NÃO - Date direto no store\nconst useStore = create(() => ({\n  data: new Date() // Vai quebrar!\n}))",
+        "depois": "// ✅ SIM - ISO string\nconst useStore = create(() => ({\n  data: new Date().toISOString()\n}))\n// Reconstruir: new Date(store.data)"
+      },
+      "referencias": ["src/stores/useAgendaStore.ts"],
+      "criadoEm": "2026-04-08"
+    },
+    {
+      "id": "PAT-002",
+      "title": "useDebounce Hook",
+      "personalidade": "REACT_SPECIALIST",
+      "categoria": "custom-hook",
+      "impacto": "medium",
+      "contexto": ["search", "input", "performance"],
+      "problema": "Busca em tempo real causa muitas requisições",
+      "solucao": "Hook genérico useDebounce para delays controlados",
+      "codigo": {
+        "implementacao": "export function useDebounce<T>(value: T, delay: number): T {\n  const [debouncedValue, setDebouncedValue] = useState(value);\n  useEffect(() => {\n    const handler = setTimeout(() => setDebouncedValue(value), delay);\n    return () => clearTimeout(handler);\n  }, [value, delay]);\n  return debouncedValue;\n}"
+      },
+      "referencias": ["src/hooks/useDebounce.ts", "src/pages/PacientesPage.tsx"],
+      "criadoEm": "2026-04-08"
+    },
+    {
+      "id": "PAT-003",
+      "title": "Card Component Composition",
+      "personalidade": "UIUX_ENGINEER",
+      "categoria": "component-pattern",
+      "impacto": "high",
+      "contexto": ["cards", "composition", "design-system"],
+      "problema": "Cards duplicados com variações menores",
+      "solucao": "CardBase com composition pattern + variants específicas",
+      "codigo": {
+        "estrutura": "// CardBase flexível\nexport interface CardBaseProps {\n  title: string;\n  icon?: LucideIcon;\n  color: 'sage' | 'indigo' | 'amber';\n  children: React.ReactNode;\n  actions?: CardAction[];\n}\n// Cards específicos usam CardBase\nexport const CardPaciente = (props) => <CardBase {...baseProps} />"
+      },
+      "referencias": ["src/components/aura/cards/CardBase.tsx"],
+      "criadoEm": "2026-04-08"
+    },
+    {
+      "id": "PAT-004",
+      "title": "Aura JSON Parser Robust",
+      "personalidade": "TYPESCRIPT_MASTER",
+      "categoria": "parser",
+      "impacto": "high",
+      "contexto": ["json", "ai", "error-handling"],
+      "problema": "JSON da Aura pode vir truncado ou malformado",
+      "solucao": "Parser com múltiplas estratégias de recovery",
+      "codigo": {
+        "logica": "export function parseAuraResponse(text: string): AuraResponse {\n  // Tentar JSON completo\n  // Tentar extrair de markdown\n  // Tentar corrigir truncamento\n  // Fallback para texto puro\n}"
+      },
+      "referencias": ["src/lib/auraResponse.ts"],
+      "criadoEm": "2026-04-08"
+    },
+    {
+      "id": "PAT-005",
+      "title": "Zustand Selector Optimization",
+      "personalidade": "PERFORMANCE",
+      "categoria": "performance",
+      "impacto": "high",
+      "contexto": ["zustand", "selectors", "re-renders"],
+      "problema": "Componentes re-renderizam quando qualquer parte do store muda",
+      "solucao": "Usar seletores específicos e shallow comparison",
+      "codigo": {
+        "antes": "// ❌ Re-render em qualquer mudança\nconst { pacientes, loading } = usePacientesStore();",
+        "depois": "// ✅ Só renderiza quando pacientes muda\nconst pacientes = usePacientesStore(useShallow(s => s.pacientes));\nconst loading = usePacientesStore(s => s.loading);"
+      },
+      "referencias": ["src/stores/usePacientesStore.ts"],
+      "criadoEm": "2026-04-08"
+    }
+  ]
+}
