@@ -3,7 +3,7 @@ import { motion, AnimatePresence, useMotionValue } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import type { Locale } from '@tpv/shared/types';
 import { LogIn } from 'lucide-react';
-import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
+const KIOSK_LOGO_SRC = '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png';
 
 interface HolaScreenProps {
   onSelectLang: () => void;
@@ -104,21 +104,14 @@ export default function HolaScreen({ onSelectLang, onLogin }: HolaScreenProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.2 }}
-          className="mt-12 mb-4"
+          className="mt-12 mb-6"
         >
-          <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center shadow-2xl shadow-[#2D8A4E]/30">
-            <TropicaleLogo size={52} className="text-white" />
-          </div>
+          <img
+            src={KIOSK_LOGO_SRC}
+            alt="Tropicale"
+            className="h-24 w-auto max-w-[200px] object-contain drop-shadow-2xl"
+          />
         </motion.div>
-
-        <motion.h1
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="font-display text-4xl font-bold text-white text-center mb-1"
-        >
-          Tropicale
-        </motion.h1>
 
         <motion.p
           initial={{ y: 10, opacity: 0 }}

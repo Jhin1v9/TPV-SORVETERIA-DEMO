@@ -89,15 +89,13 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-white/20">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center flex-shrink-0">
-            <svg viewBox="0 0 32 32" className="w-6 h-6" fill="none">
-              <circle cx="16" cy="10" r="8" fill="#FF6B9D" opacity="0.9" />
-              <path d="M8 14 Q16 36 24 14" fill="#D2691E" />
-            </svg>
-          </div>
+          <img
+            src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+            alt="Tropicale"
+            className="w-10 h-10 rounded-xl object-contain bg-white flex-shrink-0"
+          />
           {!sidebarCollapsed && (
             <div className="overflow-hidden">
-              <h1 className="font-display text-lg font-bold text-white whitespace-nowrap">Tropicale</h1>
               <p className="text-white/60 text-xs whitespace-nowrap">Admin</p>
             </div>
           )}

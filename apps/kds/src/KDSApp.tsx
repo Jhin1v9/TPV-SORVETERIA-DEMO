@@ -211,7 +211,11 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
           </button>
           <div>
             <h1 className="font-display text-xl font-bold text-white">{t('cocinaDesc', locale).split(' ').slice(0, 2).join(' ')}</h1>
-            <p className="text-white/40 text-xs">Tropicale</p>
+            <img
+              src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+              alt="Tropicale"
+              className="h-5 w-auto max-w-[80px] object-contain opacity-50"
+            />
           </div>
         </div>
 

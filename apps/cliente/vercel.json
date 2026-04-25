@@ -3,6 +3,9 @@
   "buildCommand": "cd ../.. && npm run build:cliente",
   "outputDirectory": "dist/cliente",
   "framework": "vite",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
   "env": {
     "VITE_SUPABASE_URL": "https://dproxlygtabihfhtxdvm.supabase.co",
     "VITE_SUPABASE_ANON_KEY": "sb_publishable_k8YlmjNQ-f5NmnEjR5oLuQ_XWEbyJkJ",

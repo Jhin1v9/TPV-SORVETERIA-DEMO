@@ -64,7 +64,11 @@ export default function CodigoAppScreen({ onBack, onVinculado }: CodigoAppScreen
           <ArrowLeft size={20} />
           <span className="text-lg font-medium">Atrás</span>
         </motion.button>
-        <span className="font-display font-bold text-white text-xl">App Tropicale</span>
+        <img
+          src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+          alt="Tropicale"
+          className="h-9 w-auto max-w-[140px] object-contain"
+        />
         <div className="w-24" />
       </div>
 

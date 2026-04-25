@@ -542,3 +542,58 @@ BUG-007 (Logout)
   - referencia de implementacao: `apps/cliente/src/ClienteApp.tsx`.
 - Observacao de consolidacao:
   - como a reclamacao original era visual, ainda e bom fazer uma ultima checagem humana no device; mas a implementacao atual ja substitui a condicao antiga por uma estrutura muito mais coerente com a marca.
+
+
+---
+
+## Sessao 2026-04-23 — Substituicao de Logo Generica pela Logo REAL do Usuario
+
+### Contexto Inicial (estado do codigo escrito pelo codex)
+O codex anterior deixou o projeto com multiplos componentes e telas usando uma **logo generica** composta de:
+- Componente `TropicaleLogo` (`packages/shared/src/components/TropicaleLogo.tsx`) — SVG generico de sorvete
+- Texto "Tropicale" em fonte display em praticamente todas as telas
+- Emojis de sorvete (🍦) como avatar de marca em headers
+
+**Locais afetados:**
+| App | Arquivo | Tipo de logo generica |
+|-----|---------|----------------------|
+| Cliente | `WelcomeScreen.tsx` | `TropicaleLogo` SVG + texto "Heladeria Tropicale" |
+| Cliente | `ClienteApp.tsx` | Ja usava a logo real (correcao anterior) |
+| Kiosk | `HolaScreen.tsx` | `TropicaleLogo` SVG + texto "Tropicale" |
+| Kiosk | `AttractScreen.tsx` | Emoji 🍦 + texto "Tropicale" |
+| Kiosk | `CardapioScreen.tsx` | Emoji 🍦 + texto "Tropicale" |
+| Kiosk | `LoginKioskScreen.tsx` | Texto "App Tropicale" |
+| Kiosk | `CodigoAppScreen.tsx` | Texto "App Tropicale" |
+| Admin | `AdminApp.tsx` | SVG generico de sorvete + texto "Tropicale" |
+| Admin | `LoginScreen.tsx` | SVG generico de sorvete + texto "Tropicale" |
+| KDS | `KDSApp.tsx` | Texto "Tropicale" no footer |
+
+### O que foi feito
+Substituida a logo generica pela **imagem real do usuario** (`public/assets/logo/ChatGPT Image 25 abr 2026, 08_46_42.png`) em TODAS as telas, seguindo o processo do `.brain/ORQUESTRADOR.md`:
+- **Personalidade primaria:** UI/UX ENGINEER — alt text, responsividade, acessibilidade
+- **Personalidade secundaria:** CSS/TAILWIND EXPERT — mobile-first, object-contain, tamanhos proporcionais
+
+**Mudancas aplicadas:**
+1. `WelcomeScreen.tsx` — `<TropicaleLogo>` + circulo verde removidos; `<img>` com logo real (h-28, max-w-[220px])
+2. `HolaScreen.tsx` — `<TropicaleLogo>` + circulo verde removidos; `<img>` com logo real (h-24, max-w-[200px])
+3. `AttractScreen.tsx` — Emoji + texto "Tropicale" removidos; `<img>` com logo real (h-14, max-w-[180px])
+4. `CardapioScreen.tsx` — Emoji + texto "Tropicale" removidos; `<img>` com logo real (h-10, max-w-[140px])
+5. `LoginKioskScreen.tsx` — Texto "App Tropicale" removido; `<img>` com logo real (h-10, max-w-[160px])
+6. `CodigoAppScreen.tsx` — Texto "App Tropicale" removido; `<img>` com logo real (h-9, max-w-[140px])
+7. `AdminApp.tsx` — SVG generico + texto "Tropicale" removidos; `<img>` com logo real (w-10 h-10, bg-white)
+8. `LoginScreen.tsx` — SVG generico + texto "Tropicale" removidos; `<img>` com logo real (w-16 h-16)
+9. `KDSApp.tsx` — Texto "Tropicale" removido; `<img>` com logo real (h-5, max-w-[80px], opacity-50)
+
+**Importante:** Labels de origem de pedido (TPV/PWA) no KDS foram PRESERVADOS. Nao foram substituidos pela logo.
+
+### Validacao
+- Build `cliente`: ✅ (2209 modulos, 40.12s)
+- Build `kiosk`: ✅ (2183 modulos, 37.88s)
+- Build `admin`: ✅ (2797 modulos, 46.83s)
+- Build `kds`: ✅ (2173 modulos, 38.61s)
+
+### Status de Deploy
+**NAO REALIZADO.** Aguardando permissao explicita do usuario para commit e push, conforme regra do `.brain` — "nao faz coisas que quebram tudo sozinho, sempre pergunta antes de push/deploy".
+
+### Pendencia
+- Timer: usuario mencionou "quando der 60 secs transformar em 1 min". Os unicos timers com segundos sao o KDS (MM:SS, funcional para cozinha) e o countdown do codigo do totem (MM:SS). Necessario confirmar se deseja alterar esses formatos antes de aplicar.

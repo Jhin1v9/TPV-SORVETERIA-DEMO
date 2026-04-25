@@ -36,6 +36,7 @@ jobs:
         run: |
           mkdir -p dist/cliente/.vercel
           cp apps/cliente/.vercel/project.json dist/cliente/.vercel/project.json
+          cp apps/cliente/vercel.json dist/cliente/vercel.json
           cd dist/cliente
           vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -43,6 +44,7 @@ jobs:
         run: |
           mkdir -p dist/kiosk/.vercel
           cp apps/kiosk/.vercel/project.json dist/kiosk/.vercel/project.json
+          cp apps/kiosk/vercel.json dist/kiosk/vercel.json
           cd dist/kiosk
           vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -50,6 +52,7 @@ jobs:
         run: |
           mkdir -p dist/admin/.vercel
           cp apps/admin/.vercel/project.json dist/admin/.vercel/project.json
+          cp apps/admin/vercel.json dist/admin/vercel.json
           cd dist/admin
           vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
 
@@ -57,5 +60,6 @@ jobs:
         run: |
           mkdir -p dist/kds/.vercel
           cp apps/kds/.vercel/project.json dist/kds/.vercel/project.json
+          cp apps/kds/vercel.json dist/kds/vercel.json
           cd dist/kds
           vercel --prod --yes --token=${{ secrets.VERCEL_TOKEN }}

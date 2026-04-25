@@ -26,13 +26,11 @@ export default function LoginScreen() {
       >
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-[#FF6B9D] to-[#FFA07A] rounded-2xl flex items-center justify-center">
-            <svg viewBox="0 0 32 32" className="w-8 h-8" fill="none">
-              <circle cx="16" cy="10" r="8" fill="white" opacity="0.9" />
-              <path d="M8 14 Q16 36 24 14" fill="#D2691E" />
-            </svg>
-          </div>
-          <h1 className="font-display text-2xl font-bold text-gray-800">Tropicale</h1>
+          <img
+            src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+            alt="Tropicale"
+            className="w-16 h-16 mx-auto mb-4 rounded-2xl object-contain"
+          />
           <p className="text-gray-400 text-sm mt-1">{t('loginTitle', locale)}</p>
         </div>
 

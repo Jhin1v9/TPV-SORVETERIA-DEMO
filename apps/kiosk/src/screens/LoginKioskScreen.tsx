@@ -74,7 +74,11 @@ export default function LoginKioskScreen({ onLogin, onSkip }: LoginKioskScreenPr
 
       {/* Header */}
       <div className="relative z-10 flex items-center justify-center px-6 py-5">
-        <span className="font-display font-bold text-white text-2xl">App Tropicale</span>
+        <img
+          src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+          alt="Tropicale"
+          className="h-10 w-auto max-w-[160px] object-contain"
+        />
       </div>
 
       <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 gap-6">

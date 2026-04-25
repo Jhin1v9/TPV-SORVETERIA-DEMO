@@ -66,11 +66,12 @@ export default function CardapioScreen({
           <span className="text-lg font-medium">Atrás</span>
         </motion.button>
 
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B9D] to-[#FFA07A] flex items-center justify-center">
-            <span className="text-white text-lg">🍦</span>
-          </div>
-          <span className="font-display font-bold text-white text-xl">Tropicale</span>
+        <div className="flex items-center">
+          <img
+            src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+            alt="Tropicale"
+            className="h-10 w-auto max-w-[140px] object-contain"
+          />
         </div>
 
         <motion.button

@@ -9,3 +9,24 @@ e2e-report/
 test-results/
 
 .vercel
+
+# === KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS ===
+# Artefatos temporarios de analise e screenshots
+artifacts/
+*.png
+!public/assets/**/*.png
+!public/**/*.png
+e2e-*.png
+fluxo-*.png
+analise-*.png
+supabase-db-settings.png
+
+# Scripts temporarios de captura e teste
+scripts/capture-*.mjs
+scripts/supreme-flow-analysis.mjs
+scripts/verify-push-live.mjs
+scripts/test-bug-detector-regression.mjs
+tmp-*.cjs
+
+# Relatorios de analise gerados automaticamente
+ANALISE_COMPORTAMENTAL_*.md

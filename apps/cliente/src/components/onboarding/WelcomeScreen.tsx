@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Sparkles } from 'lucide-react';
-import TropicaleLogo from '@tpv/shared/components/TropicaleLogo';
+const CLIENTE_LOGO_SRC = '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -56,21 +56,22 @@ export default function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-          className="w-24 h-24 rounded-3xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center mb-8 shadow-2xl shadow-[#2D8A4E]/30"
+          className="mb-8"
         >
-          <TropicaleLogo size={52} className="text-white" />
+          <img
+            src={CLIENTE_LOGO_SRC}
+            alt="Tropicale"
+            className="h-28 w-auto max-w-[220px] object-contain drop-shadow-2xl"
+          />
         </motion.div>
 
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="text-4xl font-bold text-white mb-3 tracking-tight"
+          className="text-2xl font-bold text-white mb-3 tracking-tight"
         >
-          Heladería{' '}
-          <span className="bg-gradient-to-r from-[#4CAF50] to-[#FF8C42] bg-clip-text text-transparent">
-            Tropicale
-          </span>
+          Heladería Artesanal
         </motion.h1>
 
         <motion.p

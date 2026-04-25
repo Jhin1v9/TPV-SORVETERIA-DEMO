@@ -90,14 +90,11 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
           transition={{ delay: 0.3 }}
           className="absolute top-8 left-1/2 -translate-x-1/2"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D8A4E] to-[#4CAF50] flex items-center justify-center shadow-lg">
-              <span className="text-2xl">🍦</span>
-            </div>
-            <span className="font-display text-3xl font-bold text-white drop-shadow-lg">
-              Tropicale
-            </span>
-          </div>
+          <img
+            src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
+            alt="Tropicale"
+            className="h-14 w-auto max-w-[180px] object-contain drop-shadow-lg"
+          />
         </motion.div>
 
         {/* Slide indicators */}
