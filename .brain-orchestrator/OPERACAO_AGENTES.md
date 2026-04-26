@@ -68,6 +68,11 @@ Baseado nas melhores praticas descritas em:
 - O principal nunca terceiriza a conclusao final sem revisar.
 - O principal converte resultados heterogeneos em estado unico e coerente.
 
+8. Paralelismo maximo seguro por default
+- Quando houver ganho real, CODEX ou KIMI devem preferir o maior fan-out seguro permitido pela politica.
+- "Maximo" nunca significa colisao de ownership.
+- O teto real vem de `SUBAGENT_REGISTRY.json`.
+
 ## Quando criar subagentes
 
 Criar subagentes quando pelo menos um destes gatilhos existir:
@@ -89,12 +94,57 @@ Criar subagentes quando pelo menos um destes gatilhos existir:
 - outro le codigo
 - outro consolida riscos
 
+6. Recursive delegation justified
+- um scout encontra outra fronteira independente
+- um sintetizador detecta clusters grandes demais
+- um reviewer pede reproducoes paralelas por risco
+
 ## Quando NAO criar subagentes
 
 1. Bug pequeno, localizado e linear
 2. Refactor em um unico arquivo sem paralelismo real
 3. Tarefa fortemente acoplada e dependente de contexto fino
 4. Quando o custo de coordenacao sera maior que o ganho
+
+## Escalonamento adaptativo
+
+O sistema agora suporta tres estrategias:
+
+1. `conservative`
+- poucos agentes
+- custo baixo de coordenacao
+
+2. `balanced`
+- paralelismo medio
+- bom para quase todas as tarefas complexas
+
+3. `aggressive-safe`
+- preferida por default
+- cria o maximo de agentes que couber sem conflitar ownership
+- ideal para CODEX/KIMI quando o objetivo e reduzir incerteza rapido
+
+### Regra vigente
+
+Se o principal nao especificar estrategia, usar `aggressive-safe`.
+
+## Recursao controlada
+
+Subagentes podem criar subagentes quando:
+
+1. a politica de recursao permitir
+2. a profundidade maxima nao foi atingida
+3. a nova fronteira e realmente independente
+4. o ownership continua claro
+
+### Limites
+
+- profundidade maxima: ver `SUBAGENT_REGISTRY.json`
+- filhos maximos por agente: ver `SUBAGENT_REGISTRY.json`
+- roles que podem delegar: ver `SUBAGENT_REGISTRY.json`
+
+### Regra
+
+Delegacao recursiva e permitida para ampliar cobertura, nunca para ocultar indecisao.
 
 ## Arquitetura padrao
 
@@ -277,6 +327,7 @@ O agente principal deve sempre:
 2. comparar resultados entre subagentes
 3. consolidar em estado vigente unico
 4. atualizar o brain se a decisao ou padrao for relevante
+5. registrar aprendizado agregado do swarm quando houver missao complexa
 
 ## Heuristica recomendada
 
@@ -300,6 +351,25 @@ O agente principal deve sempre:
 - N scouts paralelos por dominio
 - 1 reviewer
 - 1 synthesizer
+
+### Para swarm adaptativo
+
+- 1 principal (`CODEX` ou `KIMI`)
+- web scouts shardados por tema
+- code scouts shardados por modulo
+- surgeons shardados por ownership de arquivo
+- verifiers paralelos por superficie de risco
+- synthesizer final
+
+## Aprendizado do swarm
+
+Toda missao grande deve produzir:
+
+1. artefato de time
+2. artefato de missao
+3. nota de aprendizado agregada
+4. atualizacao de contexto no `.brain`
+5. sync para o brain principal
 
 ## Regra permanente
 

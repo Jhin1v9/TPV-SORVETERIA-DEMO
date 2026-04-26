@@ -329,3 +329,14 @@ Nova camada operacional adicionada:
 - O agente principal pode ser CODEX ou KIMI.
 - A comunicacao entre agentes deve seguir `MAMIS/1`.
 - A geracao automatica de times passa por `npm run agent:fabric -- --goal "<objetivo>"`.
+
+---
+
+## Atualizacao 2026-04-26 - Consenso entre agentes principais
+
+Quando a tarefa vier em continuidade entre CODEX e KIMI:
+
+1. consultar `CODEX_KIMI_CONSENSUS_PROTOCOL.md`
+2. preservar `STATUS VIGENTE`
+3. registrar autoria e consolidacao
+4. preferir a ultima evidencia confiavel e mais recente

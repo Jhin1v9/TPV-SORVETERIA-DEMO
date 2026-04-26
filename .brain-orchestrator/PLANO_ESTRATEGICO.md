@@ -1,6 +1,6 @@
-# 🎯 PLANO ESTRATÉGICO - Sistema de Melhorias Contínuas
+# 🎯 PLANO ESTRATÉGICO — TPV Sorveteria Demo
 
-> **Documento mestre para evolução constante do Auris OS**
+> **Documento mestre para evolução constante do brain e do projeto**
 
 ---
 
@@ -33,234 +33,109 @@
 ## 📚 MÓDULOS DO PLANO
 
 ### Módulo 1: Personalidades Completas 🧠
-**Status:** ⏳ Em Progresso (3/8 criadas)
+**Status:** ✅ Completo (8/8)
 
-| # | Personalidade | Status | Prioridade |
-|---|---------------|--------|------------|
-| 01 | ARQUITETO | ✅ Pronto | 🔥 Alta |
-| 02 | UI/UX ENGINEER | ✅ Pronto | 🔥 Alta |
-| 03 | PERFORMANCE ENGINEER | 📝 Criar | 🔥 Alta |
-| 04 | TYPESCRIPT MASTER | ✅ Pronto | 🔥 Alta |
-| 05 | REACT SPECIALIST | 📝 Criar | 🔥 Alta |
-| 06 | CSS/TAILWIND EXPERT | 📝 Criar | 🔥 Alta |
-| 07 | TESTING ENGINEER | 📝 Criar | 🟡 Média |
-| 08 | DX ENGINEER | 📝 Criar | 🟡 Média |
+| # | Personalidade | Status | Local |
+|---|---------------|--------|-------|
+| 01 | ARQUITETO | ✅ | `.brain/personalities/01-ARQUITETO.md` |
+| 02 | UI/UX ENGINEER | ✅ | `.brain/personalities/02-UIUX-ENGINEER.md` |
+| 03 | PERFORMANCE ENGINEER | ✅ | `.brain/personalities/03-PERFORMANCE-ENGINEER.md` |
+| 04 | TYPESCRIPT MASTER | ✅ | `.brain/personalities/04-TYPESCRIPT-MASTER.md` |
+| 05 | REACT SPECIALIST | ✅ | `.brain/personalities/05-REACT-SPECIALIST.md` |
+| 06 | CSS/TAILWIND EXPERT | ✅ | `.brain/personalities/06-CSS-TAILWIND-EXPERT.md` |
+| 07 | TESTING ENGINEER | ✅ | `.brain/personalities/07-TESTING-ENGINEER.md` |
+| 08 | DX ENGINEER | ✅ | `.brain/personalities/08-DX-ENGINEER.md` |
+
+---
 
 ### Módulo 2: Brain Learning System (BLS) 🎓
-**Status:** 📝 A Criar
+**Status:** ✅ Implementado
 
-Sistema que captura padrões de código e atualiza automaticamente as personalidades.
-
-### Módulo 3: Navegador Embutido 🌐
-**Status:** 📝 A Criar
-
-Componente de browser integrado para terapeutas acessarem conteúdo sem sair do sistema.
-
-### Módulo 4: Prompt Engineering Avançado ✨
-**Status:** 📝 A Criar
-
-Templates e padrões de prompts otimizados para cada personalidade.
-
----
-
-## 🔄 SISTEMA DE APRENDIZADO AUTOMÁTICO
-
-### Como Funciona
-
+Estrutura:
 ```
-┌──────────────────────────────────────────────────────────────┐
-│                    BRAIN LEARNING SYSTEM                     │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│  1. DETECÇÃO                                                │
-│     ├── Novo padrão identificado no código                  │
-│     ├── Solução elegante aplicada                           │
-│     └── Edge case tratado                                   │
-│                                                              │
-│  2. CLASSIFICAÇÃO                                           │
-│     ├── Qual personalidade? (ARQUITETO, REACT, etc)         │
-│     ├── Qual categoria? (Pattern, Anti-pattern, Regra)      │
-│     └── Qual impacto? (Crítico, Alto, Médio, Baixo)         │
-│                                                              │
-│  3. REGISTRO                                                │
-│     ├── Adicionar à personalidade                           │
-│     ├── Atualizar exemplos de código                        │
-│     └── Versionar mudança                                   │
-│                                                              │
-│  4. PROPAGAÇÃO                                              │
-│     ├── Notificar outras personalidades afetadas            │
-│     ├── Atualizar templates                                 │
-│     └── Sincronizar com AGENT_MEMORY.md                     │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘
-```
-
-### Estrutura de Aprendizado
-
-```typescript
-// .brain/learning/patterns.json
-{
-  "patterns": [
-    {
-      "id": "pattern-001",
-      "personalidade": "REACT_SPECIALIST",
-      "categoria": "hook-pattern",
-      "titulo": "useAsyncData - Fetch com Estados",
-      "descricao": "Padrão para data fetching com loading/error states",
-      "codigo": "const useAsyncData = <T>(fetcher: () => Promise<T>) => { ... }",
-      "contexto": ["data-fetching", "api-calls"],
-      "antiPatterns": ["fetch-direto-no-useEffect"],
-      "criadoEm": "2026-04-08",
-      "usadoEm": ["PacientesPage", "AgendaView"],
-      "impacto": "high"
-    }
-  ]
-}
+.brain/learning/
+├── README.md              # Documentação do sistema
+├── patterns.json          # 6 padrões (4 promovidos a regra)
+├── anti-patterns.json     # 6 anti-patterns
+├── index.json             # Índice pesquisável
+├── outcomes/positive/     # 6 learning outcomes positivos
+├── outcomes/negative/     # 2 learning outcomes negativos
+└── subagents/             # Aprendizados de missões
 ```
 
 ---
 
-## 🎨 NAVEGADOR EMBUTIDO (Browser Component)
+### Módulo 3: Principal Brain Operations 🧠
+**Status:** ✅ Operacional
 
-### Visão Geral
-
-Componente React que permite terapeutas navegarem na web sem sair do Auris OS.
-
-**Casos de Uso:**
-- 🔍 Pesquisar artigos sobre auriculoterapia
-- 📺 Assistir aulas no YouTube
-- 📚 Acessar cursos online
-- 📄 Ler documentação médica
-- 🔗 Abrir links recebidos de pacientes
-
-### Arquitetura (Fase 1: Funcional)
-
-```
-src/components/browser/
-├── BrowserFrame.tsx          # Container principal
-├── BrowserToolbar.tsx        # URL bar, navegação, controles
-├── BrowserViewport.tsx       # Área de renderização
-├── BrowserTabs.tsx           # Gerenciamento de abas
-├── hooks/
-│   ├── useBrowserHistory.ts  # Histórico de navegação
-│   ├── useBrowserTabs.ts     # Gestão de múltiplas abas
-│   └── useBrowserSecurity.ts # Validações de segurança
-├── types/
-│   └── browser.types.ts      # Interfaces TypeScript
-└── utils/
-    ├── urlValidator.ts       # Validar URLs permitidas
-    └── bookmarks.ts          # Favoritos do terapeuta
-```
-
-### Features Fase 1 (Básico Funcional)
-- [ ] Barra de URL com navegação
-- [ ] Botões voltar/avançar/atualizar
-- [ ] Renderização de sites via iframe (sandboxed)
-- [ ] Múltiplas abas
-- [ ] Validação de URLs (whitelist/blacklist)
-- [ ] Histórico local
-
-### Features Fase 2 (Estética + UX)
-- [ ] Design moderno (similar Chrome/Safari)
-- [ ] Animações suaves
-- [ ] Tema escuro/claro
-- [ ] Atalhos de favoritos
-- [ ] Busca integrada
-
-### Features Fase 3 (Avançado)
-- [ ] Leitor de PDF embutido
-- [ ] Modo "foco" (remover distrações)
-- [ ] Integração com Aura AI (resumir páginas)
-- [ ] Anotações em páginas
+| Componente | Status |
+|------------|--------|
+| Sync automático | ✅ `npm run brain:sync:principal` |
+| Watcher residente | ✅ PID ativo, Windows ScheduledTask |
+| Dashboard global | ✅ Decision cockpit (Camada 1) |
+| Snapshots | ✅ 6 restore points |
+| Rollback lógico | ✅ Testado e validado |
+| Score auditável | ✅ `brain-score-v1` |
 
 ---
 
-## 📝 PROMPT ENGINEERING AVANÇADO
+### Módulo 4: Subagent Swarm System 🤖
+**Status:** 🟡 Strong direction, partial implementation
 
-### Template Base por Personalidade
+| Componente | Status |
+|------------|--------|
+| SUBAGENT_REGISTRY.json | ✅ |
+| OPERACAO_AGENTES.md | ✅ |
+| MAMIS/1 protocol | ✅ |
+| subagent-fabric.mjs | ✅ Gera contratos |
+| subagent-mission.mjs | ✅ Gera planos |
+| subagent-swarm.mjs | ✅ Gera swarms |
+| subagent-learn.mjs | 🟡 Requer artifact dir |
+| subagent-policy.mjs | 🟡 Não integrado nos geradores |
+| Execução real de subagentes | 🔴 Não implementado |
 
-```markdown
-### 🎭 ATIVAR: [NOME_PERSONALIDADE]
-
-**Contexto da Tarefa:**
-[Tipo: Nova Feature | Refatoração | Bugfix | Otimização]
-[Escopo: Componente | Hook | Página | Store | API]
-[Complexidade: Simples | Média | Complexa]
-
-**Requisitos:**
-1. [Requisito 1]
-2. [Requisito 2]
-3. [Requisito 3]
-
-**Restrições:**
-- [Restrição técnica]
-- [Restrição de tempo]
-- [Restrição de dependências]
-
-**Contexto Adicional:**
-[Links para arquivos relacionados]
-[Decisões arquiteturais anteriores]
-[Considerações especiais]
-
----
-[PERSONALIDADE PROCESSA E RESPONDE COM DIRETRIZES ESPECÍFICAS]
-```
-
-### Sistema de Chain-of-Thought
-
-```
-Usuário: "Preciso de um formulário de cadastro de paciente"
-
-ORQUESTRADOR analisa:
-├── Tipo: Nova Feature
-├── Escopo: Página + Componentes + Store
-├── Complexidade: Média
-├── Personalidades necessárias:
-│   ├── ARQUITETO (estrutura, validação schema)
-│   ├── UI/UX (formulário acessível)
-│   ├── REACT (hooks, estado)
-│   ├── TYPESCRIPT (tipos complexos)
-│   └── TESTING (testes do formulário)
-└── Ordem de execução:
-    1. ARQUITETO → definir schema e fluxo
-    2. TYPESCRIPT → tipar tudo
-    3. REACT → implementar lógica
-    4. UI/UX → aplicar design system
-    5. TESTING → cobertura de testes
-    6. REVISOR → validação final
-```
+**Hardening:** Congelado até gates passarem. Plano mestre em `.brain/knowledge/agent-swarm-hardening-master-plan.md`.
 
 ---
 
-## 🗓️ CRONOGRAMA DE IMPLEMENTAÇÃO
+### Módulo 5: Dashboard Excellence 📊
+**Status:** 🟡 Camada 1 implementada, Camadas 2-4 pendentes
 
-### Semana 1: Fundação
+| Camada | Status | Descrição |
+|--------|--------|-----------|
+| 1 | ✅ | What needs attention, drivers, confidence, portfolio intelligence |
+| 2 | 📝 | Trend real (janelas 3/7/30, classificação noise/improving/deteriorating/recovering) |
+| 3 | 📝 | Portfolio intelligence avançada (stale-sync thresholds, concentration risk sofisticado) |
+| 4 | 📝 | Agent observability (mission traces, swarm compliance, learning linkage) |
+
+---
+
+## 🗓️ CRONOGRAMA
+
+### Semana 1 (2026-04-21~27): Fundação ✅
 - [x] Criar estrutura base do .brain/
 - [x] Criar ORQUESTRADOR, REVISOR, INDEX
-- [x] Criar personalidades: ARQUITETO, UI/UX, TYPESCRIPT
-- [ ] Criar personalidades: PERFORMANCE, REACT, CSS
+- [x] Criar 8 personalidades
+- [x] Criar BLS mínimo
+- [x] Implementar principal brain sync + dashboard + snapshot + rollback
+- [x] Implementar Camada 1 do decision cockpit
 
-### Semana 2: Completar Personalidades
-- [ ] Criar personalidades: TESTING, DX
-- [ ] Criar Brain Learning System
-- [ ] Documentar padrões iniciais
+### Semana 2 (2026-04-28~05): Hardening
+- [ ] Integrar subagent-policy.mjs nos geradores
+- [ ] Validar lanes mínimas por tipo de missão
+- [ ] Implementar Camada 2 do dashboard (trend real)
+- [ ] Atualizar PLANO_ESTRATEGICO conforme evolução
 
-### Semana 3: Navegador Fase 1
-- [ ] Componente BrowserFrame
-- [ ] Sistema de abas
-- [ ] Navegação básica
-- [ ] Integração com layout Auris
+### Semana 3 (2026-05-05~12): Observabilidade
+- [ ] Criar MISSION_TRACE.json
+- [ ] Criar POLICY_COMPLIANCE.json
+- [ ] Implementar Camada 3 do dashboard (portfolio intelligence)
+- [ ] Implementar Camada 4 do dashboard (agent observability)
 
-### Semana 4: Navegador Fase 2 + Integração
-- [ ] Estética moderna
-- [ ] Favoritos e histórico
-- [ ] Segurança e validações
-- [ ] Testes e documentação
-
-### Semana 5: Prompt Engineering
-- [ ] Templates otimizados
-- [ ] Sistema de feedback contínuo
-- [ ] Métricas de eficácia
+### Semana 4 (2026-05-12~19): Promoção
+- [ ] Validar 5 gates de hardening
+- [ ] Smoke suite para todas as mission archetypes
+- [ ] Promover swarm para "extraordinário" se gates verdes
 
 ---
 
@@ -276,46 +151,24 @@ ORQUESTRADOR analisa:
 - [ ] Menos refatorações pós-implementação
 - [ ] Menos bugs em produção
 
-### Satisfação
-- [ ] Terapeutas conseguem acessar conteúdo sem sair do sistema
-- [ ] Navegador é rápido e confiável
-- [ ] Aura AI consegue ajudar com contexto web
+### Brain Maturity
+- [ ] Score do projeto >= 90 (Elite)
+- [ ] Dashboard com Camada 4 completa
+- [ ] Swarm com 5 gates verdes
+- [ ] BLS auto-populado por missões
 
 ---
 
 ## 🎯 PRÓXIMAS AÇÕES IMEDIATAS
 
-1. **Criar personalidades pendentes**
-   - PERFORMANCE ENGINEER
-   - REACT SPECIALIST
-   - CSS/TAILWIND EXPERT
-
-2. **Iniciar Browser Component**
-   - Estrutura de pastas
-   - Componente base funcional
-   - Integração com App.tsx
-
-3. **Setup do Brain Learning**
-   - Estrutura JSON para padrões
-   - Sistema de registro automático
-   - Integração com REVISOR
+1. **Hardening Phase 1:** Integrar `subagent-policy.mjs` em `subagent-fabric.mjs`
+2. **Dashboard Camada 2:** Implementar trend com janelas e classificação
+3. **BLS Auto-população:** Integrar `subagent-learn.mjs` com artefatos de missão
+4. **Smoke Suite:** Criar testes para mission archetypes
 
 ---
 
-**Documento vivo - Atualizado em:** 08/04/2026  
-**Versão:** 1.0.0  
-**Status:** 🚀 Em Execução
-
----
-
-## Atualizacao 2026-04-25 - Evolucao para sistema multiagente cientifico
-
-Novo modulo efetivamente implementado:
-- Sistema operacional de subagentes
-- Registry versionado
-- Protocolo IA -> IA (`MAMIS/1`)
-- Geracao automatica de equipes e contratos
-
-Direcao estrategica:
-- O brain agora nao orquestra apenas personalidades; ele tambem orquestra equipes especializadas quando ha ganho real.
-- CODEX e KIMI passam a atuar como agentes principais intercambiaveis sobre a mesma base operacional.
+**Documento vivo — Atualizado em:** 2026-04-26  
+**Versão:** 2.0  
+**Status:** 🚀 Em Execução  
+**Projeto:** TPV Sorveteria Demo

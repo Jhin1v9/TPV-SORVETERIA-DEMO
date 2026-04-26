@@ -1,167 +1,125 @@
-# 🏛️ Architectural Decision Records (ADRs)
+# Decisões Arquiteturais — Brain System
 
-> Decisões arquiteturais são contratos com o futuro. Quebre-os só com boas razões.
+## ADR-010: Auditoria Completa do Brain — KIMI (2026-04-26)
 
-## Formato
-Cada decisão segue o formato:
+**Contexto:** KIMI realizou revisão exaustiva do sistema brain após solicitação do usuário para "entender o projeto, as regras, a intenção extraordinária".
+
+**Decisão:** O sistema está operacional (Score 83/100) mas não extraordinário. 5 gates de hardening pendentes.
+
+**Consequências:**
+- Priorizar fixes críticos antes de novas features
+- Continuar hardening plan do CODEX
+- Adotar insights da pesquisa web (MCP, A2A, critic agents)
+
+---
+
+## ADR-011: Estrutura de Learning System (Proposta)
+
+**Contexto:** O BLS prometido no PLANO_ESTRATEGICO não existe.
+
+**Decisão proposta:** Criar estrutura mínima:
 ```
-### [ID] — Título da Decisão
-**Data:** YYYY-MM-DD
-**Status:** [PROPOSED | ACCEPTED | DEPRECATED | SUPERSEDED]
-**Contexto:** Por que precisamos decidir isso?
-**Decisão:** O que decidimos?
-**Consequências:** O que ganhamos/perdemos?
-**Links:** [[outra-decisao]]
+.brain/learning/
+├── README.md
+├── patterns.json       # Padrões descobertos
+├── anti-patterns.json  # Anti-padrões evitados
+├── sessions/           # Aprendizados por sessão
+└── index.json          # Índice pesquisável
 ```
 
----
-
-### ADR-001 — Supabase como Fonte Única de Verdade
-**Data:** 2026-04-15
-**Status:** ✅ ACCEPTED
-**Contexto:** Precisávamos sincronizar 4 apps (cliente, kiosk, kds, admin) em tempo real.
-**Decisão:** Usar Supabase (Postgres + Realtime) como backend unificado. Cada app se conecta via WebSocket e recebe snapshots completos.
-**Consequências:**
-- ✅ Sincronização em tempo real entre todos os apps
-- ✅ Schema SQL versionado em `supabase/schema-expanded.sql`
-- ✅ RPCs com `security definer` para escritas sensíveis
-- ⚠️ Dependência de conectividade internet
-- ⚠️ CORS precisa ser configurado manualmente no dashboard
-**Links:** [[ADR-003 — Modo Standalone como Fallback]]
+**Integração:** `subagent-learn.mjs` deve auto-popular esta estrutura a partir dos artefatos de missão.
 
 ---
 
-### ADR-002 — Monorepo com Vite + Shared Package
-**Data:** 2026-04-10
-**Status:** ✅ ACCEPTED
-**Contexto:** 4 apps compartilham tipos, stores, lógica de negócio e mappers.
-**Decisão:** Estrutura monorepo com `packages/shared/` contendo types, stores (Zustand), i18n, supabase client, realtime sync e utilitários.
-**Consequências:**
-- ✅ Código compartilhado sem duplicação
-- ✅ Tipos TypeScript consistentes entre apps
-- ✅ Build otimizado por Vite com path aliases (`@tpv/shared`)
-- ⚠️ Mudança em shared pode quebrar múltiplos apps
-- ⚠️ Build mais complexo (precisa compilar shared primeiro)
-**Links:** [[ADR-005 — Zustand + Persist para Estado Global]]
+## ADR-012: Consolidar Personalidades (Proposta)
+
+**Contexto:** Personalidades existem apenas em `.brain-orchestrator/personalities/`, não em `.brain/personalities/`.
+
+**Decisão proposta:** O brain principal deve ser a fonte canônica. Copiar personalidades do orchestrator para o brain, ou criar symlink/merge.
+
+**Alternativa:** Atualizar README.md para apontar para `.brain-orchestrator/personalities/`.
 
 ---
 
-### ADR-003 — Modo Standalone como Fallback
-**Data:** 2026-04-12
-**Status:** ✅ ACCEPTED
-**Contexto:** Demo precisa funcionar offline ou sem configuração do Supabase.
-**Decisão:** Implementar modo `standalone` no `RealtimeManager`: quando não há `VITE_SUPABASE_URL`, usa `localStorage` com snapshot completo.
-**Consequências:**
-- ✅ Demo funciona sem backend (localStorage only)
-- ✅ Útil para desenvolvimento offline
-- ⚠️ **CRÍTICO:** localStorage é isolado por domínio/aba. Cliente e KDS em abas diferentes NÃO compartilham dados.
-- ⚠️ Não há sincronização real entre dispositivos no modo standalone
-**Links:** [[ADR-001 — Supabase como Fonte Única de Verdade]]
+*Ver arquivo completo de decisões anteriores em sessões anteriores.*
 
----
+## ADR-013: Distribuicao permanente CODEX ↔ KIMI (2026-04-26)
 
-### ADR-004 — Formato Novo de Produtos (JSONB) com Compatibilidade Legado
-**Data:** 2026-04-18
-**Status:** ✅ ACCEPTED
-**Contexto:** Migração de categoria-based (legado) para produto-based (novo) sem quebrar KDS/Admin.
-**Decisão:**
-- Produtos têm `opcoes` e `limites` JSONB para personalização
-- RPC `create_order` aceita AMBOS formatos (detecta via `item_record ? 'categoria'`)
-- Campos legados (`category_sku`, `category_name`, `flavors[]`, `toppings[]`) são populados automaticamente pela RPC para compatibilidade com KDS/Admin
-**Consequências:**
-- ✅ KDS e Admin funcionam sem mudanças de UI
-- ✅ Novos produtos (Kiosk, Cliente) usam formato rico
-- ✅ `product_snapshot` JSONB imutável preserva estado no momento da compra
-- ⚠️ RPC `create_order` é complexa (200+ linhas)
-- ⚠️ Dados legados ocupam espaço desnecessário no banco
+**Contexto:** O usuario determinou que planos propostos por KIMI e CODEX devem sempre virar distribuicao operacional explicita, com conversa IA->IA orientada a sucesso.
 
----
+**Decisao:** Discovery e expansao estrategica ficam preferencialmente com KIMI. Hardening, integridade de runtime e consolidacao de verdade operacional ficam preferencialmente com CODEX. Mudancas de governanca, source-of-truth e metricas exigem consenso.
 
-### ADR-005 — Zustand + Persist para Estado Global
-**Data:** 2026-04-10
-**Status:** ✅ ACCEPTED
-**Contexto:** Precisávamos de estado global reativo com persistência.
-**Decisão:** Zustand com middleware `persist` (localStorage) para estado global. Cada app tem seu próprio slice mas compartilha types e utilities.
-**Consequências:**
-- ✅ API simples (hooks-based)
-- ✅ Persistência automática
-- ✅ Não requer Provider wrapping complexo
-- ⚠️ localStorage tem limite de ~5MB
-- ⚠️ Não é adequado para dados sensíveis
-
----
-
-### ADR-006 — Kiosk Codes para Login Rápido
-**Data:** 2026-04-20
-**Status:** ✅ ACCEPTED
-**Contexto:** Usuários do Cliente PWA querem usar o Kiosk sem digitar dados pessoais.
-**Decisão:** Sistema de códigos de 5 dígitos (TTL 5 min) vinculados a `customer_id`. Gerado via RPC `generate_kiosk_code`, validado via `validate_kiosk_code`.
-**Consequências:**
-- ✅ Login kiosk em 5 segundos
-- ✅ Sem senhas ou formulários
-- ✅ Código expira automaticamente
-- ⚠️ Requer tabela extra `kiosk_codes`
-- ⚠️ Não é criptograficamente seguro (códigos curtos, propósito de conveniência)
-
----
-
-### ADR-007 — Vercel para Deploy (4 Apps Separadas)
-**Data:** 2026-04-15
-**Status:** ✅ ACCEPTED
-**Contexto:** Precisávamos hospedar 4 SPAs com builds independentes.
-**Decisão:** Cada app tem seu próprio `vercel.json` com build command apontando para `dist/[app]`. Deploy via `scripts/deploy-app.mjs`.
-**Consequências:**
-- ✅ Cada app deploya independentemente
-- ✅ URLs separadas (cliente-pearl, kds-one, etc.)
-- ✅ Build otimizado por Vite
-- ⚠️ 4 deploys = 4 pontos de falha
-- ⚠️ Variáveis de ambiente duplicadas em cada `vercel.json`
-**Links:** [[ADR-008 — CORS Configuração no Supabase]]
-
----
-
-### ADR-008 — CORS Configuração no Supabase
-**Data:** 2026-04-23
-**Status:** 🚨 CRÍTICO — PENDENTE DE AÇÃO
-**Contexto:** Pedidos do Cliente PWA funcionam localmente mas falham na Vercel com erro de conexão.
-**Decisão:** Configurar CORS no dashboard do Supabase para permitir origens dos apps Vercel + localhost.
-**Consequências:**
-- ✅ Navegador permitirá fetches cross-origin
-- ✅ Realtime/WebSocket funcionará em produção
-- ⚠️ Se não configurado, apps ficam em modo offline/standalone
-- ⚠️ Configuração manual no dashboard (não versionada em código)
-**Links:** [[ADR-007 — Vercel para Deploy]], [[BUG-001 — CORS bloqueando pedidos]]
-
----
-
-## Decisões Propostas
-
-### ADR-009 — Edge Function para Proxy de API (Mitigação CORS)
-**Data:** 2026-04-23
-**Status:** 📝 PROPOSED
-**Contexto:** CORS no Supabase pode não ser configurável no plano gratuito.
-**Decisão:** Criar uma Supabase Edge Function que faz proxy para as tabelas/RPCs, adicionando headers CORS dinamicamente.
-**Consequências:**
-- ✅ Controle total de CORS via código
-- ✅ Possível rate limiting e caching
-- ⚠️ Latência extra (hop adicional)
-- ⚠️ Custo de execução de Edge Functions
-**Links:** [[ADR-008 — CORS Configuração no Supabase]]
-
----
-
-*Atualizado em: 2026-04-23*
-*Próxima revisão: quando nova decisão arquitetural for necessária*
-
-### ADR-010 - Manager-Worker como padrao de subagentes
-**Data:** 2026-04-25
-**Status:** ACCEPTED
-**Contexto:** O projeto precisa de um modelo estavel para delegar pesquisa, leitura de codigo, implementacao e verificacao sem perder coerencia entre agentes.
-**Decisao:** Adotar `manager-worker` como padrao oficial de subagentes, com `MAMIS/1` como protocolo de comunicacao, registry versionado e geracao automatica de times via `scripts/subagent-fabric.mjs`.
 **Consequencias:**
-- Menos improviso na delegacao
-- Roles e ownership claros
-- Melhor sintese entre CODEX e KIMI como agentes principais
-- Mais rastreabilidade no `.brain` e nos artefatos de equipe
-- Custo adicional de coordenacao quando a tarefa e pequena
-**Links:** `.brain-orchestrator/OPERACAO_AGENTES.md`, `.brain-orchestrator/SUBAGENT_REGISTRY.json`, `.brain-orchestrator/SUBAGENT_PROMPTS.md`, `.brain/knowledge/subagent-scientific-operating-system.md`
+- reduzir overlap de escrita
+- acelerar exploracao sem perder disciplina
+- tornar `decisions.md` acionavel, nao apenas descritivo
+- registrar a divisao em `.brain-orchestrator/CODEX_KIMI_TASK_ALLOCATION.md`
+
+---
+
+## ADR-014: Plano da KIMI convertido em backlog distribuido (2026-04-26)
+
+**Contexto:** O plano atual da KIMI em ADR-010, ADR-011 e ADR-012 e valioso, mas misturava auditoria, hardening, BLS e consolidacao de personalidades sem ownership claro.
+
+**Decisao:**
+- ADR-010 gates e hardening do brain principal -> CODEX lidera
+- ADR-011 estrutura minima do learning system -> KIMI lidera
+- ADR-012 consolidacao de personalidades -> KIMI propõe, CODEX audita fonte canonica
+
+**Consequencias:**
+- backlog vira executavel por dono
+- consenso so onde realmente importa
+- reduz risco de regressao por expansao antes da fundacao
+## ADR-015: Alocacao budget-aware entre CODEX e KIMI (2026-04-26)
+
+**Contexto:** O usuario explicitou que KIMI possui folga de credito muito maior que CODEX. A alocacao entre agentes nao deve ignorar custo operacional real.
+
+**Decisao:** Ambos podem executar qualquer tipo de tarefa quando necessario. A divisao CODEX/KIMI continua como preferencia de reducao de conflito, mas passa a ser modulada por budget, throughput e chance de sucesso.
+
+**Consequencias:**
+- KIMI pode assumir mais volume, exploracao e execucao ampla quando isso destravar o sistema
+- CODEX foca mais nos pontos de maior risco, validacao e consolidacao
+- guardrails e source-of-truth continuam acima de qualquer otimizacao de custo
+
+---
+## ADR-016: Dashboard do brain deve evoluir de summary para decision cockpit (2026-04-26)
+
+**Contexto:** Auditoria local + pesquisa web mostraram que o dashboard atual e confiavel, mas ainda mais descritivo do que decisional.
+
+**Decisao:** Priorizar uma evolucao em camadas: `What needs attention now`, drivers de score, confidence level, trend com significado e inteligencia de portfolio.
+
+**Consequencias:**
+- o dashboard deixa de apenas mostrar numeros
+- passa a orientar proximo passo e risco
+- melhorias futuras devem ser guiadas por `dashboard-excellence-blueprint.md`
+
+---
+## ADR-017: Implementar camada 1 do decision cockpit no principal brain dashboard (2026-04-26)
+
+**Contexto:** O blueprint do dashboard apontou que o maior gap nao era integridade, e sim acionabilidade.
+
+**Decisao:** Implementar imediatamente a primeira camada: What needs attention now, drivers de score, confidence, linguagem de health unificada e portfolio intelligence.
+
+**Consequencias:**
+- o dashboard fica mais util para decidir proximo passo
+- melhora o valor executivo sem sacrificar auditabilidade
+- futuras camadas devem focar em tendencia profunda e drivers de mudanca
+
+---
+## ADR-018: Politica de subagentes deve ser verdade executavel unica (2026-04-26)
+
+**Contexto:** A auditoria da KIMI mostrou que `scripts/lib/subagent-policy.mjs` existia, mas a maior parte do runtime ainda duplicava heuristicas locais. Isso permitia divergencia entre politica declarada e artefato gerado.
+
+**Decisao:** `subagent-policy.mjs` passa a ser a fonte canonica de:
+- inferencia de mission type
+- inferencia de roles
+- strategy selection
+- scaling e caps de paralelismo
+- lanes supervisoras e budgets de escrita
+
+**Consequencias:**
+- `subagent-fabric.mjs`, `subagent-mission.mjs` e `subagent-swarm.mjs` devem consumir a politica compartilhada
+- `max_parallel_global`, `max_children_per_agent` e `max_write_agents_per_parent` deixam de ser apenas documentacao e passam a moldar o artefato
+- futuras expansoes do swarm devem alterar a policy library antes de alterar geradores individuais
+
+---

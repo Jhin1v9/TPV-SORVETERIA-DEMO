@@ -52,6 +52,10 @@ RISKS:
 - <risk 1>
 NEXT:
 - <next step 1>
+LEARNING_DELTA:
+- <what changed in operational knowledge>
+OWNERSHIP_RESULT:
+- <owned paths / no-overlap result>
 ```
 
 ## Team recipes
@@ -86,3 +90,4 @@ Sempre prefira:
 - bullets em vez de prosa longa
 - arquivos e evidencias explicitas
 - status binario ou ternario: OK / PARTIAL / BLOCKED
+- learning delta quando a missao ensinar algo novo

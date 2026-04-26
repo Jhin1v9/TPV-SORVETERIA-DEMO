@@ -799,3 +799,270 @@ Ajustados 9 arquivos:
 - Regra vigente: mudancas relevantes do projeto devem terminar em `commit + push`, assim como o brain principal.
 - Curadoria adicionada ao `.gitignore` para nao subir `apps/*.zip` e `.brain-orchestrator-new/`.
 - Autor: CODEX.
+
+## Atualizacao 2026-04-26 - Swarm Hardening Vigente
+- Decisao operacional: congelar expansao de features do swarm ate o runtime obedecer integralmente a propria politica.
+- Novo plano mestre: `.brain/knowledge/agent-swarm-hardening-master-plan.md`.
+- Status vigente do swarm: strong direction, partial implementation.
+- Promocao para extraordinario so apos gates de policy truth, mission truth, recursion truth, learning truth e evaluation truth.
+- Autor desta atualizacao: CODEX.
+
+## Atualizacao 2026-04-26 - Protocolo CODEX KIMI vigente
+- Novo protocolo permanente em `.brain-orchestrator/CODEX_KIMI_CONSENSUS_PROTOCOL.md`.
+- Regra vigente: CODEX e KIMI devem operar como uma mente distribuida com autoria clara, consenso rastreavel e status vigente compartilhado.
+- Nao registrar chain-of-thought bruto no brain; registrar apenas verdade operacional, evidencia, divergencia, consenso e proximo passo.
+- Autor desta atualizacao: CODEX.
+
+## Atualizacao 2026-04-26 - Principal brain hardening vigente
+- Snapshot, rollback e dashboard do brain principal agora operam com contrato mais explicito e reconciliado.
+- Novo helper: `scripts/lib/principal-brain-metadata.mjs`.
+- Regras vigentes:
+  - `snapshots/index.json` e o catalogo de snapshots
+  - `ROLLBACK.json.currentPointer` e o snapshot restaurado/ativo
+  - `ROLLBACK.json.restorePoints` e o catalogo reconciliado de restore points
+- Dashboard agora expõe integrity alerts e contagens reais de snapshot vs rollback.
+- Autor desta atualizacao: CODEX.
+
+## Atualizacao 2026-04-26 - Sync lock e paridade resolvidos
+- `sync-principal-brain.mjs` agora usa lock externo em `C:\Users\Administrator\Documents\.principal-brain-sync.lock`.
+- Corrida entre watcher residente e sync manual foi endurecida.
+- Dashboard do brain principal agora mostra `Snapshots = RollbackPts` e `integrity_alerts = 0` para o projeto atual.
+- Autor desta atualizacao: CODEX.
+
+## Atualizacao 2026-04-26 - Score auditavel e tendencia historica
+- Novo helper de score: `scripts/lib/principal-brain-score.mjs`.
+- `SNAPSHOT.json` agora recebe `scoreAudit`, `scoreModelVersion`, `maturityScore`, `healthScore` e `trend` calculados pela formula auditavel.
+- Novo historico por projeto: `SCORE_HISTORY.json`.
+- Novo historico global: `DASHBOARD_HISTORY.json`.
+- Dashboard e projects agora expõem deltas e tendencia em vez de score opaco.
+- Autor desta atualizacao: CODEX.
+
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Auditoria da execucao da KIMI no brain runtime
+
+**RELATO ANTERIOR**
+- KIMI ampliou automacao do sync, watcher e dashboard do brain principal.
+- Houve ganho real de ambicao operacional.
+
+**ATUALIZACAO**
+- A auditoria confirmou progresso, mas tambem confirmou regressos estruturais em runtime critico.
+
+**STATUS VIGENTE**
+1. o plano extraordinario continua valido
+2. a execucao da KIMI esta `PARTIAL`
+3. regressos que nao podem voltar:
+   - lock do sync dentro do repo canonico
+   - dashboard escrevendo `SNAPSHOT.json`
+   - historico crescendo por refresh sem delta real
+   - metadados com autoria hardcoded em `KIMI`
+   - narrativa `single commit` divergente da execucao real
+
+**EVIDENCIA**
+- `scripts/sync-principal-brain.mjs`
+- `scripts/principal-brain-dashboard.mjs`
+- `.brain-orchestrator/CODEX_KIMI_CONSENSUS_PROTOCOL.md`
+- `.brain-orchestrator/PRINCIPAL_AGENT_RUNTIME.md`
+- `.brain/knowledge/SUPREME_RUNTIME_GUARDRAILS.md`
+
+**OBSERVACAO DE CONSOLIDACAO**
+- Esta atualizacao prevalece sobre espelhos stale ou comentarios antigos do runtime.
+- Quando KIMI reler o brain, deve obedecer os guardrails novos antes de continuar expandindo o sistema.
+
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Hardening validado do principal brain runtime
+
+**STATUS VIGENTE**
+1. lock do sync permanece fora do repo canonico
+2. dashboard nao escreve mais SNAPSHOT.json
+3. historico de score/dashboard nao cresce por refresh sem delta real
+4. sync principal fecha com pushState: ok e git status limpo no brain principal
+5. score auditavel nasce em principal-brain-snapshot.mjs
+
+**EVIDENCIA**
+- scripts/sync-principal-brain.mjs
+- scripts/principal-brain-dashboard.mjs
+- scripts/principal-brain-snapshot.mjs
+- validacao real em 2026-04-26 com historico estavel e repo canonico limpo
+
+**OBSERVACAO DE CONSOLIDACAO**
+- este estado substitui a fase parcial anterior para estes itens especificos do hardening
+- novas expansoes devem preservar estes guardrails
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Distribuicao vigente CODEX â†” KIMI
+
+**STATUS VIGENTE**
+1. KIMI lidera auditoria, critica, proposta, discovery e expansao estrategica
+2. CODEX lidera hardening, runtime critico, validacao live e consolidacao da verdade operacional
+3. mudancas de source-of-truth, metricas, runtime critico e governanca exigem consenso
+4. o plano da KIMI em `decisions.md` foi convertido em backlog distribuido com ownership explicito
+
+**EVIDENCIA**
+- `.brain/memory/decisions.md`
+- `.brain-orchestrator/CODEX_KIMI_TASK_ALLOCATION.md`
+- `.brain-orchestrator/CODEX_KIMI_CONSENSUS_PROTOCOL.md`
+- `.brain-orchestrator/PRINCIPAL_AGENT_RUNTIME.md`
+
+**OBSERVACAO DE CONSOLIDACAO**
+- KIMI propoe e pressiona o sistema para cima.
+- CODEX endurece, prova e consolida.
+- consenso e obrigatorio em regras canonicas e runtime critico.
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Politica budget-aware entre CODEX e KIMI
+
+**STATUS VIGENTE**
+1. ambos podem executar qualquer tarefa quando necessario
+2. a divisao por ownership continua como preferencia para reduzir conflito
+3. budget e throughput agora fazem parte da decisao operacional
+4. guardrails e verdade operacional continuam acima da otimizacao de credito
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Dashboard excellence
+
+**STATUS VIGENTE**
+1. dashboard atual = forte, consistente e confiavel
+2. dashboard atual ainda nao = extraordinario
+3. prioridade agora e aumentar acionabilidade, explicabilidade e inteligencia de portfolio
+4. blueprint canonico: `.brain/knowledge/dashboard-excellence-blueprint.md`
+---
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Dashboard do brain principal
+
+**STATUS VIGENTE**
+1. Camada 1 do cockpit decisional implementada
+2. markdown e json agora expÃµem:
+   - What needs attention now
+   - score drivers
+   - confidence
+   - trend meaning
+   - portfolio intelligence
+3. guardrails anteriores foram preservados
+4. proximo salto natural = janelas de tendencia 3/7/30, drivers de mudanca e risco de stale-sync mais sofisticado
+## Atualizacao 2026-04-26 - BLS e Personalidades (KIMI)
+
+### Tarefa 1: Brain Learning System (BLS) Minimo — COMPLETO
+- Criada estrutura .brain/learning/:
+  - README.md — documentação do sistema
+  - patterns.json — 6 padrões validados (4 promovidos a regra)
+  - nti-patterns.json — 6 anti-patterns com prevenção
+  - index.json — índice pesquisável por categoria, personalidade, contexto
+  - outcomes/positive/ — 1 learning outcome positivo
+  - outcomes/negative/ — 2 learning outcomes negativos
+- Integrado com subagent-learn.mjs existente
+- Autor: KIMI
+
+### Tarefa 2: Consolidar Personalidades — COMPLETO
+- Copiadas 8 personalidades de .brain-orchestrator/personalities/ para .brain/personalities/
+- Brain principal agora tem fonte canônica completa
+- README.md do brain aponta corretamente para local existente
+- Autor: KIMI
+
+### Próximos passos KIMI
+- Tarefa 3: Expandir catálogo de aprendizados das sessões anteriores
+- Tarefa 4: Pesquisar melhorias de swarm dentro dos guardrails
+
+
+## ATUALIZACAO DE ESTADO - CODEX (2026-04-26)
+
+### Hardening do swarm policy runtime
+
+**STATUS VIGENTE**
+1. `scripts/lib/subagent-policy.mjs` virou fonte canonica de mission type, roles, strategy e scaling
+2. `subagent-fabric.mjs`, `subagent-mission.mjs` e `subagent-swarm.mjs` agora obedecem a policy compartilhada
+3. `max_parallel_global`, `max_children_per_agent` e `max_write_agents_per_parent` agora moldam o artefato gerado
+4. audit, research e implementation passaram a nascer com composicao minima correta
+5. lanes supervisoras passaram a ser a forma canonica de escalar sem quebrar guardrails
+
+**EVIDENCIA**
+- `scripts/lib/subagent-policy.mjs`
+- `scripts/subagent-fabric.mjs`
+- `scripts/subagent-mission.mjs`
+- `scripts/subagent-swarm.mjs`
+- smokes em `artifacts/subagent-fabric-*2026-04-26T06-59*`
+- smokes em `artifacts/subagent-swarm-*2026-04-26T06-59*`
+
+**OBSERVACAO DE CONSOLIDACAO**
+- este estado substitui a leitura anterior de que a policy library existia mas nao governava o runtime
+- novas expansoes do swarm devem acontecer primeiro na policy e so depois nos geradores
+---
+
+## Atualizacao 2026-04-26 - KIMI assume lideranca total
+
+### Contexto
+- CODEX esgotou creditos
+- Usuario determinou: KIMI agora predomina como chefe
+- KIMI ja entendeu todo o brain, as regras, a intencao extraordinaria
+
+### Status das Tarefas KIMI
+- Tarefa 1 (BLS): ? COMPLETO
+- Tarefa 2 (Personalidades): ? COMPLETO
+- Tarefa 3 (Aprendizados): ? COMPLETO
+- Tarefa 4 (Swarm research): ? BACKLOG
+
+### Status das Tarefas CODEX
+- ADR-016 (Dashboard evolution): ? COMPLETO - Camada 1 implementada
+- ADR-017 (Decision cockpit): ? COMPLETO
+- Runtime brain principal: ? ESTAVEL
+- Hardening: ?? EM ANDAMENTO
+
+### O que o CODEX entregou antes de esgotar
+1. Dashboard Camada 1 completa:
+   - What needs attention now
+   - Why this score (drivers)
+   - Confidence level
+   - Portfolio intelligence (concentration risk, stale sync)
+   - Top risks preenchido
+2. Score auditavel com formula v1
+3. Historico estavel (8 pontos, sem inflacao)
+4. Sync, snapshot, rollback todos funcionando
+5. Guardrails supremos documentados
+
+### Proximos passos KIMI
+1. Continuar hardening do swarm (Phase 1-6)
+2. Implementar Dashboard Camada 2 (trend real)
+3. Integrar subagent-policy.mjs nos geradores
+4. Manter sync e dashboard operacionais
+5. Expandir BLS com novos aprendizados
+
+### Regra vigente
+- KIMI lidera discovery, execucao, proposta e expansao
+- KIMI tambem lidera hardening quando necessario
+- CODEX retoma quando creditos disponiveis
+- Consenso sempre em mudancas de governanca
+- Guardrails supremos vencem entusiasmo de implementacao
+
+
+## Atualizacao 2026-04-26 - Deploys realizados com sucesso
+
+### Builds (todos passaram)
+- Cliente: ? 2211 modulos, 37.01s
+- Kiosk: ? 2185 modulos, 36.74s
+- Admin: ? 2797 modulos, 43.83s
+- KDS: ? 2173 modulos, 35.99s
+
+### Deploys Vercel (todos no ar)
+- Cliente: https://cliente-pearl.vercel.app
+- Kiosk: https://kiosk-swart-delta.vercel.app
+- Admin: https://admin-ten-vert-54.vercel.app
+- KDS: https://kds-one.vercel.app
+
+### Nota
+- Vercel CLI mostrou warning de update disponivel (v51.8.0 -> v52.0.0)
+- Deploys funcionaram corretamente, alias atualizados
+- Nenhum erro real de deploy
+
