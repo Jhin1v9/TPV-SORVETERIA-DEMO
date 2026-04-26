@@ -109,7 +109,7 @@ export default function HolaScreen({ onSelectLang, onLogin }: HolaScreenProps) {
           <img
             src={KIOSK_LOGO_SRC}
             alt="Tropicale"
-            className="h-40 w-auto max-w-[280px] object-contain drop-shadow-2xl"
+            className="h-52 w-auto max-w-[360px] object-contain drop-shadow-2xl"
           />
         </motion.div>
 

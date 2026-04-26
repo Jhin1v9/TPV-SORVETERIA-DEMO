@@ -92,7 +92,7 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
           <img
             src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
             alt="Tropicale"
-            className="w-12 h-12 rounded-xl object-contain bg-white flex-shrink-0"
+            className="w-20 h-20 rounded-xl object-contain bg-white flex-shrink-0"
           />
           {!sidebarCollapsed && (
             <div className="overflow-hidden">

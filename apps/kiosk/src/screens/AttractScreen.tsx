@@ -83,17 +83,17 @@ export default function AttractScreen({ onTap }: AttractScreenProps) {
 
       {/* Content */}
       <div className="relative z-10 flex h-full flex-col items-center justify-end pb-20">
-        {/* Logo */}
+        {/* Logo - fixed at top */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="absolute top-8 left-1/2 -translate-x-1/2"
+          className="absolute top-12 left-1/2 -translate-x-1/2 z-20"
         >
           <img
             src="/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png"
             alt="Tropicale"
-            className="h-44 w-auto max-w-[320px] object-contain drop-shadow-2xl"
+            className="h-28 w-auto max-w-[300px] object-contain drop-shadow-2xl"
           />
         </motion.div>
 

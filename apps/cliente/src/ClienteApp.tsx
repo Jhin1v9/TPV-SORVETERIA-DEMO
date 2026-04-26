@@ -98,7 +98,7 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
               <img
                 src={CLIENTE_LOGO_SRC}
                 alt="Tropicale"
-                className="h-12 w-auto max-w-[180px] object-contain"
+                className="h-20 w-auto max-w-[260px] object-contain"
               />
             </div>
             <div className="w-10" />
