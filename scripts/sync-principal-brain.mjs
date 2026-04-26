@@ -3,8 +3,8 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const ROOT = process.cwd();
-const PROJECT_BRAIN = path.join(ROOT, '.brain');
-const PROJECT_ORCHESTRATOR = path.join(ROOT, '.brain-orchestrator');
+const PROJECT_BRAIN = 'C:\\\\Users\\\\Administrator\\\\Documents\\\\.brain';
+const PROJECT_ORCHESTRATOR = null; // removido - brain unificado
 const PRINCIPAL_BRAIN = 'C:\\Users\\Administrator\\Documents\\.brain';
 const PROJECT_SLUG = 'tpv-sorveteria-demo';
 

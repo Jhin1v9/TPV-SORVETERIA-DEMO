@@ -4,8 +4,8 @@ import fs from 'node:fs';
 
 const ROOT = process.cwd();
 const WATCH_TARGETS = [
-  path.join(ROOT, '.brain'),
-  path.join(ROOT, '.brain-orchestrator')
+  'C:\\\\Users\\\\Administrator\\\\Documents\\\\.brain',
+  null // removido
 ];
 
 let timer = null;

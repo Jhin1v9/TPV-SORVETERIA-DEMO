@@ -45,9 +45,9 @@ async function main() {
   const team = await readJsonIfExists(path.join(artifactDir, 'team.json'));
   if (!team) throw new Error('Could not read team.json from artifact directory');
 
-  const noteDir = path.join(ROOT, '.brain', 'learning', 'subagents');
+  const noteDir = path.join('C:\\\\Users\\\\Administrator\\\\Documents', '.brain'), 'learning', 'subagents');
   const notePath = path.join(noteDir, `${today()}-${slugify(team.goal)}-${timestamp()}.md`);
-  const sessionPath = path.join(ROOT, '.brain', 'memory', 'sessions', `${today()}.md`);
+  const sessionPath = path.join('C:\\\\Users\\\\Administrator\\\\Documents', '.brain'), 'memory', 'sessions', `${today()}.md`);
 
   const note = [
     '# SUBAGENT LEARNING NOTE',
