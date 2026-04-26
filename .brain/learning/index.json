@@ -1,0 +1,60 @@
+{
+  "version": "1.1",
+  "updatedAt": "2026-04-26T07:00:00.000Z",
+  "totalPatterns": 6,
+  "totalAntiPatterns": 6,
+  "totalOutcomes": 8,
+  "totalSubagentNotes": 0,
+  "categories": {
+    "pattern": ["pat-001", "pat-002", "pat-003", "pat-004", "pat-005", "pat-006"],
+    "anti-pattern": ["anti-001", "anti-002", "anti-003", "anti-004", "anti-005", "anti-006"],
+    "outcome-positive": [
+      "2026-04-23-deploy-vercel",
+      "2026-04-23-idle-timeout-qsr",
+      "2026-04-25-logo-qsr-standards",
+      "2026-04-25-brain-principal-canonic",
+      "2026-04-26-score-auditavel",
+      "2026-04-26-swarm-hardening"
+    ],
+    "outcome-negative": [
+      "2026-04-26-dashboard-fonte-primaria",
+      "2026-04-26-lock-no-repo"
+    ]
+  },
+  "byPersonality": {
+    "DX-ENGINEER": ["pat-001", "pat-005", "pat-006", "anti-001", "anti-003", "anti-004", "anti-005"],
+    "ARQUITETO": ["pat-002", "pat-005", "pat-006", "anti-003", "anti-004", "anti-006"],
+    "TYPESCRIPT-MASTER": ["pat-002", "anti-002"],
+    "UIUX-ENGINEER": ["pat-003", "pat-004"],
+    "REACT-SPECIALIST": ["pat-003"],
+    "CSS-TAILWIND-EXPERT": ["pat-004"],
+    "DEVOPS": ["anti-001", "anti-005"]
+  },
+  "byContext": {
+    "deploy": ["pat-001", "anti-001", "outcome-2026-04-23-deploy-vercel"],
+    "brain": ["pat-005", "pat-006", "anti-003", "anti-004", "anti-005", "anti-006", "outcome-2026-04-25-brain-principal-canonic", "outcome-2026-04-26-dashboard-fonte-primaria", "outcome-2026-04-26-lock-no-repo"],
+    "typescript": ["anti-002"],
+    "kiosk": ["pat-003", "outcome-2026-04-23-idle-timeout-qsr"],
+    "ui": ["pat-003", "pat-004", "outcome-2026-04-25-logo-qsr-standards"],
+    "phone": ["pat-002"],
+    "sync": ["pat-005", "anti-005"],
+    "agents": ["pat-006", "outcome-2026-04-26-swarm-hardening"],
+    "score": ["outcome-2026-04-26-score-auditavel"]
+  },
+  "promotedToRule": ["pat-001", "pat-002", "pat-005", "pat-006"],
+  "needsPromotion": ["pat-003", "pat-004"],
+  "searchIndex": {
+    "deploy vercel": ["pat-001", "anti-001", "outcome-2026-04-23-deploy-vercel"],
+    "phone spain": ["pat-002"],
+    "idle timeout": ["pat-003", "outcome-2026-04-23-idle-timeout-qsr"],
+    "logo branding": ["pat-004", "outcome-2026-04-25-logo-qsr-standards"],
+    "brain sync": ["pat-005", "anti-004", "anti-005", "outcome-2026-04-25-brain-principal-canonic", "outcome-2026-04-26-lock-no-repo"],
+    "mamis protocol": ["pat-006", "outcome-2026-04-26-swarm-hardening"],
+    "any typescript": ["anti-002"],
+    "personalities": ["anti-003"],
+    "dashboard integrity": ["anti-004", "outcome-2026-04-26-dashboard-fonte-primaria"],
+    "lock git": ["anti-005", "outcome-2026-04-26-lock-no-repo"],
+    "chain of thought": ["anti-006"],
+    "score audit": ["outcome-2026-04-26-score-auditavel"]
+  }
+}

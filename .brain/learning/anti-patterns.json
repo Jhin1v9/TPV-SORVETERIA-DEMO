@@ -1,0 +1,114 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-04-26T06:00:00.000Z",
+  "antiPatterns": [
+    {
+      "id": "anti-001",
+      "category": "anti-pattern",
+      "title": "Deploy Automático Sem Confirmação",
+      "description": "Fazer deploy para produção sem confirmação explícita do usuário",
+      "context": ["deploy", "vercel", "production"],
+      "personalities": ["DX-ENGINEER", "DEVOPS"],
+      "impact": "critical",
+      "evidence": [
+        "Regra absoluta do .brain: 'Nunca fazer deploy automaticamente'",
+        "Usuário deve testar e confirmar antes de cada deploy"
+      ],
+      "prevention": "Sempre perguntar antes de deploy. Usar scripts/deploy-app.mjs apenas após confirmação.",
+      "files": ["scripts/deploy-app.mjs", "scripts/deploy-all.mjs"],
+      "detectedCount": 1,
+      "createdAt": "2026-04-23",
+      "author": "CODEX"
+    },
+    {
+      "id": "anti-002",
+      "category": "anti-pattern",
+      "title": "Usar 'any' em TypeScript",
+      "description": "Uso de tipo 'any' em código novo, quebrando type safety",
+      "context": ["typescript", "types", "safety"],
+      "personalities": ["TYPESCRIPT-MASTER"],
+      "impact": "high",
+      "evidence": [
+        "REVISOR.md marca 'any' como code smell crítico",
+        "Zero any no código novo é meta do PLANO_ESTRATEGICO"
+      ],
+      "prevention": "Usar unknown + type guards, ou definir interfaces específicas. Revisor deve rejeitar PRs com any.",
+      "files": [".brain-orchestrator/REVISOR.md"],
+      "detectedCount": 2,
+      "createdAt": "2026-04-08",
+      "author": "CODEX"
+    },
+    {
+      "id": "anti-003",
+      "category": "anti-pattern",
+      "title": "Personalidades Órfãs no Brain",
+      "description": "Personalidades existem em .brain-orchestrator/ mas não em .brain/, quebrando a regra de fonte canônica",
+      "context": ["brain", "governance", "personalities"],
+      "personalities": ["ARQUITETO", "DX-ENGINEER"],
+      "impact": "high",
+      "evidence": [
+        "8 personalidades em orchestrator, 0 em brain/",
+        "README.md aponta para .brain/personalities/ que está vazio"
+      ],
+      "prevention": "Sempre manter personalidades no brain principal. Orchestrator é espelho operacional.",
+      "files": [".brain/README.md", ".brain-orchestrator/personalities/"],
+      "detectedCount": 1,
+      "createdAt": "2026-04-26",
+      "author": "KIMI"
+    },
+    {
+      "id": "anti-004",
+      "category": "anti-pattern",
+      "title": "Dashboard como Fonte Primária",
+      "description": "Fazer o dashboard escrever em arquivos que deveriam ser fonte primária (SNAPSHOT.json, histórico)",
+      "context": ["dashboard", "brain", "data-integrity"],
+      "personalities": ["ARQUITETO", "DX-ENGINEER"],
+      "impact": "high",
+      "evidence": [
+        "LEARNING_NEGATIVE: dashboard escrevendo SNAPSHOT.json inflou histórico para 79 pontos",
+        "Fix: scoreAudit nasce no snapshot, dashboard consome e sintetiza"
+      ],
+      "prevention": "Dashboard deve ser consumidor de verdade operacional, não produtor. Fonte primária nasce em snapshot/sync.",
+      "files": ["scripts/principal-brain-dashboard.mjs", "scripts/principal-brain-snapshot.mjs"],
+      "detectedCount": 1,
+      "createdAt": "2026-04-26",
+      "author": "CODEX"
+    },
+    {
+      "id": "anti-005",
+      "category": "anti-pattern",
+      "title": "Lock Operacional no Repo Canônico",
+      "description": "Colocar arquivos de lock operacional (.principal-brain-sync.lock) dentro do repo do brain principal",
+      "context": ["brain", "sync", "git"],
+      "personalities": ["DEVOPS", "DX-ENGINEER"],
+      "impact": "medium",
+      "evidence": [
+        "LEARNING_NEGATIVE: lock no repo polui histórico e cria drift",
+        "Fix: lock movido para fora do repo"
+      ],
+      "prevention": "Lock operacional sempre fora do repo canônico. Usar caminho absoluto externo.",
+      "files": ["scripts/sync-principal-brain.mjs"],
+      "detectedCount": 1,
+      "createdAt": "2026-04-26",
+      "author": "CODEX"
+    },
+    {
+      "id": "anti-006",
+      "category": "anti-pattern",
+      "title": "Chain-of-Thought Bruto no Brain",
+      "description": "Registrar raciocínio interno completo no brain em vez de deltas operacionais úteis",
+      "context": ["brain", "memory", "governance"],
+      "personalities": ["ARQUITETO"],
+      "impact": "medium",
+      "evidence": [
+        "CODEX_KIMI_CONSENSUS_PROTOCOL.md: 'Não registrar chain-of-thought bruto'",
+        "Contexto deve ter apenas decisão, evidência, divergência, consenso, autoria, status, próximo passo"
+      ],
+      "prevention": "Antes de escrever no brain, perguntar: 'Isso é um delta operacional útil ou é raciocínio bruto?'",
+      "files": [".brain-orchestrator/CODEX_KIMI_CONSENSUS_PROTOCOL.md"],
+      "detectedCount": 2,
+      "createdAt": "2026-04-26",
+      "author": "CODEX"
+    }
+  ]
+}
