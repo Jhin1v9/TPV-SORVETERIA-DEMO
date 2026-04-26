@@ -33,6 +33,7 @@
     "brain:dashboard": "node scripts/principal-brain-dashboard.mjs",
     "brain:snapshot": "node scripts/principal-brain-snapshot.mjs",
     "brain:rollback": "node scripts/principal-brain-rollback.mjs",
+    "brain:live": "node scripts/brain-dashboard-server.mjs",
     "brain:watch:install": "powershell -ExecutionPolicy Bypass -File scripts/install-brain-sync-watch.ps1",
     "brain:watch:uninstall": "powershell -ExecutionPolicy Bypass -File scripts/uninstall-brain-sync-watch.ps1",
     "repo:sync": "node scripts/project-repo-sync.mjs"

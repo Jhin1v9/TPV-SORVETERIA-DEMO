@@ -1,122 +1,149 @@
-# 🧠 TPV Sorveteria — Cérebro de Projeto
+# 🧠 Brain Universal — Índice de Navegação
 
-> **"Text > Brain. If you want the agent to remember something, write it to a file."**
-> — Graham Mann, OpenClaw
-
-## O que é este sistema?
-
-Este é um **Second Brain** para o projeto TPV Sorveteria. Inspirado em:
-- **Tiago Forte** (PARA + CODE frameworks)
-- **Niklas Luhmann** (Zettelkasten — notas atômicas e linked)
-- **Anthropic** (context engineering, compaction, structured note-taking)
-- **JetBrains Research** (observation masking vs LLM summarization)
-- **BMAD Method** (Agent Orchestration com personas especializadas)
-- **Clawdbot** (modular file-based prompts: SOUL.md + AGENTS.md + IDENTITY.md)
-
-## 📁 Estrutura PARA Adaptada
-
-```
-.brain/
-├── index.md              ← Você está aqui (guia de uso)
-├── context.md            ← Estado atual do projeto (Projects — curto prazo)
-├── personas/             ← Personalidades especializadas (Areas — on-going)
-│   ├── architect.md      ← 🏗️ Arquiteto: patterns, escalabilidade, decisões macro
-│   ├── surgeon.md        ← 🔪 Cirurgião: debugging, refactoring, testes
-│   ├── product.md        ← 🎯 Produto: UX, fluxos, negócio, priorização
-│   └── devops.md         ← 🚀 DevOps: infra, deploy, CORS, monitoramento
-├── memory/               ← Memória persistente (Resources + Archives)
-│   ├── decisions.md      ← ADRs — Architectural Decision Records
-│   ├── bugs.md           ← Bugs conhecidos, lições aprendidas
-│   ├── patterns.md       ← Padrões de código do projeto
-│   └── sessions/         ← Notas de sessões individuais (auto-archive)
-└── knowledge/            ← Conhecimento de domínio (Resources)
-    ├── domain.md         ← Regras de negócio da sorveteria
-    ├── stack.md          ← Stack técnico, dependências, versões
-    └── api.md            ← Contratos de API, Supabase, RPCs
-```
-
-## 🎭 Como usar as Personas
-
-Quando uma tarefa chega, identifique qual persona deve liderar:
-
-| Tipo de Tarefa | Persona Principal | Secundária |
-|---------------|------------------|------------|
-| Nova feature, arquitetura, refactor macro | **Architect** | Product |
-| Bug, crash, performance, testes | **Surgeon** | Architect |
-| Fluxo de usuário, onboarding, UX | **Product** | Architect |
-| Deploy, CORS, build, CI/CD | **DevOps** | Surgeon |
-| Documentação, organização, contexto | **Librarian** (você!) | Todas |
-
-> **💡 Dica:** Diga explicitamente "Act as The Surgeon" no início da tarefa para ativar a persona.
-
-## 🔄 Workflow CODE (Capture → Organize → Distill → Express)
-
-### 1. CAPTURE (Capturar)
-Quando algo importante acontece:
-- Bug descoberto → adicione em `memory/bugs.md`
-- Decisão tomada → adicione em `memory/decisions.md`
-- Padrão novo → adicione em `memory/patterns.md`
-- Sessão de trabalho → crie nota em `memory/sessions/YYYY-MM-DD.md`
-
-### 2. ORGANIZE (Organizar)
-Use tags para conectar ideias:
-```markdown
-#decision #bug #pattern #refactor #deploy #ux #supabase
-```
-
-### 3. DISTILL (Destilar)
-A cada semana, revise e comprima:
-- Sessões antigas (>30 dias) → arquive em `memory/sessions/archive/`
-- Bugs resolvidos → mova para seção "Resolvidos" com data
-- Decisões obsoletas → marque como `[DEPRECATED]`
-
-### 4. EXPRESS (Expressar)
-Use o conhecimento do brain para:
-- Resolver novos bugs (cheque `bugs.md` primeiro)
-- Evitar decisões contraditórias (cheque `decisions.md`)
-- Seguir padrões consistentes (cheque `patterns.md`)
-
-## 📝 Formato de Notas Atômicas (Zettelkasten)
-
-Cada nota deve ser:
-- **Atômica**: uma ideia por nota
-- **Linkada**: referencie outras notas com `[[nome-da-nota]]`
-- **Numerada**: use IDs como `#202604231345` (YYYYMMDD HHMM)
-- **Etiquetada**: tags no topo `#tag #outra-tag`
-
-Exemplo:
-```markdown
-# 202604231345 — Erro CORS bloqueando pedidos no Vercel
-#bug #supabase #cors #deploy #devops
-
-**Contexto:** Pedidos do Cliente PWA não chegam ao KDS.
-**Causa raiz:** Supabase não tem CORS configurado para os domínios Vercel.
-**Solução:** Adicionar origens no Dashboard → API Settings → CORS.
-**Links:** [[202604231200 — Configuração Inicial do Supabase]]
-```
-
-## 🧹 Manutenção Semanal (15 min)
-
-- [ ] Revisar `memory/sessions/` — arquivar notas antigas
-- [ ] Verificar `memory/bugs.md` — marcar resolvidos
-- [ ] Atualizar `context.md` — refletir estado atual
-- [ ] Verificar `memory/decisions.md` — deprecar obsoletos
-- [ ] Garantir que todas as sessões têm IDs e tags
-
-## 🚨 Regras de Ouro
-
-1. **Text > Brain** — Se é importante, escreva em um arquivo
-2. **Uma ideia por nota** — Notas longas devem ser quebradas
-3. **Link tudo** — Conexões são mais importantes que hierarquias
-4. **Atualize o context.md** — Ele é o "dashboard" do projeto
-5. **Use personas** — Especialistas batem generalistas
+> **Sistema de Consciência Compartilhada entre IAs**
 
 ---
 
-*Última atualização: 2026-04-23*
-*Versão do brain: 2.0 (modular + personas)*
+## 📁 Estrutura do Brain
 
-## Regra adicional - Delegacao cientifica
-- Se a tarefa pedir subagentes, o fluxo oficial agora passa por `.brain-orchestrator/OPERACAO_AGENTES.md` e pelo protocolo `MAMIS/1`.
-- Para gerar uma equipe automaticamente, use `npm run agent:fabric -- --goal "<objetivo>"`.
-- O artefato de time gerado vira insumo para CODEX ou KIMI operarem como agente principal.
+```
+.brain/
+├── README.md                    # Visão geral do sistema
+├── index.md                     # Este arquivo (navegação)
+├── ORQUESTRADOR.md              # Decide qual personalidade usar
+├── REVISOR.md                   # Revisa e garante qualidade
+├── PLANO_ESTRATEGICO.md         # Evolução contínua do sistema
+├── QUICK_START.md               # Guia rápido de uso
+├── OPERACAO_AGENTES.md          # Regras de delegação e subagentes
+├── PRINCIPAL_AGENT_RUNTIME.md   # Ciclo operacional do agente principal
+├── BRAIN_SYNC_RUNTIME.md        # Protocolo de sincronização
+├── CODEX_KIMI_CONSENSUS_PROTOCOL.md  # Protocolo de consenso entre agentes
+├── CODEX_KIMI_TASK_ALLOCATION.md     # Alocação de tarefas entre agentes
+├── SUBAGENT_PROMPTS.md          # Prompts base para subagentes
+├── SUBAGENT_REGISTRY.json       # Registry de papéis de subagentes
+├── personalidades/              # 8 especialistas por domínio
+│   ├── 01-ARQUITETO.md
+│   ├── 02-UIUX-ENGINEER.md
+│   ├── 03-PERFORMANCE-ENGINEER.md
+│   ├── 04-TYPESCRIPT-MASTER.md
+│   ├── 05-REACT-SPECIALIST.md
+│   ├── 06-CSS-TAILWIND-EXPERT.md
+│   ├── 07-TESTING-ENGINEER.md
+│   └── 08-DX-ENGINEER.md
+├── learning/                    # Brain Learning System (BLS)
+│   ├── patterns.json
+│   ├── anti-patterns.json
+│   ├── outcomes/
+│   └── subagents/
+├── runbooks/                    # Runbooks operacionais
+│   ├── AUDIT_RUNBOOK.md
+│   ├── IMPLEMENTATION_RUNBOOK.md
+│   ├── INCIDENT_RUNBOOK.md
+│   └── RESEARCH_RUNBOOK.md
+├── knowledge/                   # Conhecimento de domínio
+│   ├── domain.md
+│   ├── stack.md
+│   ├── api.md
+│   └── adr/
+├── memory/                      # Memória persistente
+│   ├── decisions.md
+│   ├── bugs.md
+│   ├── patterns.md
+│   └── sessions/
+└── personas/                    # Personas especializadas (legado)
+    ├── architect.md
+    ├── surgeon.md
+    ├── product.md
+    └── devops.md
+```
+
+---
+
+## 🎯 Ordem de Leitura por Tarefa
+
+### Tarefa Simples (correção, typo)
+1. `REVISOR.md` — checklist básico
+
+### Tarefa Média (feature, componente)
+1. `ORQUESTRADOR.md` — decidir personalidades
+2. Personalidades relevantes
+3. `REVISOR.md` — checklist
+
+### Tarefa Grande (refactor, arquitetura)
+1. `README.md` — visão geral
+2. `ORQUESTRADOR.md` — decidir personalidades
+3. `OPERACAO_AGENTES.md` — se precisar de subagentes
+4. Personalidades relevantes
+5. `SUBAGENT_PROMPTS.md` — se delegar
+6. `REVISOR.md` — checklist completo
+
+### Tarefa com Delegação (paralelismo)
+1. `README.md`
+2. `ORQUESTRADOR.md`
+3. `OPERACAO_AGENTES.md`
+4. `PRINCIPAL_AGENT_RUNTIME.md`
+5. Personalidades relevantes
+6. `SUBAGENT_PROMPTS.md`
+7. `REVISOR.md`
+
+---
+
+## 🎭 Catálogo de Personalidades
+
+| # | Personalidade | Ativa quando |
+|---|---------------|-------------|
+| 01 | **ARQUITETO** | Estrutura, módulos, decisões arquiteturais |
+| 02 | **UI/UX ENGINEER** | Componentes visuais, design system, a11y |
+| 03 | **PERFORMANCE ENGINEER** | Lentidão, bundle, memoização |
+| 04 | **TYPESCRIPT MASTER** | Tipos complexos, generics, strict mode |
+| 05 | **REACT SPECIALIST** | Hooks, state management, patterns |
+| 06 | **CSS/TAILWIND EXPERT** | Estilos, responsividade, design tokens |
+| 07 | **TESTING ENGINEER** | Testes, mocks, cobertura, TDD |
+| 08 | **DX ENGINEER** | Tooling, scripts, CI/CD, automação |
+
+---
+
+## 🚀 Comandos Disponíveis
+
+```bash
+# Dashboard ao vivo (interface web "cérebro vivo")
+npm run brain:live
+# http://localhost:3333
+
+# Sincronização
+npm run brain:sync:principal
+npm run brain:sync:watch
+
+# Snapshot e rollback
+npm run brain:snapshot
+npm run brain:rollback -- --snapshot <id>
+
+# Fabricação de equipe de subagentes
+npm run agent:fabric -- --goal "<objetivo>"
+```
+
+---
+
+## 🧠 Brain Learning System (BLS)
+
+```
+1. DETECÇÃO      → Novo padrão, bug, decisão ou edge case
+2. CLASSIFICAÇÃO → Personalidade, categoria, impacto
+3. REGISTRO      → patterns.json, anti-patterns.json, outcomes/
+4. PROPAGAÇÃO    → Atualizar personalidades afetadas
+5. SINCRONIZAÇÃO → brain:sync:principal
+```
+
+---
+
+## 🤖 Agentes Principais
+
+- **KIMI** — Discovery, proposta, expansão estratégica, execução ampla
+- **CODEX** — Hardening, runtime crítico, consolidação de verdade operacional
+
+---
+
+**Status:** ✅ Sistema Ativo  
+**Versão:** 2.1 (unificado)  
+**Última atualização:** 2026-04-26  
+**Autores:** CODEX + KIMI

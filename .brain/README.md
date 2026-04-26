@@ -10,39 +10,58 @@ Este diretório é o **cérebro canônico** — um sistema de memória persisten
 
 Funciona para **qualquer projeto**: web apps, mobile, backend, infraestrutura, data science, etc.
 
+---
+
 ## 🧬 Arquitetura
 
 ```
 .brain/                          # Brain principal (canônico)
 ├── README.md                    # Este arquivo
+├── index.md                     # Índice de navegação
 ├── ORQUESTRADOR.md              # Decide qual personalidade usar
 ├── REVISOR.md                   # Revisa e garante qualidade
 ├── PLANO_ESTRATEGICO.md         # Evolução contínua do sistema
-├── personalidades/              # Especialistas por domínio
+├── QUICK_START.md               # Guia rápido de uso
+├── OPERACAO_AGENTES.md          # Regras de delegação e subagentes
+├── PRINCIPAL_AGENT_RUNTIME.md   # Ciclo operacional do agente principal
+├── BRAIN_SYNC_RUNTIME.md        # Protocolo de sincronização
+├── CODEX_KIMI_CONSENSUS_PROTOCOL.md  # Protocolo de consenso entre agentes
+├── CODEX_KIMI_TASK_ALLOCATION.md     # Alocação de tarefas entre agentes
+├── SUBAGENT_PROMPTS.md          # Prompts base para subagentes
+├── SUBAGENT_REGISTRY.json       # Registry de papéis de subagentes
+├── personalidades/              # 8 especialistas por domínio
 │   ├── 01-ARQUITETO.md          # Arquitetura & Patterns
 │   ├── 02-UIUX-ENGINEER.md      # Design Systems & A11y
-│   ├── 03-PERFORMANCE.md        # Otimização & Bundle
+│   ├── 03-PERFORMANCE-ENGINEER.md  # Otimização & Bundle
 │   ├── 04-TYPESCRIPT-MASTER.md  # Tipos Avançados
-│   ├── 05-REACT-ESPECIALISTA.md # Patterns React
-│   ├── 06-CSS-TAILWIND-EXPERT.md # Estilos Avançados
+│   ├── 05-REACT-SPECIALIST.md   # Patterns React
+│   ├── 06-CSS-TAILWIND-EXPERT.md   # Estilos Avançados
 │   ├── 07-TESTING-ENGINEER.md   # Testes & QA
 │   └── 08-DX-ENGINEER.md        # Developer Experience
 ├── learning/                    # Brain Learning System (BLS)
 │   ├── patterns.json            # Padrões descobertos
 │   ├── anti-patterns.json       # Anti-patterns
-│   └── outcomes/                # Resultados de ações
-├── projects/                    # Mirrors de projetos
-│   └── <project-slug>/
-│       ├── project-brain/       # Espelho do .brain do projeto
-│       ├── project-brain-orchestrator/  # Espelho do orchestrator
-│       ├── snapshots/           # Snapshots periódicos
-│       ├── SYNC.json            # Estado do último sync
-│       └── ROLLBACK.json        # Pontos de restauração
-├── DASHBOARD.md                 # Dashboard global de maturidade
-├── DASHBOARD.json               # Dados do dashboard
-├── METRICS_SCHEMA.json          # Schema de métricas
-└── PROJECTS.json                # Catálogo de projetos
+│   ├── outcomes/                # Resultados de ações
+│   └── subagents/               # Templates de subagentes
+├── runbooks/                    # Runbooks operacionais
+│   ├── AUDIT_RUNBOOK.md
+│   ├── IMPLEMENTATION_RUNBOOK.md
+│   ├── INCIDENT_RUNBOOK.md
+│   └── RESEARCH_RUNBOOK.md
+├── knowledge/                   # Conhecimento de domínio
+│   ├── domain.md
+│   ├── stack.md
+│   ├── api.md
+│   └── adr/
+├── memory/                      # Memória persistente
+│   ├── decisions.md
+│   ├── bugs.md
+│   ├── patterns.md
+│   └── sessions/
+└── personas/                    # Personas legado (architect, surgeon, etc.)
 ```
+
+---
 
 ## 🎭 Personalidades
 
@@ -61,15 +80,19 @@ Cada personalidade é um "especialista" que define:
 | 02 | UI/UX ENGINEER | Componentes visuais, design system, a11y |
 | 03 | PERFORMANCE ENGINEER | Lentidão, bundle, memoização |
 | 04 | TYPESCRIPT MASTER | Tipos complexos, generics, strict mode |
-| 05 | REACT ESPECIALISTA | Hooks, state management, patterns |
+| 05 | REACT SPECIALIST | Hooks, state management, patterns |
 | 06 | CSS/TAILWIND EXPERT | Estilos, responsividade, design tokens |
 | 07 | TESTING ENGINEER | Testes, mocks, cobertura, TDD |
 | 08 | DX ENGINEER | Tooling, scripts, CI/CD, automação |
 
+---
+
 ## 🤖 Agentes Principais
 
-- **CODEX** — Hardening, runtime crítico, consolidação de verdade operacional
 - **KIMI** — Discovery, proposta, expansão estratégica, execução ampla
+- **CODEX** — Hardening, runtime crítico, consolidação de verdade operacional
+
+---
 
 ## 🔄 Fluxo de Trabalho
 
@@ -91,6 +114,8 @@ Cada personalidade é um "especialista" que define:
 8. Sync para brain principal
 ```
 
+---
+
 ## 📋 Regras de Ouro
 
 1. **SEMPRE** consultar o ORQUESTRADOR antes de começar
@@ -100,6 +125,8 @@ Cada personalidade é um "especialista" que define:
 5. **SEMPRE** justificar decisões arquiteturais
 6. **SEMPRE** registrar aprendizado no BLS após missões significativas
 7. **SEMPRE** fazer sync para o brain principal após mudanças relevantes
+
+---
 
 ## 🧠 Brain Learning System (BLS)
 
@@ -111,14 +138,13 @@ Cada personalidade é um "especialista" que define:
 5. SINCRONIZAÇÃO → brain:sync:principal
 ```
 
+---
+
 ## 🚀 Operações
 
 ```bash
 # Sync manual
 npm run brain:sync:principal
-
-# Dashboard (gera DASHBOARD.md + JSON)
-npm run brain:dashboard
 
 # Dashboard ao vivo (interface web tipo "cérebro vivo")
 npm run brain:live
@@ -133,7 +159,12 @@ npm run brain:rollback -- --snapshot <id>
 
 # Watcher (sync contínuo)
 npm run brain:sync:watch
+
+# Fabricação de equipe de subagentes
+npm run agent:fabric -- --goal "<objetivo>"
 ```
+
+---
 
 ## 🧠 Dashboard ao Vivo ("Cérebro Vivo")
 
@@ -151,9 +182,7 @@ npm run brain:live
 # http://localhost:3333
 ```
 
-## 📁 Projetos Ativos
-
-Ver `PROJECTS.md` e `PROJECTS.json` para lista de projetos espelhados.
+---
 
 ## 🎯 Status
 
@@ -165,6 +194,6 @@ Ver `PROJECTS.md` e `PROJECTS.json` para lista de projetos espelhados.
 ---
 
 **Status:** ✅ Sistema Ativo  
-**Versão:** 2.0  
+**Versão:** 2.1 (unificado)  
 **Última atualização:** 2026-04-26  
 **Autores:** CODEX + KIMI
