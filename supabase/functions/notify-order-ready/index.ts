@@ -1,7 +1,54 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-import { getCorsHeaders, checkRateLimit, getClientIP } from '../_shared/security.ts';
+
+// ── Security: CORS restricted ──
+const ALLOWED_ORIGINS = [
+  'https://cliente-pearl.vercel.app',
+  'https://kiosk-swart-delta.vercel.app',
+  'https://admin-ten-vert-54.vercel.app',
+  'https://kds-one.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('origin') || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
+
+// ── Security: Rate limiting ──
+const rateStore = new Map<string, { count: number; resetAt: number }>();
+const WINDOW_MS = 60_000;
+const MAX_REQUESTS = 30;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateStore.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateStore.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= MAX_REQUESTS) return false;
+  entry.count++;
+  return true;
+}
+
+function getClientIP(req: Request): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') || '',
@@ -30,7 +77,6 @@ serve(async (req) => {
     });
   }
 
-  // Rate limiting
   const clientIP = getClientIP(req);
   if (!checkRateLimit(clientIP)) {
     return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
@@ -92,9 +138,7 @@ serve(async (req) => {
     }
 
     const { data: subscriptions, error: subscriptionsError } = await query;
-    if (subscriptionsError) {
-      throw subscriptionsError;
-    }
+    if (subscriptionsError) throw subscriptionsError;
 
     if (!subscriptions?.length) {
       return new Response(JSON.stringify({ ok: true, delivered: 0, reason: 'no-subscriptions' }), {
@@ -107,10 +151,7 @@ serve(async (req) => {
       title: 'Seu sorvete está pronto',
       body: `Pedido #${String(order.numero_sequencial).padStart(3, '0')} pronto para retirada. Venha buscar na Tropicale.`,
       tag: `order-ready-${order.id}`,
-      data: {
-        orderId: order.id,
-        url: '/',
-      },
+      data: { orderId: order.id, url: '/' },
     });
 
     let delivered = 0;
@@ -120,10 +161,7 @@ serve(async (req) => {
       try {
         await webpush.sendNotification({
           endpoint: subscription.endpoint,
-          keys: {
-            p256dh: subscription.p256dh,
-            auth: subscription.auth,
-          },
+          keys: { p256dh: subscription.p256dh, auth: subscription.auth },
         }, payload);
         delivered += 1;
       } catch (error) {

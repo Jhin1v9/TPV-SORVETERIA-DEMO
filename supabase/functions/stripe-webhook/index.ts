@@ -11,9 +11,9 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 );
 
-// Track processed events to prevent duplicate processing (idempotency)
+// ── Security: Idempotency tracking ──
 const processedEvents = new Set<string>();
-const EVENT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const EVENT_TTL_MS = 24 * 60 * 60 * 1000;
 
 serve(async (req) => {
   if (req.method !== 'POST') {
@@ -29,12 +29,11 @@ serve(async (req) => {
     event = stripe.webhooks.constructEvent(body, signature || '', webhookSecret);
   } catch (err) {
     console.error('[stripe-webhook] Invalid signature:', err.message);
-    return new Response(`Invalid signature`, { status: 400 });
+    return new Response('Invalid signature', { status: 400 });
   }
 
   // Idempotency check
   if (processedEvents.has(event.id)) {
-    console.log(`[stripe-webhook] Event ${event.id} already processed — skipping`);
     return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
   }
 
@@ -43,7 +42,6 @@ serve(async (req) => {
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object;
         const orderId = paymentIntent.metadata?.orderId;
-
         if (orderId) {
           await supabase.rpc('confirm_order_payment', {
             order_id_input: orderId,
@@ -54,11 +52,9 @@ serve(async (req) => {
         }
         break;
       }
-
       case 'payment_intent.payment_failed': {
         const paymentIntent = event.data.object;
         const orderId = paymentIntent.metadata?.orderId;
-
         if (orderId) {
           await supabase.rpc('reject_order_payment', {
             order_id_input: orderId,
@@ -67,14 +63,11 @@ serve(async (req) => {
         }
         break;
       }
-
       default:
         console.log(`[stripe-webhook] Unhandled event: ${event.type}`);
     }
 
-    // Mark as processed
     processedEvents.add(event.id);
-    // Simple TTL cleanup (not perfect but sufficient for edge function lifecycle)
     setTimeout(() => processedEvents.delete(event.id), EVENT_TTL_MS);
 
     return new Response(JSON.stringify({ received: true }), { status: 200 });

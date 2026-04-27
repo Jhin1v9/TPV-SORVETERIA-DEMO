@@ -1,11 +1,58 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { getCorsHeaders, checkRateLimit, getClientIP } from '../_shared/security.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') || '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
 );
+
+// ── Security: CORS restricted ──
+const ALLOWED_ORIGINS = [
+  'https://cliente-pearl.vercel.app',
+  'https://kiosk-swart-delta.vercel.app',
+  'https://admin-ten-vert-54.vercel.app',
+  'https://kds-one.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:5175',
+  'http://localhost:5176',
+];
+
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('origin') || '';
+  const allowed = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowed,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
+  };
+}
+
+// ── Security: Rate limiting ──
+const rateStore = new Map<string, { count: number; resetAt: number }>();
+const WINDOW_MS = 60_000;
+const MAX_REQUESTS = 30;
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateStore.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateStore.set(ip, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= MAX_REQUESTS) return false;
+  entry.count++;
+  return true;
+}
+
+function getClientIP(req: Request): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -21,7 +68,6 @@ serve(async (req) => {
     });
   }
 
-  // Rate limiting
   const clientIP = getClientIP(req);
   if (!checkRateLimit(clientIP)) {
     return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
@@ -52,13 +98,9 @@ serve(async (req) => {
         user_agent: userAgent || req.headers.get('user-agent'),
         enabled: true,
         updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'endpoint',
-      });
+      }, { onConflict: 'endpoint' });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     return new Response(JSON.stringify({ ok: true, endpoint: subscription.endpoint }), {
       status: 200,
