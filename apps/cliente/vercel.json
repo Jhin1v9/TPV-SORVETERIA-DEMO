@@ -6,9 +6,15 @@
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
-  "env": {
-    "VITE_SUPABASE_URL": "https://dproxlygtabihfhtxdvm.supabase.co",
-    "VITE_SUPABASE_ANON_KEY": "sb_publishable_k8YlmjNQ-f5NmnEjR5oLuQ_XWEbyJkJ",
-    "VITE_WEB_PUSH_PUBLIC_KEY": "BGlt6kHZ9ReemyWQqwYpjhtsdm_O0D_jdKzXyhBB7uctpuDoJxqtH1waCIwKNEqBC5uiFF_6x_3HM-DE7O_izmA"
-  }
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    }
+  ]
 }

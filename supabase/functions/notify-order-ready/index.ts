@@ -1,12 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+import { getCorsHeaders, checkRateLimit, getClientIP } from '../_shared/security.ts';
 
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') || '',
@@ -22,6 +17,8 @@ if (publicKey && privateKey) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req);
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
@@ -29,6 +26,15 @@ serve(async (req) => {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  }
+
+  // Rate limiting
+  const clientIP = getClientIP(req);
+  if (!checkRateLimit(clientIP)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded' }), {
+      status: 429,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
@@ -122,7 +128,6 @@ serve(async (req) => {
         delivered += 1;
       } catch (error) {
         const statusCode = Number(error?.statusCode ?? error?.status ?? 0);
-        console.error('[notify-order-ready] send failure', statusCode, error?.body || error?.message || error);
         if (statusCode === 404 || statusCode === 410) {
           expiredIds.push(subscription.id);
         }
@@ -147,7 +152,7 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error('[notify-order-ready]', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

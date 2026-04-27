@@ -11,15 +11,13 @@ const supabase = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 );
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// Track processed events to prevent duplicate processing (idempotency)
+const processedEvents = new Set<string>();
+const EVENT_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+  if (req.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
   }
 
   const signature = req.headers.get('stripe-signature');
@@ -31,7 +29,13 @@ serve(async (req) => {
     event = stripe.webhooks.constructEvent(body, signature || '', webhookSecret);
   } catch (err) {
     console.error('[stripe-webhook] Invalid signature:', err.message);
-    return new Response(`Invalid signature: ${err.message}`, { status: 400 });
+    return new Response(`Invalid signature`, { status: 400 });
+  }
+
+  // Idempotency check
+  if (processedEvents.has(event.id)) {
+    console.log(`[stripe-webhook] Event ${event.id} already processed — skipping`);
+    return new Response(JSON.stringify({ received: true, duplicate: true }), { status: 200 });
   }
 
   try {
@@ -68,9 +72,14 @@ serve(async (req) => {
         console.log(`[stripe-webhook] Unhandled event: ${event.type}`);
     }
 
+    // Mark as processed
+    processedEvents.add(event.id);
+    // Simple TTL cleanup (not perfect but sufficient for edge function lifecycle)
+    setTimeout(() => processedEvents.delete(event.id), EVENT_TTL_MS);
+
     return new Response(JSON.stringify({ received: true }), { status: 200 });
   } catch (error) {
     console.error('[stripe-webhook] Error:', error);
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Internal error' }), { status: 500 });
   }
 });
