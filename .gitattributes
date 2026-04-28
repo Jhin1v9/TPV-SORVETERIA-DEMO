@@ -1,0 +1,30 @@
+# ==============================================
+# Git Attributes — Normalize line endings
+# ==============================================
+
+# Auto-detect text files and normalize line endings to LF on checkout
+* text=auto eol=lf
+
+# Ensure Windows batch scripts keep CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Ensure PowerShell scripts keep CRLF on Windows
+*.ps1 text eol=crlf
+
+# Binary files — do not modify
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.mp3 binary
+*.mp4 binary
+*.zip binary
+*.tgz binary
+*.tar.gz binary

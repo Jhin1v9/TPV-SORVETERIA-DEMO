@@ -1,9 +1,10 @@
 name: Deploy All Apps to Vercel
 
 on:
-  push:
-    branches:
-      - main
+  # Desabilitado: deploy agora é feito localmente via scripts/deploy-all.mjs
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
 
 jobs:
