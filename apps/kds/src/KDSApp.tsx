@@ -6,6 +6,10 @@ import { updateRemoteOrderStatus } from '@tpv/shared/realtime/client';
 import { generateOrderNumber } from '@tpv/shared/utils/calculos';
 import { t } from '@tpv/shared/i18n';
 import type { Locale, Pedido, PedidoStatus } from '@tpv/shared/types';
+import { calcularConsumoCarrinho } from '@tpv/shared/inventory/recipeEngine';
+import { calcularStatusIngrediente } from '@tpv/shared/inventory/ingredientOps';
+import { calcularETA, formatarETA } from '@tpv/shared/utils/etaEngine';
+import { AlertTriangle, Clock } from 'lucide-react';
 
 const statusColors: Record<PedidoStatus, string> = {
   pendiente: '#2196F3',
@@ -37,12 +41,35 @@ function OrderTimer({ startTime }: { startTime: string }) {
   );
 }
 
-function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatusChange: (id: string, status: PedidoStatus) => void; locale: Locale }) {
+function OrderCard({ pedido, onStatusChange, locale, filaKDS }: { pedido: Pedido; onStatusChange: (id: string, status: PedidoStatus) => void; locale: Locale; filaKDS: Pedido[] }) {
+  const { ingredientes } = useStore();
+
+  // Fase 17 — ETA
+  const eta = calcularETA(pedido, filaKDS);
+  const etaFormatado = formatarETA(eta, locale);
   const bgColor = statusColors[pedido.status];
   const isNew = pedido.status === 'pendiente';
-  // KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — kiosk/tpv mostram 'TPV', pwa mostra label do app cliente
   const isPwaOrder = pedido.origem === 'pwa';
   const origemLabel = isPwaOrder ? t('fromPWA', locale) : 'TPV';
+
+  // Fase 10 — Verificar ingredientes necessários para este pedido
+  const consumo = calcularConsumoCarrinho(pedido.itens.flatMap((item) => {
+    if (!item.productSnapshot) return [];
+    return [{
+      product: item.productSnapshot,
+      quantity: item.quantidade,
+      unitPrice: item.precoUnitario,
+      selections: item.selections,
+    }];
+  }));
+
+  const ingredientesFaltantes = consumo
+    .map((c) => ({ ing: ingredientes.find((i) => i.id === c.ingredienteId), qtd: c.quantidade }))
+    .filter(({ ing, qtd }) => !ing || ing.stock < qtd);
+
+  const ingredientesBaixos = consumo
+    .map((c) => ({ ing: ingredientes.find((i) => i.id === c.ingredienteId), qtd: c.quantidade }))
+    .filter(({ ing, qtd }) => ing && calcularStatusIngrediente(ing) === 'aviso' && ing.stock >= qtd);
 
   const nextStatus: Record<PedidoStatus, PedidoStatus | null> = {
     pendiente: 'preparando',
@@ -76,6 +103,13 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
             <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: bgColor }} />
             <span className="text-white/60 text-xs font-medium">{statusLabel}</span>
           </div>
+          {/* Fase 17 — ETA no KDS */}
+          {pedido.status !== 'listo' && pedido.status !== 'entregado' && pedido.status !== 'cancelado' && (
+            <div className="flex items-center gap-1 mt-1 text-amber-400 text-xs font-bold">
+              <Clock size={12} />
+              ETA: {etaFormatado}
+            </div>
+          )}
         </div>
         <OrderTimer startTime={pedido.timestampCriacao} />
       </div>
@@ -122,6 +156,30 @@ function OrderCard({ pedido, onStatusChange, locale }: { pedido: Pedido; onStatu
           </div>
         ))}
       </div>
+
+      {/* Fase 10 — Warnings de ingredientes */}
+      {ingredientesFaltantes.length > 0 && (
+        <div className="mb-3 bg-red-500/20 border border-red-500/40 rounded-lg p-2">
+          <p className="text-red-300 text-xs font-bold flex items-center gap-1">
+            <AlertTriangle size={12} />
+            Faltan ingredientes:
+          </p>
+          <p className="text-red-200 text-xs">
+            {ingredientesFaltantes.map(({ ing, qtd }) => `${ing?.nome.es || '???'} (necesita ${qtd})`).join(', ')}
+          </p>
+        </div>
+      )}
+      {ingredientesBaixos.length > 0 && ingredientesFaltantes.length === 0 && (
+        <div className="mb-3 bg-amber-500/20 border border-amber-500/40 rounded-lg p-2">
+          <p className="text-amber-300 text-xs font-bold flex items-center gap-1">
+            <AlertTriangle size={12} />
+            Ingredientes bajos:
+          </p>
+          <p className="text-amber-200 text-xs">
+            {ingredientesBaixos.map(({ ing }) => ing?.nome.es).join(', ')}
+          </p>
+        </div>
+      )}
 
       {nextStatus[pedido.status] && nextLabel && (
         <motion.button
@@ -187,6 +245,27 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
     if (status === 'listo' && soundEnabled) {
       playBeep();
       window.setTimeout(playBeep, 200);
+    }
+
+    // Fase 8 — Push notification quando pedido fica pronto
+    if (status === 'listo') {
+      const pedido = pedidos.find((p) => p.id === id);
+      if (pedido) {
+        // Tenta enviar push via Service Worker
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification('Tropicale - Pedido Listo!', {
+              body: `Pedido #${pedido.numeroSequencial.toString().padStart(3, '0')} esta listo para recoger`,
+              icon: '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png',
+              badge: '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png',
+              tag: `pedido-${pedido.id}`,
+              requireInteraction: true,
+            });
+          }).catch(() => {
+            // Fallback silencioso
+          });
+        }
+      }
     }
   };
 
@@ -267,7 +346,7 @@ export default function KDSApp({ onBack }: { onBack?: () => void } = {}) {
               {filteredOrders
                 .sort((left, right) => new Date(right.timestampCriacao).getTime() - new Date(left.timestampCriacao).getTime())
                 .map((pedido) => (
-                  <OrderCard key={pedido.id} pedido={pedido} onStatusChange={handleStatusChange} locale={locale} />
+                  <OrderCard key={pedido.id} pedido={pedido} onStatusChange={handleStatusChange} locale={locale} filaKDS={filteredOrders} />
                 ))}
             </AnimatePresence>
           </div>

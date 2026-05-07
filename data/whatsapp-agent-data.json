@@ -1,0 +1,48 @@
+{
+  "version": "7.0",
+  "updatedAt": "2026-04-30T22:51:57.460Z",
+  "stats": {
+    "totalMessages": 0,
+    "totalTasks": 0,
+    "highPriorityTasks": 0,
+    "totalIdeas": 0,
+    "totalDecisions": 0,
+    "activeGroups": 0,
+    "participants": []
+  },
+  "tasks": {
+    "high": [],
+    "medium": [],
+    "all": []
+  },
+  "ideas": [],
+  "decisions": [],
+  "recentMessages": [],
+  "projectProgress": [
+    {
+      "name": "Santafe (Paulo)",
+      "status": "Contrato fechado, aguardando pagamento",
+      "progress": 65,
+      "health": "good"
+    },
+    {
+      "name": "Superclim (Enoque)",
+      "status": "Docs em aprovação",
+      "progress": 40,
+      "health": "warning"
+    },
+    {
+      "name": "Mangá Stop",
+      "status": "Em desenvolvimento",
+      "progress": 25,
+      "health": "good"
+    },
+    {
+      "name": "SpeakEasily",
+      "status": "Planejamento",
+      "progress": 10,
+      "health": "neutral"
+    }
+  ],
+  "groups": []
+}

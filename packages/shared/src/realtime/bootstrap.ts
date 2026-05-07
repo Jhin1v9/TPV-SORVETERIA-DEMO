@@ -1,5 +1,6 @@
 import { categorias, sabores, toppings, diasVenda, establishmentMock } from '../data/mockData';
 import { categoriasCardapio, todosProdutos } from '../data/produtosLocal';
+import { ingredientes } from '../inventory/ingredientData';
 import { normalizeProdutoToProduct } from '../types';
 import type { DemoStateSnapshot } from '../types';
 
@@ -15,6 +16,7 @@ export function createBootstrapSnapshot(): DemoStateSnapshot {
     })),
     products: todosProdutos.map(normalizeProdutoToProduct),
     sabores,
+    ingredientes,
     toppings,
     pedidos: [],
     vendasHistorico: diasVenda,

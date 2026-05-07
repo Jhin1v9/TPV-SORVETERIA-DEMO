@@ -1,0 +1,11 @@
+file:///C:/Users/Administrator/Documents/sorveteria_tpv/tpv_sorveteria_demo_remote/server/demo-server.mjs:327
+      agent: state.whatsappAgent || { checkpoints: [], tasks: [], ideas: [], lastUpdate: null },
+                   ^
+
+TypeError: Cannot read properties of null (reading 'whatsappAgent')
+    at Server.<anonymous> (file:///C:/Users/Administrator/Documents/sorveteria_tpv/tpv_sorveteria_demo_remote/server/demo-server.mjs:327:20)
+    at Server.emit (node:events:508:28)
+    at parserOnIncoming (node:_http_server:1210:12)
+    at HTTPParser.parserOnHeadersComplete (node:_http_common:123:17)
+
+Node.js v24.13.0

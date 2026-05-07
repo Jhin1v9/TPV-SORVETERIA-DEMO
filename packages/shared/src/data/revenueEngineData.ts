@@ -1,0 +1,141 @@
+import type { Complementar, Bundle } from '../types';
+
+// ═══════════════════════════════════════════════════════════
+// FASE 5 — REVENUE ENGINE: Complementares e Bundles
+// ═══════════════════════════════════════════════════════════
+
+export const complementares: Complementar[] = [
+  {
+    id: 'comp_topping_choco',
+    nome: { es: 'Sirope de Chocolate', ca: 'Xarop de Xocolata', pt: 'Calda de Chocolate', en: 'Chocolate Syrup' },
+    descricao: { es: '+50ml de sirope artesanal', ca: '+50ml de xarop artesà', pt: '+50ml de calda artesanal', en: '+50ml artisan syrup' },
+    preco: 0.80,
+    imagem: '/assets/demo/topping-choco.jpg',
+    emoji: '🍫',
+    produtosAlvo: ['copo_helado_300', 'copo_helado_500', 'cono_clasico', 'sundae_chocolate', 'banana_split'],
+    categoriasAlvo: ['copas', 'helados', 'conos', 'banana-split'],
+    tipo: 'topping',
+  },
+  {
+    id: 'comp_topping_caramelo',
+    nome: { es: 'Sirope de Caramelo', ca: 'Xarop de Caramel', pt: 'Calda de Caramelo', en: 'Caramel Syrup' },
+    descricao: { es: '+50ml de caramelo salado', ca: '+50ml de caramel salat', pt: '+50ml de caramelo salgado', en: '+50ml salted caramel' },
+    preco: 0.80,
+    imagem: '/assets/demo/topping-caramelo.jpg',
+    emoji: '🍯',
+    produtosAlvo: ['copo_helado_300', 'copo_helado_500', 'cono_clasico', 'crepe_nutella', 'gofre_belga'],
+    categoriasAlvo: ['copas', 'helados', 'conos', 'gofres'],
+    tipo: 'topping',
+  },
+  {
+    id: 'comp_nata',
+    nome: { es: 'Nata Montada', ca: 'Nata Muntada', pt: 'Chantilly', en: 'Whipped Cream' },
+    descricao: { es: 'Nata fresca montada al momento', ca: 'Nata fresca muntada al moment', pt: 'Chantilly fresco na hora', en: 'Fresh whipped cream' },
+    preco: 0.60,
+    imagem: '/assets/demo/nata.jpg',
+    emoji: '☁️',
+    produtosAlvo: ['copo_helado_300', 'copo_helado_500', 'sundae_vainilla', 'sundae_chocolate', 'banana_split', 'gofre_belga'],
+    categoriasAlvo: ['copas', 'helados', 'gofres', 'banana-split'],
+    tipo: 'topping',
+  },
+  {
+    id: 'comp_granola',
+    nome: { es: 'Granola Crujiente', ca: 'Granola Cruixent', pt: 'Granola Crocante', en: 'Crunchy Granola' },
+    descricao: { es: '30g de granola casera', ca: '30g de granola casolana', pt: '30g de granola caseira', en: '30g homemade granola' },
+    preco: 0.90,
+    imagem: '/assets/demo/granola.jpg',
+    emoji: '🌾',
+    produtosAlvo: ['acai_bowl', 'acai_energia', 'yogurt_especial'],
+    categoriasAlvo: ['acai'],
+    tipo: 'extra',
+  },
+  {
+    id: 'comp_cafe',
+    nome: { es: 'Café Espresso', ca: 'Cafè Espresso', pt: 'Café Espresso', en: 'Espresso Coffee' },
+    descricao: { es: 'Café 100% arábica', ca: 'Cafè 100% aràbica', pt: 'Café 100% arábica', en: '100% arabica coffee' },
+    preco: 1.50,
+    imagem: '/assets/demo/cafe.jpg',
+    emoji: '☕',
+    produtosAlvo: [],
+    categoriasAlvo: ['copas', 'helados', 'gofres', 'souffle'],
+    tipo: 'bebida',
+  },
+  {
+    id: 'comp_agua',
+    nome: { es: 'Agua Mineral', ca: 'Aigua Mineral', pt: 'Água Mineral', en: 'Mineral Water' },
+    descricao: { es: 'Botella 50cl', ca: 'Ampolla 50cl', pt: 'Garrafa 50cl', en: '50cl bottle' },
+    preco: 1.20,
+    imagem: '/assets/demo/agua.jpg',
+    emoji: '💧',
+    produtosAlvo: [],
+    categoriasAlvo: ['copas', 'helados', 'gofres', 'souffle', 'acai'],
+    tipo: 'bebida',
+  },
+  {
+    id: 'comp_cono_extra',
+    nome: { es: 'Cono Extra Crujiente', ca: 'Cucurutxo Extra Cruixent', pt: 'Cone Extra Crocante', en: 'Extra Crunchy Cone' },
+    descricao: { es: 'Cono artesanal recién hecho', ca: 'Cucurutxo artesanal recent fet', pt: 'Cone artesanal recém-feito', en: 'Fresh handmade cone' },
+    preco: 0.50,
+    imagem: '/assets/demo/cono.jpg',
+    emoji: '🍦',
+    produtosAlvo: ['copo_helado_300', 'copo_helado_500'],
+    categoriasAlvo: ['copas', 'helados'],
+    tipo: 'acompanhamento',
+  },
+];
+
+export const bundles: Bundle[] = [
+  {
+    id: 'bundle_menu_dia',
+    nome: { es: 'Menú del Día', ca: 'Menú del Dia', pt: 'Menu do Dia', en: 'Daily Menu' },
+    descricao: { es: 'Copo 300ml + Café + Topping', ca: 'Got 300ml + Cafè + Topping', pt: 'Copo 300ml + Café + Calda', en: 'Cup 300ml + Coffee + Topping' },
+    imagem: '/assets/demo/bundle-menu-dia.jpg',
+    precoPromocional: 5.50,
+    precoOriginal: 6.80,
+    ativo: true,
+    badge: { es: 'Ahorra €1.30', ca: 'Estalvia €1.30', pt: 'Economize €1.30', en: 'Save €1.30' },
+    itens: [
+      { id: 'bi1', nome: { es: 'Base helado', ca: 'Base gelat', pt: 'Base sorvete', en: 'Ice cream base' }, tipo: 'escolha', opcoes: [
+        { produtoId: 'copo_helado_300', nome: { es: 'Copo 300ml', ca: 'Got 300ml', pt: 'Copo 300ml', en: 'Cup 300ml' } },
+        { produtoId: 'cono_clasico', nome: { es: 'Cono Clásico', ca: 'Cucurutxo Clàssic', pt: 'Cone Clássico', en: 'Classic Cone' } },
+      ], quantidade: 1 },
+      { id: 'bi2', nome: { es: 'Bebida', ca: 'Beguda', pt: 'Bebida', en: 'Drink' }, tipo: 'escolha', opcoes: [
+        { produtoId: 'cafe_espresso', nome: { es: 'Café Espresso', ca: 'Cafè Espresso', pt: 'Café Espresso', en: 'Espresso' } },
+        { produtoId: 'agua_mineral', nome: { es: 'Agua Mineral', ca: 'Aigua Mineral', pt: 'Água Mineral', en: 'Mineral Water' } },
+      ], quantidade: 1 },
+      { id: 'bi3', nome: { es: 'Topping', ca: 'Topping', pt: 'Cobertura', en: 'Topping' }, tipo: 'escolha', opcoes: [
+        { produtoId: 'comp_topping_choco', nome: { es: 'Sirope Chocolate', ca: 'Xarop Xocolata', pt: 'Calda Chocolate', en: 'Chocolate Syrup' } },
+        { produtoId: 'comp_topping_caramelo', nome: { es: 'Sirope Caramelo', ca: 'Xarop Caramel', pt: 'Calda Caramelo', en: 'Caramel Syrup' } },
+        { produtoId: 'comp_nata', nome: { es: 'Nata Montada', ca: 'Nata Muntada', pt: 'Chantilly', en: 'Whipped Cream' } },
+      ], quantidade: 1 },
+    ],
+  },
+  {
+    id: 'bundle_duo_helado',
+    nome: { es: 'Duo Helado', ca: 'Duo Gelat', pt: 'Duo Sorvete', en: 'Ice Cream Duo' },
+    descricao: { es: '2 Copos 300ml por el precio de 1.5', ca: '2 Gots 300ml pel preu de 1.5', pt: '2 Copos 300ml pelo preço de 1.5', en: '2 Cups 300ml for the price of 1.5' },
+    imagem: '/assets/demo/bundle-duo.jpg',
+    precoPromocional: 5.25,
+    precoOriginal: 7.00,
+    ativo: true,
+    badge: { es: '2x1.5', ca: '2x1.5', pt: '2x1.5', en: '2x1.5' },
+    itens: [
+      { id: 'bi4', nome: { es: 'Primer copo', ca: 'Primer got', pt: 'Primeiro copo', en: 'First cup' }, tipo: 'fixo', produtoId: 'copo_helado_300', quantidade: 1 },
+      { id: 'bi5', nome: { es: 'Segundo copo', ca: 'Segon got', pt: 'Segundo copo', en: 'Second cup' }, tipo: 'fixo', produtoId: 'copo_helado_300', quantidade: 1 },
+    ],
+  },
+  {
+    id: 'bundle_familia',
+    nome: { es: 'Pack Familia', ca: 'Pack Família', pt: 'Pack Família', en: 'Family Pack' },
+    descricao: { es: 'Tarrina 1L + 4 Conos', ca: 'Tarrina 1L + 4 Cucurutxos', pt: 'Pote 1L + 4 Cones', en: 'Tub 1L + 4 Cones' },
+    imagem: '/assets/demo/bundle-familia.jpg',
+    precoPromocional: 14.50,
+    precoOriginal: 17.20,
+    ativo: true,
+    badge: { es: 'Ahorra €2.70', ca: 'Estalvia €2.70', pt: 'Economize €2.70', en: 'Save €2.70' },
+    itens: [
+      { id: 'bi6', nome: { es: 'Tarrina 1L', ca: 'Tarrina 1L', pt: 'Pote 1L', en: 'Tub 1L' }, tipo: 'fixo', produtoId: 'pote_1l', quantidade: 1 },
+      { id: 'bi7', nome: { es: 'Conos', ca: 'Cucurutxos', pt: 'Cones', en: 'Cones' }, tipo: 'fixo', produtoId: 'cono_clasico', quantidade: 4 },
+    ],
+  },
+];

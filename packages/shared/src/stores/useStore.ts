@@ -13,9 +13,14 @@ import type {
   ProductCategory,
   PerfilUsuario,
   Alergeno,
+  Ingrediente,
+  LoyaltyProfile,
 } from '../types';
-import { categorias as cats, sabores as sabs, toppings as tops, diasVenda, establishmentMock } from '../data/mockData';
+import { categorias as cats, sabores as sabs, toppings as tops, diasVenda, clientes } from '../data/mockData';
+import { complementares, bundles } from '../data/revenueEngineData';
 import { DEMO_PROMO_CODE, DEMO_PROMO_RATE, defaultCheckoutState } from '../utils/pricing';
+import { criarLoyaltyProfileInicial, acumularPontos, resgatarPontos } from '../utils/loyalty';
+import { ingredientes as ingredientesIniciais } from '../inventory/ingredientData';
 
 interface AppState {
   locale: Locale;
@@ -63,9 +68,44 @@ interface AppState {
   pedidos: Pedido[];
   vendasHistorico: typeof diasVenda;
   establishment: EstablishmentSettings;
+  clientes: typeof clientes;
 
   isAdminLogged: boolean;
   setAdminLogged: (value: boolean) => void;
+
+  // ═══ FASE 5 — Revenue Engine ═══
+  complementares: typeof complementares;
+  bundles: typeof bundles;
+  /** Desconto aplicado por bundle ativo (em €) */
+  bundleDiscount: number;
+  /** ID do bundle ativo no carrinho */
+  activeBundleId: string | null;
+  setBundleDiscount: (discount: number, bundleId: string | null) => void;
+
+  // ═══ FASE 6 — Loyalty Program ═══
+  loyalty: LoyaltyProfile;
+  acumularPontosPedido: (valorPedido: number, pedidoId: string) => void;
+  resgatarPontosCheckout: (pontos: number) => number;
+
+  // ═══ FASE 7 — Auto-Ops ═══
+  auto86Enabled: boolean;
+  setAuto86Enabled: (value: boolean) => void;
+
+  // ═══ FASE 10 — Ingredient-level Inventory ═══
+  ingredientes: Ingrediente[];
+  setIngredientes: (ingredientes: Ingrediente[]) => void;
+  atualizarIngredienteStock: (id: string, delta: number) => void;
+
+  // ═══ FASE 12 — AI-Driven Ops ═══
+  dynamicPricingEnabled: boolean;
+  setDynamicPricingEnabled: (value: boolean) => void;
+  surgeMultiplier: number;
+  setSurgeMultiplier: (value: number) => void;
+
+  // ═══ FASE 15 — Favoritos + One-Tap Reorder ═══
+  favoritos: string[];
+  toggleFavorito: (productId: string) => void;
+  isFavorito: (productId: string) => boolean;
 
   // Perfil do usuário (alergias + auth)
   perfilUsuario: PerfilUsuario | null;
@@ -89,6 +129,7 @@ export const useStore = create<AppState>()(
         productCategories: snapshot.productCategories,
         products: snapshot.products,
         sabores: snapshot.sabores,
+        ingredientes: snapshot.ingredientes ?? ingredientesIniciais,
         toppings: snapshot.toppings,
         pedidos: snapshot.pedidos,
         vendasHistorico: snapshot.vendasHistorico,
@@ -141,6 +182,8 @@ export const useStore = create<AppState>()(
         selectedSabores: [],
         selectedToppings: [],
         selectedCategoria: null,
+        bundleDiscount: 0,
+        activeBundleId: null,
       }),
       currentPedido: null,
       setCurrentPedido: (currentPedido) => set({ currentPedido }),
@@ -193,10 +236,68 @@ export const useStore = create<AppState>()(
       toppings: tops,
       pedidos: [],
       vendasHistorico: diasVenda,
-      establishment: establishmentMock,
+      clientes,
+      establishment: { name: 'Tropicale', nif: 'B12345678', address: 'Calle Mayor 123', summerHours: '10:00-22:00', winterHours: '11:00-21:00' },
+      complementares,
+      bundles,
+      bundleDiscount: 0,
+      activeBundleId: null,
+      setBundleDiscount: (bundleDiscount, activeBundleId) => set({ bundleDiscount, activeBundleId }),
 
       isAdminLogged: false,
       setAdminLogged: (isAdminLogged) => set({ isAdminLogged }),
+
+      // ═══ FASE 6 — Loyalty Program ═══
+      loyalty: criarLoyaltyProfileInicial(),
+
+      // ═══ FASE 7 — Auto-Ops ═══
+      auto86Enabled: true,
+      setAuto86Enabled: (auto86Enabled) => set({ auto86Enabled }),
+
+      // ═══ FASE 10 — Ingredient-level Inventory ═══
+      ingredientes: ingredientesIniciais,
+      setIngredientes: (ingredientes) => set({ ingredientes }),
+      atualizarIngredienteStock: (id, delta) => {
+        const state = get();
+        set({
+          ingredientes: state.ingredientes.map((ing) =>
+            ing.id === id
+              ? { ...ing, stock: Math.max(0, Number((ing.stock + delta).toFixed(3))) }
+              : ing,
+          ),
+        });
+      },
+
+      // ═══ FASE 12 — AI-Driven Ops ═══
+      dynamicPricingEnabled: true,
+      setDynamicPricingEnabled: (value) => set({ dynamicPricingEnabled: value }),
+      surgeMultiplier: 1.0,
+      setSurgeMultiplier: (value) => set({ surgeMultiplier: value }),
+
+      // ═══ FASE 15 — Favoritos + One-Tap Reorder ═══
+      favoritos: [],
+      toggleFavorito: (productId) => {
+        const state = get();
+        const isFav = state.favoritos.includes(productId);
+        set({
+          favoritos: isFav
+            ? state.favoritos.filter((id) => id !== productId)
+            : [...state.favoritos, productId],
+        });
+      },
+      isFavorito: (productId) => get().favoritos.includes(productId),
+
+      acumularPontosPedido: (valorPedido, pedidoId) => {
+        const state = get();
+        const novo = acumularPontos(state.loyalty, valorPedido, pedidoId, `Pedido #${pedidoId}`);
+        set({ loyalty: novo });
+      },
+      resgatarPontosCheckout: (pontos) => {
+        const state = get();
+        const { novoProfile, descontoEuros } = resgatarPontos(state.loyalty, pontos);
+        set({ loyalty: novoProfile });
+        return descontoEuros;
+      },
 
       perfilUsuario: null,
       setPerfilUsuario: (perfilUsuario) => set({ perfilUsuario }),
@@ -216,7 +317,7 @@ export const useStore = create<AppState>()(
         const perfil = get().perfilUsuario;
         return perfil?.temAlergias && perfil.alergias.includes(alergeno) || false;
       },
-      logout: () => set({ perfilUsuario: null, carrinho: [] }),
+      logout: () => set({ perfilUsuario: null, carrinho: [], loyalty: criarLoyaltyProfileInicial() }),
       loginByPhone: (telefone: string) => {
         const { findUserByPhone } = require('../lib/authMock');
         const user = findUserByPhone(telefone);
@@ -231,6 +332,9 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({
         locale: state.locale,
         perfilUsuario: state.perfilUsuario,
+        loyalty: state.loyalty,
+        auto86Enabled: state.auto86Enabled,
+        favoritos: state.favoritos,
         // NOTA DE SEGURANÇA: isAdminLogged NÃO é persistido.
         // O admin deve fazer login novamente ao recarregar a página.
       }),

@@ -6,6 +6,7 @@ import { useRealtimeSync } from '@tpv/shared';
 import { t } from '@tpv/shared/i18n';
 import { useIdleTimeout } from '@tpv/shared/hooks/useIdleTimeout';
 import IdleTimeoutModal from '@tpv/shared/components/IdleTimeoutModal';
+import { useOfflineStatus } from '@tpv/shared/offline';
 import CardapioPage from './pages/CardapioPage';
 import CarrinhoPage from './pages/CarrinhoPage';
 import PedidosPage from './pages/PedidosPage';
@@ -13,16 +14,30 @@ import ConfigPage from './pages/ConfigPage';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import { useOnboarding } from './hooks/useOnboarding';
 import { syncPushSubscriptionForPerfil } from './lib/pushNotifications';
+import { useOrderNotifications } from '@tpv/shared/hooks/useOrderNotifications';
+import NotificationPermission from '@tpv/shared/components/NotificationPermission';
+import LoyaltyBadge from './components/LoyaltyBadge';
 
 type ClienteTab = 'cardapio' | 'carrinho' | 'pedidos' | 'config';
 const CLIENTE_LOGO_SRC = '/assets/logo/ChatGPT%20Image%2025%20abr%202026,%2008_46_42.png';
 
 export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
   useRealtimeSync();
-  const { locale, perfilUsuario } = useStore();
+  const { locale, perfilUsuario, pedidos } = useStore();
   const [tab, setTab] = useState<ClienteTab>('cardapio');
+  const offline = useOfflineStatus();
   const onboarding = useOnboarding();
   const isOnboardingActive = onboarding.step !== 'complete';
+
+  // Fase 16 — Notificações de status do pedido
+  const meusPedidoIds = perfilUsuario?.id
+    ? pedidos.filter((p) => p.customerId === perfilUsuario.id || p.clienteTelefone === perfilUsuario.telefone).map((p) => p.id)
+    : [];
+  useOrderNotifications(pedidos, meusPedidoIds, {
+    enabled: !isOnboardingActive && Notification.permission === 'granted',
+    soundEnabled: true,
+    vibrateEnabled: true,
+  });
 
   useEffect(() => {
     if (isOnboardingActive || !perfilUsuario) {
@@ -82,6 +97,22 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
       {/* App só renderiza quando onboarding está completo */}
       {!isOnboardingActive && (
         <div className="h-screen w-screen bg-[#F5F5F5] flex flex-col overflow-hidden">
+          {/* Fase 9 — Banner offline */}
+          <AnimatePresence>
+            {!offline.isOnline && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="bg-[#ffa502] text-white text-xs font-semibold text-center px-3 py-1.5 overflow-hidden"
+              >
+                {offline.isLieFi
+                  ? '⚠️ Conexión inestable — pedidos se guardarán y enviarán automáticamente'
+                  : '📡 Sin conexión — pedidos se guardarán y enviarán automáticamente'}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Header */}
           <header className="bg-white/80 backdrop-blur border-b border-black/5 px-4 py-3 flex items-center justify-between sticky top-0 z-30">
             {/* KIMI REVISAO OK TESTE EXAUSTIVO PRA PROCURAR BUGS — seta só aparece quando onBack existe; logo centralizada */}
@@ -101,11 +132,16 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
                 className="h-20 w-auto max-w-[260px] object-contain"
               />
             </div>
-            <div className="w-10" />
+            <div className="w-10 flex items-center justify-end">
+              <LoyaltyBadge />
+            </div>
           </header>
 
           {/* Content */}
           <main className="flex-1 overflow-y-auto pb-20">
+            {/* Fase 16 — Banner de permissão de notificações */}
+            <NotificationPermission locale={locale} />
+
             <AnimatePresence mode="wait">
               {tab === 'cardapio' && (
                 <motion.div key="cardapio" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
@@ -171,6 +207,9 @@ export default function ClienteApp({ onBack }: { onBack?: () => void } = {}) {
                 {tItem.id === 'carrinho' && (
                   <CarrinhoBadge />
                 )}
+                {tItem.id === 'pedidos' && offline.pendingCount > 0 && (
+                  <PendingBadge count={offline.pendingCount} />
+                )}
               </button>
             ))}
           </nav>
@@ -193,6 +232,20 @@ function CarrinhoBadge() {
       className="absolute -top-1 right-2 bg-[#FF6B9D] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
     >
       {total}
+    </motion.span>
+  );
+}
+
+function PendingBadge({ count }: { count: number }) {
+  return (
+    <motion.span
+      key={count}
+      initial={{ scale: 1.5 }}
+      animate={{ scale: 1 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 15 }}
+      className="absolute -top-1 right-2 bg-[#ffa502] text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center"
+    >
+      {count}
     </motion.span>
   );
 }

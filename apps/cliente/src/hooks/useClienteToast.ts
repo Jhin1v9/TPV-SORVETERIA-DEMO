@@ -53,5 +53,11 @@ export function useClienteToast() {
         description: `Pedido #${orderNumber} — ${count} producto${count > 1 ? 's' : ''} añadidos al carrito`,
         duration: 3000,
       }),
+
+    success: (message: string) =>
+      toast.success(t('success', locale), {
+        description: message,
+        duration: 4000,
+      }),
   };
 }

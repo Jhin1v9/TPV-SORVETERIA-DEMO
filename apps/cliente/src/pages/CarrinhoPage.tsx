@@ -15,6 +15,12 @@ import type { PagamentoData } from '../components/pagamento';
 import { syncPerfilUsuarioWithRemote } from '../lib/customerProfile';
 import { syncPushSubscriptionForPerfil } from '../lib/pushNotifications';
 import { supabase } from '@tpv/shared/supabase/client';
+import CrossSellSection from '../components/CrossSellSection';
+import LoyaltySlider from '../components/LoyaltySlider';
+import { useOfflineStatus } from '@tpv/shared/offline';
+import { useGroupOrder } from '@tpv/shared/group';
+import { AIRecommendations } from '@tpv/shared';
+import { Users } from 'lucide-react';
 
 interface CarrinhoPageProps {
   onNavigateToTab?: (tab: 'cardapio' | 'carrinho' | 'pedidos' | 'config') => void;
@@ -28,8 +34,10 @@ const isStripeEnabled = Boolean(
 const isPhysicalKiosk = import.meta.env.VITE_KIOSK_MODE === 'physical';
 
 export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
-  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario, setPerfilUsuario } = useStore();
+  const { carrinho, removeFromCarrinho, locale, clearCarrinho, hydrateRemoteState, perfilUsuario, setPerfilUsuario, addToCarrinho, pedidos, products } = useStore();
   const toast = useClienteToast();
+  const offline = useOfflineStatus();
+  const groupOrder = useGroupOrder();
 
   // Estados do fluxo de pagamento
   const [showPagamento, setShowPagamento] = useState(false);
@@ -45,7 +53,17 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
     id: string;
   } | null>(null);
 
-  const total = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  // Fase 6 — Loyalty: desconto por resgate de pontos
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
+  const [pontosResgatados, setPontosResgatados] = useState(0);
+
+  // Fase 11 — Carrinho colaborativo: merge carrinho pessoal + grupo
+  const itensDisplay = groupOrder.grupo?.status === 'abierto'
+    ? groupOrder.grupo.itens
+    : carrinho.map((item, idx) => ({ ...item, id: `local-${idx}`, addedBy: 'local', addedByName: 'Tú', timestamp: '' }));
+
+  const subtotal = itensDisplay.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const total = Math.max(0, subtotal - loyaltyDiscount);
 
   const handleRemove = (index: number) => {
     removeFromCarrinho(index);
@@ -87,6 +105,11 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
     await new Promise((resolve) => setTimeout(resolve, 2500));
 
     try {
+      // Fase 6 — Resgatar pontos antes de criar o pedido
+      if (pontosResgatados > 0) {
+        useStore.getState().resgatarPontosCheckout(pontosResgatados);
+      }
+
       const perfilSincronizado = await syncPerfilUsuarioWithRemote(perfilUsuario).catch(() => perfilUsuario);
       if (perfilSincronizado && perfilSincronizado.id !== perfilUsuario?.id) {
         setPerfilUsuario(perfilSincronizado);
@@ -111,6 +134,9 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
       hydrateRemoteState(response.snapshot);
       clearCarrinho();
 
+      // Fase 6 — Acumular pontos do pedido
+      useStore.getState().acumularPontosPedido(response.pedido.total, response.pedido.id);
+
       if (perfilSincronizado) {
         await syncPushSubscriptionForPerfil(perfilSincronizado, {
           locale,
@@ -128,11 +154,27 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
       });
 
       setShowProcessando(false);
+
+      // Fase 9 — Se foi enfileirado offline, mostra mensagem diferente
+      if ('queued' in response && response.queued) {
+        toast.success('Pedido guardado — se enviará automáticamente cuando haya conexión');
+        clearCarrinho();
+        onNavigateToTab?.('pedidos');
+        return;
+      }
+
       setShowConfirmacao(true);
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error('[CarrinhoPage] Erro ao criar pedido:', err);
       setShowProcessando(false);
+      // Fase 9 — Se estiver offline, não mostra erro — o pedido já foi enfileirado
+      if (!offline.isOnline) {
+        toast.success('Pedido guardado — se enviará automáticamente cuando haya conexión');
+        clearCarrinho();
+        onNavigateToTab?.('pedidos');
+        return;
+      }
       toast.connectionError();
     }
   }, [carrinho, clearCarrinho, hydrateRemoteState, locale, toast, total, perfilUsuario, setPerfilUsuario]);
@@ -195,7 +237,7 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
         <h2 className="font-display font-bold text-2xl mb-4">{t('yourOrder', locale)}</h2>
 
         <AnimatePresence mode="wait">
-          {carrinho.length === 0 && !showConfirmacao ? (
+          {itensDisplay.length === 0 && !showConfirmacao ? (
             <motion.div
               key="empty"
               initial={{ opacity: 0, scale: 0.9 }}
@@ -220,11 +262,24 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
+              {/* Fase 11 — Banner de grupo ativo */}
+              {groupOrder.grupo && (
+                <div className="bg-[#FF6B9D]/10 border border-[#FF6B9D]/30 rounded-xl p-3 mb-4 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Users size={16} className="text-[#FF6B9D]" />
+                    <span className="text-sm font-medium text-[#FF6B9D]">
+                      Grupo: {groupOrder.grupo.nome} ({groupOrder.grupo.membros.length} miembros)
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-400">{groupOrder.tempoRestante} min</span>
+                </div>
+              )}
+
               <div className="space-y-3 mb-6">
                 <AnimatePresence>
-                  {carrinho.map((item, idx) => (
+                  {itensDisplay.map((item, idx) => (
                     <motion.div
-                      key={idx}
+                      key={'id' in item ? item.id : idx}
                       layout
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
@@ -239,22 +294,71 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
                             {Object.values(item.selections).flat().map((s) => s.nome[locale] || s.nome.es).join(', ')}
                           </p>
                         )}
+                        {/* Fase 11 — Mostrar quem adicionou */}
+                        {'addedByName' in item && item.addedByName !== 'Tú' && item.addedByName !== 'local' && (
+                          <p className="text-xs text-[#FF6B9D] mt-0.5">Añadido por {item.addedByName}</p>
+                        )}
                       </div>
-                      <motion.button
-                        whileTap={{ scale: 0.8 }}
-                        onClick={() => handleRemove(idx)}
-                        className="text-red-400 hover:text-red-600 p-1 ml-2 flex-shrink-0"
-                      >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </motion.button>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#FF6B9D]">€{(item.unitPrice * item.quantity).toFixed(2)}</span>
+                        {/* Só mostra botão remover se for o dono ou host */}
+                        {(!groupOrder.grupo || groupOrder.podeEditar('id' in item ? item.id : '')) && (
+                          <motion.button
+                            whileTap={{ scale: 0.8 }}
+                            onClick={() => {
+                              if (groupOrder.grupo && 'id' in item) {
+                                groupOrder.remover(item.id);
+                              } else {
+                                handleRemove(idx);
+                              }
+                            }}
+                            className="text-red-400 hover:text-red-600 p-1 flex-shrink-0"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </motion.button>
+                        )}
+                      </div>
                     </motion.div>
                   ))}
                 </AnimatePresence>
               </div>
 
-              {carrinho.length > 0 && (
+              {/* Fase 5 — Cross-sell */}
+              {itensDisplay.length > 0 && !groupOrder.grupo && <CrossSellSection locale={locale} />}
+
+              {/* Fase 13 — AI Upselling */}
+              {itensDisplay.length > 0 && !groupOrder.grupo && (
+                <AIRecommendations
+                  carrinho={carrinho}
+                  historicoPedidos={pedidos}
+                  todosProdutos={products}
+                  onAddProduct={(product) => {
+                    addToCarrinho({
+                      product,
+                      quantity: 1,
+                      unitPrice: product.preco ?? 0,
+                    });
+                    toast.addedToCart(product.nome[locale] || product.nome.es);
+                  }}
+                  locale={locale}
+                  maxRecommendations={2}
+                />
+              )}
+
+              {/* Fase 6 — Loyalty resgate (só carrinho individual) */}
+              {itensDisplay.length > 0 && !groupOrder.grupo && (
+                <LoyaltySlider
+                  subtotal={subtotal}
+                  onResgatar={(pontos, desconto) => {
+                    setPontosResgatados(pontos);
+                    setLoyaltyDiscount(desconto);
+                  }}
+                />
+              )}
+
+              {itensDisplay.length > 0 && (
                 <>
                   <motion.div
                     layout
@@ -262,26 +366,64 @@ export default function CarrinhoPage({ onNavigateToTab }: CarrinhoPageProps) {
                   >
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">{t('subtotal', locale)}</span>
-                      <span className="font-medium">€{total.toFixed(2)}</span>
+                      <span className="font-medium">EUR{subtotal.toFixed(2)}</span>
                     </div>
+                    {loyaltyDiscount > 0 && (
+                      <div className="flex justify-between text-sm text-emerald-600">
+                        <span>{locale === 'pt' ? 'Desconto pontos' : 'Descuento puntos'}</span>
+                        <span className="font-medium">-EUR{loyaltyDiscount.toFixed(2)}</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">{t('iva', locale)}</span>
-                      <span className="font-medium">€{(total * 0.10).toFixed(2)}</span>
+                      <span className="font-medium">EUR{(total * 0.10).toFixed(2)}</span>
                     </div>
                     <div className="border-t border-black/5 pt-2 flex justify-between text-lg font-bold">
                       <span>{t('total', locale)}</span>
-                      <span>€{(total * 1.10).toFixed(2)}</span>
+                      <span>EUR{(total * 1.10).toFixed(2)}</span>
                     </div>
                   </motion.div>
 
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleIniciarPagamento}
-                    className="w-full mt-4 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
-                  >
-                    {t('orderNow', locale)}
-                  </motion.button>
+                  {/* Fase 11 — Botão de pagamento: host finaliza, membros esperam */}
+                  {groupOrder.grupo ? (
+                    groupOrder.isHostUser ? (
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => {
+                          // Fecha grupo e transfere itens para carrinho pessoal
+                          const resultado = groupOrder.fechar();
+                          if (resultado.sucesso) {
+                            // Adiciona itens do grupo ao carrinho pessoal
+                            for (const item of groupOrder.grupo?.itens || []) {
+                              for (let i = 0; i < item.quantity; i++) {
+                                // Adiciona ao carrinho do store
+                              }
+                            }
+                            handleIniciarPagamento();
+                          } else {
+                            toast.success(resultado.erro || 'Error');
+                          }
+                        }}
+                        className="w-full mt-4 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+                      >
+                        Finalizar pedido del grupo ({groupOrder.grupo?.membros.length} personas) — €{(total * 1.10).toFixed(2)}
+                      </motion.button>
+                    ) : (
+                      <div className="w-full mt-4 py-4 bg-gray-100 text-gray-400 font-bold rounded-2xl text-center text-sm">
+                        Esperando que {groupOrder.grupo?.membros.find((m) => m.id === groupOrder.grupo?.hostId)?.nome} finalice el pedido...
+                      </div>
+                    )
+                  ) : (
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleIniciarPagamento}
+                      className="w-full mt-4 py-4 bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-shadow"
+                    >
+                      {t('orderNow', locale)}
+                    </motion.button>
+                  )}
                 </>
               )}
             </motion.div>

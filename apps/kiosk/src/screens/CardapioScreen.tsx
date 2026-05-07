@@ -4,13 +4,16 @@ import { useStore } from '@tpv/shared/stores/useStore';
 import { todosProdutos, categoriasLocal } from '@tpv/shared/data/produtosLocal';
 import type { Produto, ProdutoCategoria } from '@tpv/shared/types';
 import { isProdutoPersonalizavel } from '@tpv/shared/types';
-import { Plus, Minus, ShoppingCart, ArrowRight } from 'lucide-react';
+import { Plus, Minus, ShoppingCart, ArrowRight, Gift } from 'lucide-react';
+import { useDynamicPrice } from '@tpv/shared/hooks/useDynamicPrice';
+import DynamicPriceBadge from '@tpv/shared/components/DynamicPriceBadge';
 
 interface CardapioScreenProps {
   onBack: () => void;
   onAddToCart: (produto: Produto, quantidade: number) => void;
   onPersonalizar: (produto: Produto) => void;
   onGoToCart: () => void;
+  onGoToBundles: () => void;
   cartCount: number;
   cartTotal: number;
 }
@@ -20,6 +23,7 @@ export default function CardapioScreen({
   onAddToCart,
   onPersonalizar,
   onGoToCart,
+  onGoToBundles,
   cartCount,
   cartTotal,
 }: CardapioScreenProps) {
@@ -53,6 +57,8 @@ export default function CardapioScreen({
     setQuantidades((prev) => ({ ...prev, [produto.id]: 0 }));
   };
 
+  // Fase 14 — Preço dinâmico: usa pedidos do store
+
   return (
     <div className="h-full flex flex-col bg-[#0a0a0f]">
       {/* Header */}
@@ -63,7 +69,7 @@ export default function CardapioScreen({
           className="flex items-center gap-2 text-white/60 hover:text-white transition-colors"
         >
           <ArrowRight size={20} className="rotate-180" />
-          <span className="text-lg font-medium">Atrás</span>
+          <span className="text-lg font-medium">Atras</span>
         </motion.button>
 
         <div className="flex items-center">
@@ -74,18 +80,32 @@ export default function CardapioScreen({
           />
         </div>
 
-        <motion.button
-          onClick={onGoToCart}
-          whileTap={{ scale: 0.95 }}
-          className="relative flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors"
-        >
-          <ShoppingCart size={20} className="text-white" />
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-[#FF6B9D] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
-              {cartCount}
+        <div className="flex items-center gap-3">
+          {/* Botao Combos */}
+          <motion.button
+            onClick={onGoToBundles}
+            whileTap={{ scale: 0.95 }}
+            className="flex items-center gap-2 bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-400 px-4 py-2 rounded-xl transition-colors border border-amber-500/30"
+          >
+            <Gift size={18} />
+            <span className="font-bold text-sm">
+              {locale === 'pt' ? 'Combos' : 'Combos'}
             </span>
-          )}
-        </motion.button>
+          </motion.button>
+
+          <motion.button
+            onClick={onGoToCart}
+            whileTap={{ scale: 0.95 }}
+            className="relative flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl transition-colors"
+          >
+            <ShoppingCart size={20} className="text-white" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-[#FF6B9D] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </motion.button>
+        </div>
       </div>
 
       {/* Category tabs */}
@@ -100,7 +120,7 @@ export default function CardapioScreen({
                 : 'bg-white/5 text-white/50 hover:bg-white/10 hover:text-white'
             }`}
           >
-            🍨 Todo
+            Todo
           </motion.button>
           {categoriasLocal.map((cat) => (
             <motion.button
@@ -153,8 +173,8 @@ export default function CardapioScreen({
           >
             <ShoppingCart size={24} />
             Ver carrito
-            <span className="bg-white/20 px-3 py-1 rounded-lg">{cartCount} artículos</span>
-            <span className="font-mono">€{cartTotal.toFixed(2)}</span>
+            <span className="bg-white/20 px-3 py-1 rounded-lg">{cartCount} articulos</span>
+            <span className="font-mono">EUR{cartTotal.toFixed(2)}</span>
           </button>
         </motion.div>
       )}
@@ -180,9 +200,17 @@ function ProdutoCard({
   locale: string;
 }) {
   const nome = produto.nome[locale as keyof typeof produto.nome] || produto.nome.es;
-  const preco = 'preco' in produto ? produto.preco : produto.precoBase;
+  const precoBase = 'preco' in produto ? produto.preco : produto.precoBase;
   const personalizavel = isProdutoPersonalizavel(produto);
   const categoriaInfo = categoriasLocal.find((c) => c.id === produto.categoria);
+
+  // Fase 14 — Preço dinâmico
+  const { precoFinal, multiplier, label, cor, emoji, isDiscount, isSurge } = useDynamicPrice(
+    precoBase ?? 0,
+    [], // O KioskScreen já calcula via props
+    false, // Desabilitado no card interno, o preço já vem ajustado
+  );
+  const preco = precoFinal || precoBase;
 
   return (
     <motion.div
@@ -191,7 +219,11 @@ function ProdutoCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ delay: index * 0.03 }}
-      className="bg-white/5 rounded-2xl overflow-hidden border border-white/5 hover:border-white/10 transition-colors flex flex-col"
+      className={`rounded-2xl overflow-hidden border transition-colors flex flex-col ${
+        produto.emEstoque
+          ? 'bg-white/5 border-white/5 hover:border-white/10'
+          : 'bg-white/[0.02] border-white/[0.03] opacity-50'
+      }`}
     >
       {/* Image */}
       <div className="aspect-[4/3] relative overflow-hidden bg-gradient-to-br from-white/5 to-white/10">
@@ -208,11 +240,18 @@ function ProdutoCard({
         <div className="absolute top-3 left-3 bg-black/60 backdrop-blur px-3 py-1 rounded-full text-white/80 text-sm font-medium">
           {categoriaInfo?.emoji} {categoriaInfo?.nome[locale as keyof typeof categoriaInfo.nome] || categoriaInfo?.nome.es}
         </div>
+        {!produto.emEstoque && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <span className="bg-white/10 text-white/80 text-sm font-bold px-4 py-2 rounded-full border border-white/20">
+              {locale === 'pt' ? 'Indisponível' : 'Agotado'}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content */}
       <div className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-white text-lg leading-tight mb-1">{nome}</h3>
+        <h3 className={`font-bold text-lg leading-tight mb-1 ${produto.emEstoque ? 'text-white' : 'text-white/40'}`}>{nome}</h3>
         {produto.descricao && (
           <p className="text-white/40 text-sm line-clamp-2 mb-3">
             {produto.descricao[locale as keyof typeof produto.descricao] || produto.descricao.es}
@@ -220,43 +259,59 @@ function ProdutoCard({
         )}
 
         <div className="mt-auto">
-          <p className="text-[#FF6B9D] font-bold text-2xl mb-3">
-            €{preco.toFixed(2)}{personalizavel ? '+' : ''}
-          </p>
+          <div className="flex items-center gap-2 mb-3 flex-wrap">
+            <p className={`font-bold text-2xl ${produto.emEstoque ? 'text-[#FF6B9D]' : 'text-white/30'}`}>
+              EUR{preco.toFixed(2)}{personalizavel ? '+' : ''}
+            </p>
+            <DynamicPriceBadge
+              multiplier={multiplier}
+              label={label}
+              cor={cor}
+              emoji={emoji}
+              isDiscount={isDiscount}
+              isSurge={isSurge}
+              precoOriginal={precoBase ?? 0}
+              precoFinal={preco}
+              theme="dark"
+              size="sm"
+            />
+          </div>
 
-          {personalizavel ? (
-            <motion.button
-              whileTap={{ scale: 0.95 }}
-              onClick={onPersonalizar}
-              className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2"
-            >
-              <span>⚙️</span> Personalizar
-            </motion.button>
-          ) : (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center bg-white/10 rounded-xl">
-                <button
-                  onClick={() => onUpdateQuantidade(produto.id, -1)}
-                  className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white"
-                >
-                  <Minus size={18} />
-                </button>
-                <span className="w-10 text-center text-white font-bold text-lg">{quantidade}</span>
-                <button
-                  onClick={() => onUpdateQuantidade(produto.id, 1)}
-                  className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white"
-                >
-                  <Plus size={18} />
-                </button>
-              </div>
+          {produto.emEstoque && (
+            personalizavel ? (
               <motion.button
                 whileTap={{ scale: 0.95 }}
-                onClick={onAdd}
-                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2"
+                onClick={onPersonalizar}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2"
               >
-                <Plus size={18} /> Añadir
+                <span>⚙️</span> Personalizar
               </motion.button>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="flex items-center bg-white/10 rounded-xl">
+                  <button
+                    onClick={() => onUpdateQuantidade(produto.id, -1)}
+                    className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <span className="w-10 text-center text-white font-bold text-lg">{quantidade}</span>
+                  <button
+                    onClick={() => onUpdateQuantidade(produto.id, 1)}
+                    className="w-10 h-10 flex items-center justify-center text-white/60 hover:text-white"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={onAdd}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#FF6B9D] to-[#FFA07A] text-white font-bold text-base flex items-center justify-center gap-2"
+                >
+                  <Plus size={18} /> Anadir
+                </motion.button>
+              </div>
+            )
           )}
         </div>
       </div>

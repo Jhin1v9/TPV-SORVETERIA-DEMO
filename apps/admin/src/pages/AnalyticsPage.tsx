@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Line, LineChart } from 'recharts';
+import { tempoRealPreparo, preverDemanda30min, preparoSugerido, calcularSurgeMultiplier, identificarItensLentos, sugerirCombo, sugerirPromocao, horarioPicoDetectado } from '@tpv/shared';
 import { useStore } from '@tpv/shared/stores/useStore';
 
 function StatCard({ title, value, caption, icon }: { title: string; value: string; caption: string; icon: string }) {
@@ -24,8 +25,25 @@ function getDayKey(date: Date) {
   ].join('-');
 }
 
+function AIInsightCard({ icon, title, desc, severity }: { icon: string; title: string; desc: string; severity: 'info' | 'aviso' | 'acao' }) {
+  const colors = {
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    aviso: 'bg-amber-50 border-amber-200 text-amber-800',
+    acao: 'bg-rose-50 border-rose-200 text-rose-800',
+  };
+  return (
+    <div className={`rounded-xl p-4 border ${colors[severity]} flex items-start gap-3`}>
+      <span className="text-xl shrink-0">{icon}</span>
+      <div>
+        <p className="font-bold text-sm">{title}</p>
+        <p className="text-xs opacity-80 mt-0.5">{desc}</p>
+      </div>
+    </div>
+  );
+}
+
 export default function AnálisisPage() {
-  const { pedidos } = useStore();
+  const { pedidos, ingredientes, products, dynamicPricingEnabled, setDynamicPricingEnabled } = useStore();
   const [timeFilter, setTimeFilter] = useState<'7d' | '30d' | 'today'>('7d');
 
   const now = new Date();
@@ -116,6 +134,109 @@ export default function AnálisisPage() {
       .map(([hora, pedidos]) => ({ hora, pedidos }));
   }, [filteredOrders]);
 
+  // ═══ FASE 12 — AI Insights ═══
+  const aiInsights = useMemo(() => {
+    const insights: { icon: string; title: string; desc: string; severity: 'info' | 'aviso' | 'acao' }[] = [];
+
+    // Previsão de demanda
+    const demanda = preverDemanda30min(pedidos);
+    if (demanda.pedidosEsperados > 5) {
+      insights.push({
+        icon: '🔥',
+        title: 'Pico de demanda esperado',
+        desc: `Previsão de ${demanda.pedidosEsperados} pedidos en los próximos 30 min. Prepárate.`,
+        severity: 'acao',
+      });
+    } else if (demanda.pedidosEsperados > 2) {
+      insights.push({
+        icon: '📈',
+        title: 'Demanda moderada',
+        desc: `Se esperan ${demanda.pedidosEsperados} pedidos en los próximos 30 min.`,
+        severity: 'info',
+      });
+    }
+
+    // Preparo sugerido
+    const produtosPopulares = products.slice(0, 10).map((p) => ({ id: p.id, nome: p.nome.es, categoriaId: p.categoriaId }));
+    const preparo = preparoSugerido(pedidos, produtosPopulares);
+    if (preparo.length > 0) {
+      const top3 = preparo.slice(0, 3).map((p) => `${p.produto} (${p.quantidadeSugerida})`).join(', ');
+      insights.push({
+        icon: '🥣',
+        title: 'Preparación sugerida',
+        desc: `Prepárate: ${top3}`,
+        severity: 'aviso',
+      });
+    }
+
+    // Horário de pico
+    if (horarioPicoDetectado(pedidos)) {
+      insights.push({
+        icon: '⏰',
+        title: 'Horario pico activo',
+        desc: 'La demanda actual supera el promedio histórico. Considera activar precios dinámicos.',
+        severity: 'acao',
+      });
+    }
+
+    // Surge pricing
+    const pedidosUltimaHora = pedidos.filter((p) => {
+      const t = new Date(p.timestampCriacao).getTime();
+      return Date.now() - t < 3600000;
+    }).length;
+    const surge = calcularSurgeMultiplier(pedidosUltimaHora, 5, 20);
+    if (surge > 1.0 && dynamicPricingEnabled) {
+      insights.push({
+        icon: '💰',
+        title: 'Precio dinámico activo',
+        desc: `Multiplicador actual: ${surge.toFixed(2)}x (${surge > 1.15 ? 'alta demanda' : 'demanda moderada'}).`,
+        severity: 'info',
+      });
+    }
+
+    // Itens lentos
+    const lentos = identificarItensLentos(products, pedidos, 30);
+    if (lentos.length > 0) {
+      const nomes = lentos.slice(0, 3).map((p) => p.produto.nome.es).join(', ');
+      insights.push({
+        icon: '🐌',
+        title: 'Productos con baja rotación',
+        desc: `${nomes} — considera promociones.`,
+        severity: 'aviso',
+      });
+    }
+
+    // Combos sugeridos
+    const combos = sugerirCombo(products, pedidos);
+    if (combos.length > 0) {
+      const topCombo = combos[0];
+      const prodA = products.find((p) => p.id === topCombo.produtoA);
+      const prodB = products.find((p) => p.id === topCombo.produtoB);
+      if (prodA && prodB) {
+        insights.push({
+          icon: '🎁',
+          title: 'Combo sugerido',
+          desc: `"${prodA.nome.es}" + "${prodB.nome.es}" se compran juntos frecuentemente (confianza: ${(topCombo.confianca * 100).toFixed(0)}%).`,
+          severity: 'info',
+        });
+      }
+    }
+
+    // Promoções sugeridas
+    const promos = sugerirPromocao(products, pedidos);
+    if (promos.length > 0) {
+      const topPromo = promos[0];
+      insights.push({
+        icon: '🏷️',
+        title: 'Promoción recomendada',
+        desc: `${topPromo.razao}`,
+        severity: 'aviso',
+      });
+    }
+
+    return insights;
+  }, [pedidos, ingredientes, products, dynamicPricingEnabled]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -134,6 +255,40 @@ export default function AnálisisPage() {
           ))}
         </div>
       </div>
+
+      {/* Toggle Precio Dinámico */}
+      <div className="flex items-center justify-between mb-6 bg-white rounded-2xl p-4 shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="text-2xl">🤖</span>
+          <div>
+            <p className="font-bold text-gray-800">AI-Driven Ops</p>
+            <p className="text-xs text-gray-400">Precios dinámicos, previsiones y recomendaciones</p>
+          </div>
+        </div>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <span className="text-sm text-gray-500">Precio dinámico</span>
+          <button
+            onClick={() => setDynamicPricingEnabled(!dynamicPricingEnabled)}
+            className={`relative w-12 h-6 rounded-full transition-colors ${dynamicPricingEnabled ? 'bg-[#FF6B9D]' : 'bg-gray-300'}`}
+          >
+            <span className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${dynamicPricingEnabled ? 'translate-x-6' : ''}`} />
+          </button>
+        </label>
+      </div>
+
+      {/* AI Insights */}
+      {aiInsights.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <h2 className="font-display font-bold text-gray-800 mb-3 flex items-center gap-2">
+            <span>💡</span> Insights de IA
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {aiInsights.map((insight, i) => (
+              <AIInsightCard key={i} {...insight} />
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Ventas" value={`EUR ${totalVentas.toFixed(2)}`} caption="Pedidos reales" icon="💶" />
@@ -234,6 +389,51 @@ export default function AnálisisPage() {
               No hay datos de horas
             </div>
           )}
+        </motion.div>
+
+        {/* Fase 8 — Tempos de preparo */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-2xl p-5 shadow-sm">
+          <h3 className="font-display font-bold text-gray-800 mb-4">Tiempos de preparo</h3>
+          {(() => {
+            const tempos = filteredOrders
+              .map((p) => tempoRealPreparo(p))
+              .filter((t): t is number => t !== null);
+            const tempoMedio = tempos.length > 0 ? Math.round(tempos.reduce((a, b) => a + b, 0) / tempos.length) : 0;
+            const tempoMin = tempos.length > 0 ? Math.min(...tempos) : 0;
+            const tempoMax = tempos.length > 0 ? Math.max(...tempos) : 0;
+
+            return tempos.length > 0 ? (
+              <div>
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="bg-emerald-50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-emerald-600 font-medium">Media</p>
+                    <p className="font-mono text-xl font-bold text-emerald-700">{tempoMedio}m</p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-blue-600 font-medium">Min</p>
+                    <p className="font-mono text-xl font-bold text-blue-700">{tempoMin}m</p>
+                  </div>
+                  <div className="bg-amber-50 rounded-xl p-3 text-center">
+                    <p className="text-xs text-amber-600 font-medium">Max</p>
+                    <p className="font-mono text-xl font-bold text-amber-700">{tempoMax}m</p>
+                  </div>
+                </div>
+                <ResponsiveContainer width="100%" height={180}>
+                  <LineChart data={filteredOrders.filter((p) => tempoRealPreparo(p) !== null).map((p, i) => ({ idx: i + 1, min: tempoRealPreparo(p)! }))}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis dataKey="idx" tick={{ fontSize: 10, fill: '#999' }} />
+                    <YAxis tick={{ fontSize: 10, fill: '#999' }} unit="m" />
+                    <Tooltip formatter={(value: number) => [`${value} min`, 'Tiempo']} />
+                    <Line type="monotone" dataKey="min" stroke="#FF6B9D" strokeWidth={2} dot={{ r: 3, fill: '#FF6B9D' }} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[180px] flex items-center justify-center text-gray-400 text-sm">
+                No hay datos de tiempos de preparo
+              </div>
+            );
+          })()}
         </motion.div>
       </div>
     </div>

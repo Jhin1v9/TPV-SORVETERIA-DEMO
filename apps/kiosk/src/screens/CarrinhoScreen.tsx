@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Trash2, CreditCard, Smartphone, User } from 'lucide-react';
 import { useStore } from '@tpv/shared/stores/useStore';
+import { AIRecommendations } from '@tpv/shared';
 
 interface CarrinhoScreenProps {
   onBack: () => void;
@@ -12,7 +13,7 @@ interface CarrinhoScreenProps {
 }
 
 export default function CarrinhoScreen({ onBack, onPay, onCodigo, onRemove, total, linkedCustomerName }: CarrinhoScreenProps) {
-  const { carrinho, locale } = useStore();
+  const { carrinho, locale, addToCarrinho, pedidos, products } = useStore();
   const iva = total * 0.1;
   const totalConIva = total + iva;
 
@@ -82,6 +83,27 @@ export default function CarrinhoScreen({ onBack, onPay, onCodigo, onRemove, tota
           </div>
         )}
       </div>
+
+      {/* Fase 13 — AI Upselling */}
+      {carrinho.length > 0 && (
+        <div className="px-6 py-2">
+          <AIRecommendations
+            carrinho={carrinho}
+            historicoPedidos={pedidos}
+            todosProdutos={products}
+            onAddProduct={(product) => {
+              addToCarrinho({
+                product,
+                quantity: 1,
+                unitPrice: product.preco ?? 0,
+              });
+            }}
+            locale={locale}
+            maxRecommendations={2}
+            theme="dark"
+          />
+        </div>
+      )}
 
       {/* Footer totals */}
       {carrinho.length > 0 && (

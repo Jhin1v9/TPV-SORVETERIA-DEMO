@@ -1,0 +1,1901 @@
+{
+  "checkpoints": [
+    {
+      "timestamp": "2026-04-30T22:02:23.675Z",
+      "group": "🏆Production - 2026🙏",
+      "stats": {
+        "totalMessages": 180,
+        "newTasks": 6,
+        "newIdeas": 1,
+        "resolvedTasks": 0,
+        "urgency": "high",
+        "mood": "positive"
+      },
+      "analysis": {
+        "summary": "6 tarefas | 3 decisões | 1 ideias | 100 menções | 3 perguntas | 1 conclusões",
+        "tasks": [
+          {
+            "text": "Agora",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "text": "hj",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "text": "terminar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "por partes",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "atualizar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "por foto texto etc etc mas ja da pra ver o visual",
+            "priority": "medium",
+            "status": "pending"
+          }
+        ],
+        "decisions": [
+          {
+            "text": "bom a sua ideia ja vai ser pega sozinha pela kimi claw",
+            "sender": "Kuruma Netejes",
+            "time": "21:45",
+            "date": "01/05/2026",
+            "type": "decided"
+          },
+          {
+            "text": "Ou será q vamos por partes",
+            "sender": "Kuruma Netejes",
+            "time": "19:15",
+            "date": "01/05/2026",
+            "type": "decided"
+          },
+          {
+            "text": "ta pronto o dns nao, acho que daqui uma hora ou duas",
+            "sender": "Nonoke",
+            "time": "19:17",
+            "date": "01/05/2026",
+            "type": "approved"
+          }
+        ],
+        "ideas": [
+          {
+            "text": "bom a sua ideia ja vai ser pega sozinha pela kimi claw",
+            "category": "general"
+          }
+        ],
+        "mentions": [
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "olojkoooooo so projeto toooooopppp pai ja bota o swarm pra dx funvcionaaall"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "todos",
+            "from": "Kuruma Netejes",
+            "text": "Vou começar lendo os documentos enviados e entendendo o escopo completo. Depois escreverei o plano d"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          }
+        ],
+        "questions": 3
+      },
+      "messages": [
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "16:22",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "1:29",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Nonoke",
+          "text": "Para o SEO ser pica, fiz páginas separadas, tipo e duas páginas uma en esp y otra en pt",
+          "time": "16:24",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:05",
+          "time": "0:20",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Eu Más móvil Lebara",
+          "time": "1:29",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "15:36",
+          "time": "0:36",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "ja pra quando o irmao pagar ja restar do valor q a empresa vai ganhar",
+          "time": "12:22",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Superclim Limpieza De Tapicerías",
+          "time": "12:27",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Superclim Limpieza De Tapicerías",
+          "text": "Acho que ir no gestor seria depois que aprovar",
+          "time": "12:28",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Superclim Limpieza De Tapicerías",
+          "text": "Os docs",
+          "time": "12:28",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:31",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Nonoke",
+          "text": "Ja ja respondo hahaha entrei em uma call",
+          "time": "12:48",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Superclim Limpieza De Tapicerías",
+          "time": "12:58",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:59",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:00",
+          "time": "13:00",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Nonoke",
+          "time": "13:00",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "13:00",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:02",
+          "time": "13:02",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:00",
+          "time": "1:26",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:02",
+          "time": "1:30",
+          "date": "01/05/2026"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-04-30T22:27:29.716Z",
+      "group": "🏆Production - 2026🙏",
+      "stats": {
+        "totalMessages": 194,
+        "newTasks": 2,
+        "newIdeas": 0,
+        "resolvedTasks": 0,
+        "urgency": "high",
+        "mood": "positive"
+      },
+      "analysis": {
+        "summary": "9 tarefas | 3 decisões | 1 ideias | 109 menções | 3 perguntas | 1 conclusões",
+        "tasks": [
+          {
+            "text": "Agora",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "text": "Agora",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "text": "hj",
+            "priority": "high",
+            "status": "pending"
+          },
+          {
+            "text": "atualizar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "terminar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "por partes",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "por foto texto etc etc mas ja da pra ver o visual",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "fazer",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "atualizar",
+            "priority": "medium",
+            "status": "pending"
+          }
+        ],
+        "decisions": [
+          {
+            "text": "bom a sua ideia ja vai ser pega sozinha pela kimi claw",
+            "sender": "Kuruma Netejes",
+            "time": "21:45",
+            "date": "01/05/2026",
+            "type": "decided"
+          },
+          {
+            "text": "ta pronto o dns nao, acho que daqui uma hora ou duas",
+            "sender": "Nonoke",
+            "time": "19:17",
+            "date": "01/05/2026",
+            "type": "approved"
+          },
+          {
+            "text": "Ou será q vamos por partes",
+            "sender": "Kuruma Netejes",
+            "time": "19:15",
+            "date": "01/05/2026",
+            "type": "decided"
+          }
+        ],
+        "ideas": [
+          {
+            "text": "bom a sua ideia ja vai ser pega sozinha pela kimi claw",
+            "category": "general"
+          }
+        ],
+        "mentions": [
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "olojkoooooo so projeto toooooopppp pai ja bota o swarm pra dx funvcionaaall"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "todos",
+            "from": "Kuruma Netejes",
+            "text": "Vou começar lendo os documentos enviados e entendendo o escopo completo. Depois escreverei o plano d"
+          },
+          {
+            "to": "todos",
+            "from": "Kuruma Netejes",
+            "text": "Vou começar lendo os documentos enviados e entendendo o escopo completo. Depois escreverei o plano d"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          }
+        ],
+        "questions": 3
+      },
+      "messages": [
+        {
+          "sender": "Production - 2026",
+          "text": "Superclim Limpieza De Tapicerías",
+          "time": "12:27",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Superclim Limpieza De Tapicerías",
+          "text": "Acho que ir no gestor seria depois que aprovar",
+          "time": "12:28",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Superclim Limpieza De Tapicerías",
+          "text": "Os docs",
+          "time": "12:28",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:31",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Nonoke",
+          "text": "Ja ja respondo hahaha entrei em uma call",
+          "time": "12:48",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Superclim Limpieza De Tapicerías",
+          "time": "12:58",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:59",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:00",
+          "time": "1:26",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Eu Más móvil Lebara",
+          "time": "8:18",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Bom dia meu irmão, apdD! \nAtualização:\n\nO domínio www.santafe-construcciones.com é nosso! \nSeguimos avanzado na creando da página web e a primeira ver",
+          "time": "9:27",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Mando aqui tb só pra Kimi atualizar os dados dps",
+          "time": "9:28",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "9:31",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "11:49",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Nonoke",
+          "time": "11:50",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "11:50",
+          "time": "11:50",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:14",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:15",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Eu Más móvil Lebara",
+          "time": "12:16",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Eu Más móvil Lebara",
+          "time": "1:39",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "1:49",
+          "date": "01/05/2026"
+        }
+      ]
+    },
+    {
+      "timestamp": "2026-04-30T22:28:40.683Z",
+      "group": "🏆Production - 2026🙏",
+      "stats": {
+        "totalMessages": 98,
+        "newTasks": 0,
+        "newIdeas": 0,
+        "resolvedTasks": 0,
+        "urgency": "normal",
+        "mood": "positive"
+      },
+      "analysis": {
+        "summary": "4 tarefas | 2 decisões | 51 menções | 3 perguntas | 1 conclusões",
+        "tasks": [
+          {
+            "text": "por foto texto etc etc mas ja da pra ver o visual",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "atualizar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "terminar",
+            "priority": "medium",
+            "status": "pending"
+          },
+          {
+            "text": "por partes",
+            "priority": "medium",
+            "status": "pending"
+          }
+        ],
+        "decisions": [
+          {
+            "text": "Ou será q vamos por partes",
+            "sender": "Kuruma Netejes",
+            "time": "19:15",
+            "date": "01/05/2026",
+            "type": "decided"
+          },
+          {
+            "text": "ta pronto o dns nao, acho que daqui uma hora ou duas",
+            "sender": "Nonoke",
+            "time": "19:17",
+            "date": "01/05/2026",
+            "type": "approved"
+          }
+        ],
+        "ideas": [],
+        "mentions": [
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Kuruma Netejes",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Kuruma Netejes",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "nonoke",
+            "from": "Production - 2026",
+            "text": "Nonoke"
+          },
+          {
+            "to": "enoque",
+            "from": "Production - 2026",
+            "text": "Superclim Limpieza De Tapicerías"
+          }
+        ],
+        "questions": 3
+      },
+      "messages": [
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "16:22",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "1:29",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Nonoke",
+          "text": "Para o SEO ser pica, fiz páginas separadas, tipo e duas páginas uma en esp y otra en pt",
+          "time": "16:24",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "0:36",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Feshoooow meu querido Deus abençoe",
+          "time": "16:25",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "13:04",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Nonoke",
+          "time": "13:05",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:05",
+          "time": "0:20",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "1:26",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "1:30",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:59",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:00",
+          "time": "1:26",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Kuruma Netejes",
+          "text": "Nonoke",
+          "time": "13:00",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "13:00",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "13:02",
+          "time": "1:30",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "13:02",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "13:03",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Nonoke",
+          "time": "12:31",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Nonoke",
+          "text": "Ja ja respondo hahaha entrei em uma call",
+          "time": "12:48",
+          "date": "01/05/2026"
+        },
+        {
+          "sender": "Production - 2026",
+          "text": "Superclim Limpieza De Tapicerías",
+          "time": "12:58",
+          "date": "01/05/2026"
+        }
+      ]
+    }
+  ],
+  "version": "1.0"
+}

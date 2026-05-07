@@ -1,4 +1,4 @@
-import type { Pedido, PedidoStatus } from '../types';
+import type { Pedido, PedidoStatus, GroupOrder } from '../types';
 
 const CHANNEL_NAME = 'tpv_sorveteria_sabadell_v1';
 
@@ -48,6 +48,15 @@ class TPVBroadcast {
     });
   }
 
+  // Fase 11 — Group Ordering
+  atualizarGrupo(grupo: GroupOrder) {
+    this.post({
+      tipo: 'group_order_update',
+      timestamp: new Date().toISOString(),
+      dados: { grupo },
+    });
+  }
+
   private post(data: unknown) {
     if (this.channel) {
       this.channel.postMessage(data);
@@ -69,6 +78,12 @@ class TPVBroadcast {
 }
 
 export const broadcast = new TPVBroadcast();
+
+/** Fase 11 — Envia mensagem de atualização de grupo via broadcast */
+export function broadcastMessage(data: { tipo: string; timestamp: string; dados?: Record<string, unknown> }): void {
+  // @ts-expect-error — acesso ao método privado para compatibilidade
+  broadcast.post(data);
+}
 
 // LocalStorage fallback for cross-tab sync
 export function listenLocalStorage(callback: (data: unknown) => void) {

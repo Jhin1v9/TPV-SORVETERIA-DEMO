@@ -10,8 +10,10 @@ import ProdutosPage from './pages/ProdutosPage';
 import PedidosPage from './pages/PedidosPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ConfigPage from './pages/ConfigPage';
+import BundlesPage from './pages/BundlesPage';
+import LoyaltyPage from './pages/LoyaltyPage';
 
-type AdminPage = 'produtos' | 'estoque' | 'pedidos' | 'analytics' | 'config';
+type AdminPage = 'produtos' | 'estoque' | 'pedidos' | 'analytics' | 'bundles' | 'loyalty' | 'config';
 
 function useNavItems(locale: Locale) {
   return [
@@ -52,6 +54,24 @@ function useNavItems(locale: Locale) {
       ),
     },
     {
+      id: 'bundles' as const,
+      label: 'Bundles',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+        </svg>
+      ),
+    },
+    {
+      id: 'loyalty' as const,
+      label: 'Loyalty',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+      ),
+    },
+    {
       id: 'config' as const,
       label: t('config', locale),
       icon: (
@@ -66,10 +86,14 @@ function useNavItems(locale: Locale) {
 
 export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
   useRealtimeSync();
-  const { isAdminLogged, setAdminLogged, locale } = useStore();
+  const { isAdminLogged, setAdminLogged, locale, sabores } = useStore();
   const [currentPage, setCurrentPage] = useState<AdminPage>('analytics');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navItems = useNavItems(locale);
+
+  // Fase 7 — Contagem de itens em stock baixo
+  const stockCriticoCount = sabores.filter((s) => s.stockBaldes <= s.alertaStock && s.stockBaldes > 0).length;
+  const stockAgotadoCount = sabores.filter((s) => s.stockBaldes <= 0).length;
 
   if (!isAdminLogged) {
     return <LoginScreen />;
@@ -95,8 +119,22 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
             className="w-20 h-20 rounded-xl object-contain bg-white flex-shrink-0"
           />
           {!sidebarCollapsed && (
-            <div className="overflow-hidden">
+            <div className="overflow-hidden flex-1">
               <p className="text-white/60 text-xs whitespace-nowrap">Admin</p>
+              {(stockCriticoCount > 0 || stockAgotadoCount > 0) && (
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  {stockAgotadoCount > 0 && (
+                    <span className="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {stockAgotadoCount} agotado{stockAgotadoCount > 1 ? 's' : ''}
+                    </span>
+                  )}
+                  {stockCriticoCount > 0 && (
+                    <span className="bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {stockCriticoCount} crítico{stockCriticoCount > 1 ? 's' : ''}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -169,6 +207,16 @@ export default function AdminApp({ onBack }: { onBack?: () => void } = {}) {
             {currentPage === 'analytics' && (
               <motion.div key="analytics" variants={pageVariants} initial="initial" animate="animate" exit="exit">
                 <AnalyticsPage />
+              </motion.div>
+            )}
+            {currentPage === 'bundles' && (
+              <motion.div key="bundles" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                <BundlesPage />
+              </motion.div>
+            )}
+            {currentPage === 'loyalty' && (
+              <motion.div key="loyalty" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                <LoyaltyPage />
               </motion.div>
             )}
             {currentPage === 'config' && (

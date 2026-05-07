@@ -1,12 +1,16 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { useRealtimeSync } from '@tpv/shared';
 import { createRemoteOrder } from '@tpv/shared/realtime/client';
+import { useOfflineStatus } from '@tpv/shared/offline';
 import { useIdleTimeout } from '@tpv/shared/hooks/useIdleTimeout';
 import IdleTimeoutModal from '@tpv/shared/components/IdleTimeoutModal';
-import type { Produto, ProdutoPersonalizavel } from '@tpv/shared/types';
+import type { Produto, ProdutoPersonalizavel, Complementar } from '@tpv/shared/types';
 import { isProdutoPersonalizavel, normalizeProdutoToProduct } from '@tpv/shared/types';
+import { findComplementaresForProduct } from '@tpv/shared';
+import UpsellModal from './components/UpsellModal';
+import BundleScreen from './components/BundleScreen';
 import AttractScreen from './screens/AttractScreen';
 import HolaScreen from './screens/HolaScreen';
 import LoginKioskScreen from './screens/LoginKioskScreen';
@@ -17,10 +21,11 @@ import PagamentoScreen from './screens/PagamentoScreen';
 import ConfirmacaoScreen from './screens/ConfirmacaoScreen';
 import CodigoAppScreen from './screens/CodigoAppScreen';
 
-type KioskScreen = 'attract' | 'hola' | 'login' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao';
+type KioskScreen = 'attract' | 'hola' | 'login' | 'cardapio' | 'personalizacao' | 'carrinho' | 'codigo' | 'pagamento' | 'confirmacao' | 'bundles';
 
 export default function KioskApp() {
   useRealtimeSync();
+  const offline = useOfflineStatus();
   const { setScreen: _setScreen, setCurrentPedido, clearCarrinho, resetKiosk, connectionStatus, locale } = useStore();
   const [screen, setScreen] = useState<KioskScreen>('attract');
   const [produtoPersonalizando, setProdutoPersonalizando] = useState<ProdutoPersonalizavel | null>(null);
@@ -28,6 +33,10 @@ export default function KioskApp() {
   const [paymentError, setPaymentError] = useState('');
   const [linkedCustomerId, setLinkedCustomerId] = useState<string | null>(null);
   const [linkedCustomerName, setLinkedCustomerName] = useState<string | null>(null);
+  // Fase 5 — Upsell
+  const [showUpsell, setShowUpsell] = useState(false);
+  const [upsellComplementares, setUpsellComplementares] = useState<Complementar[]>([]);
+  const pendingUpsellCallbackRef = useRef<(() => void) | null>(null);
   // Idle timeout com modal "¿Sigues aquí?"
   // Só ativa em telas interativas (não no attract nem confirmação)
   const idleEnabled = screen !== 'attract' && screen !== 'confirmacao';
@@ -51,13 +60,37 @@ export default function KioskApp() {
   const cartCount = carrinho.reduce((sum, item) => sum + item.quantity, 0);
   const cartTotal = carrinho.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
+  const { complementares } = useStore();
+
+  const showUpsellForProduct = (produto: Produto, onDone: () => void) => {
+    const comps = findComplementaresForProduct(produto, complementares, 3);
+    if (comps.length === 0) {
+      onDone();
+      return;
+    }
+    setUpsellComplementares(comps);
+    pendingUpsellCallbackRef.current = onDone;
+    setShowUpsell(true);
+  };
+
+  const finishUpsell = useCallback(() => {
+    const callback = pendingUpsellCallbackRef.current;
+    pendingUpsellCallbackRef.current = null;
+    setShowUpsell(false);
+    setUpsellComplementares([]);
+    callback?.();
+  }, []);
+
   const handleAddToCart = (produto: Produto, quantidade: number) => {
     const preco = 'preco' in produto ? produto.preco : produto.precoBase;
     const product = normalizeProdutoToProduct(produto);
-    addToCarrinho({
-      product,
-      quantity: quantidade,
-      unitPrice: preco,
+
+    showUpsellForProduct(produto, () => {
+      addToCarrinho({
+        product,
+        quantity: quantidade,
+        unitPrice: preco,
+      });
     });
   };
 
@@ -92,14 +125,17 @@ export default function KioskApp() {
     });
 
     const product = normalizeProdutoToProduct(produto);
-    addToCarrinho({
-      product,
-      quantity: 1,
-      selections,
-      unitPrice: preco,
+
+    showUpsellForProduct(produto, () => {
+      addToCarrinho({
+        product,
+        quantity: 1,
+        selections,
+        unitPrice: preco,
+      });
+      setProdutoPersonalizando(null);
+      setScreen('cardapio');
     });
-    setProdutoPersonalizando(null);
-    setScreen('cardapio');
   };
 
   const handleRemoveFromCart = (index: number) => {
@@ -128,6 +164,10 @@ export default function KioskApp() {
 
       useStore.getState().hydrateRemoteState(response.snapshot);
       setCurrentPedido(response.pedido);
+
+      // Fase 6 — Acumular pontos do pedido (se cliente vinculado)
+      useStore.getState().acumularPontosPedido(response.pedido.total, response.pedido.id);
+
       clearCarrinho();
       setScreen('confirmacao');
     } catch (error) {
@@ -137,11 +177,52 @@ export default function KioskApp() {
     }
   };
 
+  const handleAddComplementar = (comp: Complementar) => {
+    // Adiciona complementar como um produto fixo no carrinho
+    const product = normalizeProdutoToProduct({
+      id: comp.id,
+      nome: comp.nome,
+      preco: comp.preco,
+      imagem: comp.imagem,
+      categoria: 'para-llevar' as import('@tpv/shared/types').ProdutoCategoria,
+      emEstoque: true,
+      alergenos: [],
+    } as import('@tpv/shared/types').ProdutoFixo);
+    addToCarrinho({
+      product,
+      quantity: 1,
+      unitPrice: comp.preco,
+    });
+  };
+
+  const handleAddBundle = (bundle: import('@tpv/shared/types').Bundle) => {
+    // Converte itens do bundle em CartItems
+    for (const item of bundle.itens) {
+      const produtoId = item.tipo === 'fixo' ? item.produtoId : item.opcaoSelecionada;
+      if (!produtoId) continue;
+      // Busca o produto nos dados locais
+      const { todosProdutos } = require('@tpv/shared/data/produtosLocal');
+      const produto = todosProdutos.find((p: Produto) => p.id === produtoId);
+      if (!produto) continue;
+      const preco = 'preco' in produto ? produto.preco : produto.precoBase ?? 0;
+      const product = normalizeProdutoToProduct(produto);
+      addToCarrinho({
+        product,
+        quantity: item.quantidade,
+        unitPrice: preco,
+      });
+    }
+    setScreen('carrinho');
+  };
+
   const handleReset = () => {
     clearCarrinho();
     setProdutoPersonalizando(null);
     setLinkedCustomerId(null);
     setLinkedCustomerName(null);
+    setShowUpsell(false);
+    setUpsellComplementares([]);
+    pendingUpsellCallbackRef.current = null;
     resetKiosk();
     setScreen('attract');
   };
@@ -162,6 +243,18 @@ export default function KioskApp() {
       {connectionStatus === 'offline' && (
         <div className="absolute inset-x-0 top-0 z-50 bg-red-500 px-4 py-2 text-center text-sm font-semibold text-white">
           Sin conexión — usando modo local
+        </div>
+      )}
+      {/* Fase 9 — Indicador offline do network monitor */}
+      {!offline.isOnline && connectionStatus !== 'offline' && (
+        <div className="absolute inset-x-0 top-0 z-50 bg-[#ffa502] px-4 py-2 text-center text-sm font-semibold text-white">
+          {offline.isLieFi ? 'Conexión inestable' : 'Sin conexión — pedidos se guardarán automáticamente'}
+        </div>
+      )}
+      {/* Fase 9 — Badge de pedidos pendentes */}
+      {offline.pendingCount > 0 && (
+        <div className="absolute top-10 right-4 z-50 bg-[#ffa502] text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg">
+          {offline.pendingCount} pedido{offline.pendingCount > 1 ? 's' : ''} pendiente{offline.pendingCount > 1 ? 's' : ''}
         </div>
       )}
 
@@ -207,6 +300,7 @@ export default function KioskApp() {
               onAddToCart={handleAddToCart}
               onPersonalizar={handlePersonalizar}
               onGoToCart={() => setScreen('carrinho')}
+              onGoToBundles={() => setScreen('bundles')}
               cartCount={cartCount}
               cartTotal={cartTotal}
             />
@@ -261,7 +355,33 @@ export default function KioskApp() {
             <ConfirmacaoScreen onDone={handleReset} />
           </motion.div>
         )}
+        {screen === 'bundles' && (
+          <motion.div key="bundles" variants={variants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.3 }} className="h-full">
+            <BundleScreen
+              bundles={useStore.getState().bundles}
+              locale={locale}
+              getProdutoById={(id) => {
+                const { todosProdutos } = require('@tpv/shared/data/produtosLocal');
+                return todosProdutos.find((p: Produto) => p.id === id);
+              }}
+              onBack={() => setScreen('cardapio')}
+              onAddBundle={handleAddBundle}
+            />
+          </motion.div>
+        )}
       </AnimatePresence>
+
+      {/* Fase 5 — Upsell Modal (overlay) */}
+      <UpsellModal
+        visible={showUpsell}
+        complementares={upsellComplementares}
+        locale={locale}
+        onAdd={(comp) => {
+          handleAddComplementar(comp);
+          finishUpsell();
+        }}
+        onSkip={finishUpsell}
+      />
     </div>
   );
 }

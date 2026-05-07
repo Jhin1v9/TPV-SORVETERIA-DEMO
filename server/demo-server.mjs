@@ -288,6 +288,51 @@ const server = createServer(async (req, res) => {
     return;
   }
 
+  // ─── WHATSAPP AGENT ENDPOINTS ───
+  if (req.method === 'POST' && url.pathname === '/api/whatsapp-checkpoint') {
+    const body = await readRequestBody(req);
+    if (!state) state = createInitialState();
+    if (!state.whatsappAgent) state.whatsappAgent = { checkpoints: [], tasks: [], ideas: [], lastUpdate: null };
+    state.whatsappAgent.checkpoints.push(body);
+    state.whatsappAgent.lastUpdate = new Date().toISOString();
+    if (state.whatsappAgent.checkpoints.length > 50) {
+      state.whatsappAgent.checkpoints = state.whatsappAgent.checkpoints.slice(-50);
+    }
+    await persistAndBroadcast();
+    sendJson(res, 200, { received: true });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/tasks/sync') {
+    const body = await readRequestBody(req);
+    if (!state) state = createInitialState();
+    if (!state.whatsappAgent) state.whatsappAgent = { checkpoints: [], tasks: [], ideas: [], lastUpdate: null };
+    state.whatsappAgent.tasks = body.tasks || [];
+    state.whatsappAgent.lastUpdate = new Date().toISOString();
+    await persistAndBroadcast();
+    sendJson(res, 200, { synced: true, count: body.tasks?.length || 0 });
+    return;
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/ideas/sync') {
+    const body = await readRequestBody(req);
+    if (!state) state = createInitialState();
+    if (!state.whatsappAgent) state.whatsappAgent = { checkpoints: [], tasks: [], ideas: [], lastUpdate: null };
+    state.whatsappAgent.ideas = body.ideas || [];
+    state.whatsappAgent.lastUpdate = new Date().toISOString();
+    await persistAndBroadcast();
+    sendJson(res, 200, { synced: true, count: body.ideas?.length || 0 });
+    return;
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/whatsapp-status') {
+    sendJson(res, 200, {
+      agent: state?.whatsappAgent || { checkpoints: [], tasks: [], ideas: [], lastUpdate: null },
+      timestamp: new Date().toISOString()
+    });
+    return;
+  }
+
   if (!state) {
     sendJson(res, 503, { needsBootstrap: true });
     return;

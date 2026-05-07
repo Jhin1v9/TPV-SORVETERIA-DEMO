@@ -11,6 +11,12 @@ import AlergenoBadge from '@tpv/shared/components/AlergenoBadge';
 import { useClienteToast } from '../hooks/useClienteToast';
 import ProductDetailModal from '../components/ProductDetailModal';
 import ErrorBoundary from '../components/ErrorBoundary';
+import GroupOrderModal from '../components/GroupOrderModal';
+import { useGroupOrder } from '@tpv/shared/group';
+import { useInventory } from '@tpv/shared/inventory';
+import { useDynamicPrice } from '@tpv/shared/hooks/useDynamicPrice';
+import DynamicPriceBadge from '@tpv/shared/components/DynamicPriceBadge';
+import { OneTapReorder, FavoritosSection } from '@tpv/shared';
 
 interface FlyingItem {
   id: string;
@@ -21,11 +27,13 @@ interface FlyingItem {
 }
 
 export default function CardapioPage() {
-  const { locale } = useStore();
+  const { locale, pedidos, favoritos, toggleFavorito, addToCarrinho } = useStore();
   const [search, setSearch] = useState('');
   const [categoriaAtiva, setCategoriaAtiva] = useState('todos');
   const [loading, setLoading] = useState(false);
   const [produtoSelecionado, setProdutoSelecionado] = useState<Produto | null>(null);
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const groupOrder = useGroupOrder();
 
   const [flyingItems, setFlyingItems] = useState<FlyingItem[]>([]);
 
@@ -49,12 +57,35 @@ export default function CardapioPage() {
       const matchCat = categoriaAtiva === 'todos' || p.categoria === categoriaAtiva;
       const nome = p.nome[locale] || p.nome.es;
       const matchSearch = nome.toLowerCase().includes(search.toLowerCase());
+      // Fase 10 — Filtrar produtos sem ingredientes (ainda mostra, mas marca como indisponível)
       return matchCat && matchSearch;
     });
   }, [search, categoriaAtiva, locale]);
 
+  const handleReorder = (itens: import('@tpv/shared/types').CartItem[]) => {
+    for (const item of itens) {
+      addToCarrinho(item);
+    }
+  };
+
   return (
     <div className="p-4 space-y-4">
+      {/* Fase 15 — One-Tap Reorder */}
+      <OneTapReorder
+        pedidos={pedidos}
+        onReorder={handleReorder}
+        locale={locale}
+      />
+
+      {/* Fase 15 — Favoritos */}
+      <FavoritosSection
+        favoritos={favoritos}
+        produtos={todosProdutos}
+        onToggleFavorito={toggleFavorito}
+        onSelectProduto={(produto) => setProdutoSelecionado(produto)}
+        locale={locale}
+      />
+
       {/* Search */}
       <div className="relative">
         <input
@@ -166,6 +197,26 @@ export default function CardapioPage() {
         )}
       </AnimatePresence>
 
+      {/* Fase 11 — Botão flutuante de grupo */}
+      <motion.button
+        onClick={() => setShowGroupModal(true)}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-24 right-4 z-40 w-14 h-14 rounded-full bg-[#FF6B9D] text-white shadow-lg flex items-center justify-center"
+      >
+        {groupOrder.grupo ? (
+          <div className="relative">
+            <span className="text-lg">👥</span>
+            <span className="absolute -top-1 -right-2 bg-white text-[#FF6B9D] text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+              {groupOrder.grupo.membros.length}
+            </span>
+          </div>
+        ) : (
+          <span className="text-lg">👥</span>
+        )}
+      </motion.button>
+
+      <GroupOrderModal visible={showGroupModal} onClose={() => setShowGroupModal(false)} />
+
       {/* Fly-to-cart animations (viewport fixed) */}
       <AnimatePresence>
         {flyingItems.map((item) => (
@@ -213,12 +264,27 @@ function ProdutoCard({
   onSelect?: (p: Produto) => void;
   onFlyToCart?: (image: string, emoji: string, x: number, y: number) => void;
 }) {
-  const { locale, addToCarrinho, perfilUsuario, temAlergiaA } = useStore();
+  const { locale, addToCarrinho, perfilUsuario, temAlergiaA, ingredientes, sabores, pedidos, dynamicPricingEnabled, toggleFavorito, isFavorito } = useStore();
+  const groupOrder = useGroupOrder();
   const toast = useClienteToast();
   const [added, setAdded] = useState(false);
   const nome = produto.nome[locale] || produto.nome.es;
-  const preco = 'preco' in produto ? produto.preco : produto.precoBase;
+  const precoBase = 'preco' in produto ? produto.preco : produto.precoBase;
+
+  // Fase 14 — Preço dinâmico
+  const { precoFinal, multiplier, label, cor, emoji, isDiscount, isSurge } = useDynamicPrice(
+    precoBase ?? 0,
+    pedidos,
+    dynamicPricingEnabled,
+  );
   const isPersonalizavel = isProdutoPersonalizavel(produto);
+
+  // Fase 10 — Verificar disponibilidade por ingredientes
+  const inventory = useInventory(ingredientes, sabores);
+  const product = normalizeProdutoToProduct(produto);
+  const podeProduzir = inventory.podeProduzir({ product, quantity: 1, unitPrice: precoBase ?? 0 });
+  const capacidade = inventory.capacidade(product.id);
+  const temIngredientes = capacidade > 0 || podeProduzir;
 
   const alergenosProduto = produto.alergenos || [];
   const alergenosConflito = perfilUsuario?.temAlergias
@@ -228,20 +294,30 @@ function ProdutoCard({
   const categoriaEmoji = categoriasLocal.find((c) => c.id === produto.categoria)?.emoji || '🍨';
 
   const handleCardClick = () => {
+    if (!temIngredientes) return;
     onSelect?.(produto);
   };
 
   const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    if (!temIngredientes) return;
     const rect = e.currentTarget.getBoundingClientRect();
     onFlyToCart?.(produto.imagem, categoriaEmoji, rect.left + rect.width / 2, rect.top + rect.height / 2);
 
-    const product = normalizeProdutoToProduct(produto);
-    addToCarrinho({
+    const cartItem = {
       product,
       quantity: 1,
-      unitPrice: preco,
-    });
+      unitPrice: precoFinal ?? precoBase,
+    };
+
+    // Fase 11 — Se há grupo ativo, adiciona ao grupo
+    if (groupOrder.grupo && groupOrder.grupo.status === 'abierto') {
+      groupOrder.adicionar(cartItem);
+      toast.success(`${nome} añadido al grupo`);
+    } else {
+      addToCarrinho(cartItem);
+    }
+
     setAdded(true);
     toast.addedToCart(nome);
     setTimeout(() => setAdded(false), 1200);
@@ -255,13 +331,15 @@ function ProdutoCard({
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ delay: index * 0.05, duration: 0.3 }}
       whileHover={{ scale: 1.02, y: -2 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={handleCardClick}
-      className={`rounded-2xl overflow-hidden shadow-sm border-2 transition-colors cursor-pointer ${
+      whileTap={produto.emEstoque && temIngredientes ? { scale: 0.97 } : undefined}
+      onClick={produto.emEstoque && temIngredientes ? handleCardClick : undefined}
+      className={`rounded-2xl overflow-hidden shadow-sm border-2 transition-colors ${
+        produto.emEstoque && temIngredientes ? 'cursor-pointer' : 'cursor-not-allowed'
+      } ${
         alergenosConflito.length > 0
           ? 'bg-amber-50 border-amber-300'
           : 'bg-white border-black/5'
-      }`}
+      } ${!produto.emEstoque || !temIngredientes ? 'opacity-60' : ''}`}
     >
       <div className="aspect-square relative overflow-hidden">
         <OptimizedImage
@@ -270,57 +348,104 @@ function ProdutoCard({
           className="w-full h-full"
           fallbackEmoji={categoriaEmoji}
         />
+        {/* Fase 15 — Botão de favorito */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorito(produto.id);
+          }}
+          className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 backdrop-blur flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill={isFavorito(produto.id) ? '#FF6B9D' : 'none'}
+            stroke="#FF6B9D"
+            strokeWidth="2"
+          >
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
+        {(!produto.emEstoque || !temIngredientes) && (
+          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+            <span className="bg-white/90 text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full">
+              {!temIngredientes ? 'Sin ingredientes' : locale === 'pt' ? 'Indisponível' : 'Agotado'}
+            </span>
+          </div>
+        )}
       </div>
       <div className="p-3">
-        <p className="font-semibold text-sm text-gray-800 line-clamp-1">{nome}</p>
+        <p className={`font-semibold text-sm line-clamp-1 ${produto.emEstoque && temIngredientes ? 'text-gray-800' : 'text-gray-400'}`}>{nome}</p>
         <AlergenoBadge alergenos={alergenosProduto} locale={locale} compact showOnlyUserAlergias={alergenosConflito.length > 0 ? alergenosConflito : undefined} />
-        <p className="text-[#FF6B9D] font-bold text-sm mt-1">
-          €{preco.toFixed(2)}{isPersonalizavel ? '+' : ''}
-        </p>
-        {isPersonalizavel ? (
-          <motion.button
-            onClick={handleCardClick}
-            whileTap={{ scale: 0.95 }}
-            className="w-full mt-2 py-2 rounded-xl text-xs font-bold bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white transition-all duration-300 flex items-center justify-center gap-1"
-          >
-            {t('customize', locale) || 'Personalizar'} ✨
-          </motion.button>
-        ) : (
-          <motion.button
-            onClick={handleAdd}
-            whileTap={{ scale: 0.95 }}
-            className={`w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 ${
-              added
-                ? 'bg-emerald-500 text-white'
-                : 'bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white'
-            }`}
-          >
-            <AnimatePresence mode="wait">
-              {added ? (
-                <motion.span
-                  key="check"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                  className="flex items-center gap-1"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {t('success', locale)}
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="add"
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                >
-                  {t('addToCart', locale)}
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </motion.button>
+        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+          <p className={`font-bold text-sm ${produto.emEstoque && temIngredientes ? 'text-[#FF6B9D]' : 'text-gray-400'}`}>
+            EUR{precoFinal.toFixed(2)}{isPersonalizavel ? '+' : ''}
+          </p>
+          <DynamicPriceBadge
+            multiplier={multiplier}
+            label={label}
+            cor={cor}
+            emoji={emoji}
+            isDiscount={isDiscount}
+            isSurge={isSurge}
+            precoOriginal={precoBase ?? 0}
+            precoFinal={precoFinal}
+            size="sm"
+          />
+        </div>
+        {!temIngredientes && capacidade <= 0 && (
+          <p className="text-[10px] text-red-400 mt-0.5">Sin stock de ingredientes</p>
+        )}
+        {!temIngredientes && capacidade > 0 && capacidade < 5 && (
+          <p className="text-[10px] text-amber-500 mt-0.5">Solo {capacidade} unidades</p>
+        )}
+        {produto.emEstoque && temIngredientes && (
+          isPersonalizavel ? (
+            <motion.button
+              onClick={handleCardClick}
+              whileTap={{ scale: 0.95 }}
+              className="w-full mt-2 py-2 rounded-xl text-xs font-bold bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white transition-all duration-300 flex items-center justify-center gap-1"
+            >
+              {t('customize', locale) || 'Personalizar'} ✨
+            </motion.button>
+          ) : (
+            <motion.button
+              onClick={handleAdd}
+              whileTap={{ scale: 0.95 }}
+              className={`w-full mt-2 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-1 ${
+                added
+                  ? 'bg-emerald-500 text-white'
+                  : 'bg-[#FF6B9D]/10 text-[#FF6B9D] hover:bg-[#FF6B9D] hover:text-white'
+              }`}
+            >
+              <AnimatePresence mode="wait">
+                {added ? (
+                  <motion.span
+                    key="check"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                    className="flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {t('success', locale)}
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="add"
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0 }}
+                  >
+                    {t('addToCart', locale)}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </motion.button>
+          )
         )}
       </div>
     </motion.div>

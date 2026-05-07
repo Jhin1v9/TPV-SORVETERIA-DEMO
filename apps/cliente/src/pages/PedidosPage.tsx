@@ -2,10 +2,13 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '@tpv/shared/stores/useStore';
 import { t } from '@tpv/shared/i18n';
-import { Clock, CheckCircle2, Package, ChevronRight, Receipt, RefreshCcw } from 'lucide-react';
+import { Clock, CheckCircle2, Package, ChevronRight, Receipt, RefreshCcw, WifiOff, RotateCcw } from 'lucide-react';
+import OrderTracker from '../components/OrderTracker';
 import type { Pedido, PedidoStatus, CartItem } from '@tpv/shared/types';
 import PedidoDetalhesPage from './PedidoDetalhesPage';
 import { useClienteToast } from '../hooks/useClienteToast';
+import { useOfflineStatus } from '@tpv/shared/offline';
+import { OrderETA } from '@tpv/shared';
 
 type PedidoTab = 'ativos' | 'historial';
 
@@ -51,7 +54,7 @@ interface PedidoCardProps {
   onRepetir?: () => void;
 }
 
-function PedidoCard({ pedido, onClick, onRepetir }: PedidoCardProps) {
+function PedidoCard({ pedido, onClick, onRepetir, filaKDS, locale }: PedidoCardProps & { filaKDS: Pedido[]; locale: string }) {
   const status = statusConfig[pedido.status];
   const isActive = pedido.status !== 'entregado' && pedido.status !== 'cancelado';
 
@@ -85,6 +88,12 @@ function PedidoCard({ pedido, onClick, onRepetir }: PedidoCardProps) {
             <span className="w-2 h-2 rounded-full bg-[#FF6B9D] animate-pulse" />
           )}
         </div>
+        {/* Fase 17 — ETA */}
+        {isActive && (
+          <div className="mt-1">
+            <OrderETA pedido={pedido} filaKDS={filaKDS} locale={locale} size="sm" />
+          </div>
+        )}
         <p className="text-sm text-gray-500 truncate">
           {pedido.itens.length} productos · €{pedido.total.toFixed(2)}
         </p>
@@ -122,7 +131,13 @@ function PedidoCard({ pedido, onClick, onRepetir }: PedidoCardProps) {
 
 export default function PedidosPage() {
   const { pedidos, locale, perfilUsuario, addToCarrinho } = useStore();
+
+  // Fase 17 — Fila do KDS para calcular ETA
+  const filaKDS = pedidos.filter(
+    (p) => p.status === 'pendiente' || p.status === 'preparando'
+  ).sort((a, b) => new Date(a.timestampCriacao).getTime() - new Date(b.timestampCriacao).getTime());
   const toast = useClienteToast();
+  const offline = useOfflineStatus();
   const [tab, setTab] = useState<PedidoTab>('ativos');
   const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
 
@@ -212,6 +227,56 @@ export default function PedidosPage() {
         ))}
       </div>
 
+      {/* Fase 9 — Pedidos pendentes (offline queue) */}
+      {offline.pendingCount > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 bg-[#ffa502]/10 border border-[#ffa502]/30 rounded-xl p-4"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <WifiOff size={16} className="text-[#ffa502]" />
+            <span className="text-sm font-bold text-[#ffa502]">
+              {offline.pendingCount} pedido{offline.pendingCount > 1 ? 's' : ''} pendiente{offline.pendingCount > 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="space-y-2">
+            {offline.pendingOrders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-800 truncate">
+                    {order.payload.cart.length} producto{order.payload.cart.length > 1 ? 's' : ''} · €{order.payload.cart.reduce((s, i) => s + i.unitPrice * i.quantity, 0).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {order.tentativas > 0
+                      ? `${order.tentativas} intento${order.tentativas > 1 ? 's' : ''} fallido${order.tentativas > 1 ? 's' : ''}`
+                      : 'Esperando conexión...'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    offline.retry(order.id).then((ok) => {
+                      if (ok) toast.success('Pedido enviado correctamente');
+                      else toast.connectionError();
+                    });
+                  }}
+                  disabled={offline.isProcessing}
+                  className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#ffa502]/20 text-[#ffa502] text-xs font-bold hover:bg-[#ffa502]/30 transition-colors disabled:opacity-50"
+                >
+                  <RotateCcw size={12} />
+                  Reintentar
+                </button>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Fase 8 — Order Tracker nos pedidos ativos */}
+      {tab === 'ativos' && pedidosAtivos.map((pedido) => (
+        <OrderTracker key={`tracker-${pedido.id}`} pedido={pedido} />
+      ))}
+
       <AnimatePresence mode="wait">
         {pedidosExibidos.length === 0 ? (
           <motion.div
@@ -251,6 +316,8 @@ export default function PedidosPage() {
                       ? () => handleRepetirPedido(pedido)
                       : undefined
                   }
+                  filaKDS={filaKDS}
+                  locale={locale}
                 />
               ))}
           </motion.div>

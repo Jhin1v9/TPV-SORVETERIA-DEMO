@@ -3,6 +3,9 @@ import { calculateCheckoutSummary, type CheckoutState } from '../utils/pricing';
 import { buildSnapshotFromSupabase } from '../supabase/mappers';
 import { normalizeSpanishPhone } from '../lib/phone';
 import { getSupabaseProjectLabel, hasSupabaseConfig, supabase } from '../supabase/client';
+import { setCachedCatalog } from '../offline/catalogCache';
+import { enqueueOrder } from '../offline/orderQueue';
+import { debitarIngredientes } from '../inventory/recipeEngine';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 import type {
   Alergeno,
@@ -144,9 +147,13 @@ function buildStandaloneOrder(snapshot: DemoStateSnapshot, payload: {
         : { ...sabor, stockBaldes: Number(Math.max(0, sabor.stockBaldes - usage).toFixed(3)) };
     });
 
+    // Fase 10 — Debitar ingredientes
+    const ingredientesAtualizados = debitarIngredientes(payload.cart, current.ingredientes || []);
+
     return {
       ...current,
       sabores,
+      ingredientes: ingredientesAtualizados,
       pedidos: [pedido, ...current.pedidos],
       lastOrderNumber: nextOrderNumber,
     };
@@ -462,7 +469,59 @@ export async function createRemoteOrder(payload: {
   cart: CartItem[];
   metodoPago: MetodoPago;
   checkout: CheckoutState;
-}) {
+}, options?: { allowQueue?: boolean }) {
+  // Fase 9 — Se estiver offline e allowQueue=true, enfileira em vez de falhar
+  const allowQueue = options?.allowQueue ?? true;
+  const isBrowserOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+  if (!isBrowserOnline && allowQueue) {
+    const queued = enqueueOrder(payload);
+    // Retorna um pedido "placeholder" para UX otimista
+    const snapshot = getStandaloneSnapshot();
+    const nextOrderNumber = snapshot.lastOrderNumber + 1;
+    const pricing = calculateCheckoutSummary(payload.cart, payload.checkout);
+    const createdAt = new Date().toISOString();
+
+    const pedidoPlaceholder: Pedido = {
+      id: queued.id,
+      numeroSequencial: nextOrderNumber,
+      status: 'pendiente',
+      timestampCriacao: createdAt,
+      timestampListo: null,
+      metodoPago: payload.metodoPago,
+      subtotal: pricing.subtotal,
+      descuento: pricing.descuento,
+      extras: pricing.extras,
+      total: pricing.total,
+      iva: pricing.iva,
+      verifactuQr: JSON.stringify({
+        id: queued.id,
+        fecha: createdAt.slice(0, 10),
+        importe: pricing.total.toFixed(2),
+        establecimiento: snapshot.establishment.name,
+      }),
+      clienteTelefone: normalizeSpanishPhone(payload.checkout.notificationPhone || '') || null,
+      customerId: payload.checkout.customerId || null,
+      origem: payload.checkout.origem || 'pwa',
+      itens: payload.cart.map((item, index) => ({
+        id: `item-${nextOrderNumber}-${index + 1}`,
+        itemType: 'product' as const,
+        productId: item.product.id,
+        productName: item.product.nome.es,
+        productSnapshot: item.product,
+        selections: item.selections,
+        categoriaSku: item.product.categoriaId,
+        categoriaNome: item.product.nome.es,
+        sabores: [],
+        toppings: [],
+        precoUnitario: item.unitPrice,
+        quantidade: item.quantity,
+      })),
+    };
+
+    return { pedido: pedidoPlaceholder, snapshot, queued: true as const };
+  }
+
   if (getRuntimeMode() === 'standalone' || !supabase) {
     return buildStandaloneOrder(getStandaloneSnapshot(), payload);
   }
@@ -527,6 +586,8 @@ export async function createRemoteOrder(payload: {
     }
 
     const snapshot = await fetchSupabaseSnapshot();
+    // Fase 9 — Cacheia o catálogo após fetch bem-sucedido
+    setCachedCatalog(snapshot);
     const pedido = snapshot.pedidos.find((p) => p.id === orderRow.id);
     if (!pedido) {
       throw new Error('Created order not found in snapshot');
@@ -541,6 +602,8 @@ export async function createRemoteOrder(payload: {
   }
 
   const snapshot = await fetchSupabaseSnapshot();
+  // Fase 9 — Cacheia o catálogo após fetch bem-sucedido
+  setCachedCatalog(snapshot);
   const pedido = snapshot.pedidos.find((item) => item.id === result.data);
   if (!pedido) {
     throw new Error('Created order not found in snapshot');

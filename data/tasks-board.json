@@ -1,0 +1,85 @@
+{
+  "tasks": [
+    {
+      "text": "Agora",
+      "sender": "Kuruma Netejes",
+      "time": "21:40",
+      "date": "01/05/2026",
+      "type": "urgent",
+      "priority": "high",
+      "status": "pending",
+      "id": "d4a53e677fd5"
+    },
+    {
+      "text": "hj",
+      "sender": "Kuruma Netejes",
+      "time": "19:20",
+      "date": "01/05/2026",
+      "type": "urgent",
+      "priority": "high",
+      "status": "pending",
+      "id": "8a1b951e4e1a"
+    },
+    {
+      "text": "terminar",
+      "sender": "Kuruma Netejes",
+      "time": "19:15",
+      "date": "01/05/2026",
+      "type": "task_keyword",
+      "priority": "medium",
+      "status": "pending",
+      "id": "56fa4c380c98"
+    },
+    {
+      "text": "por partes",
+      "sender": "Kuruma Netejes",
+      "time": "19:15",
+      "date": "01/05/2026",
+      "type": "action_needed",
+      "priority": "medium",
+      "status": "pending",
+      "id": "cd92bc307d59"
+    },
+    {
+      "text": "atualizar",
+      "sender": "Kuruma Netejes",
+      "time": "19:14",
+      "date": "01/05/2026",
+      "type": "task_keyword",
+      "priority": "medium",
+      "status": "pending",
+      "id": "aed823c59fa3"
+    },
+    {
+      "text": "por foto texto etc etc mas ja da pra ver o visual",
+      "sender": "Kuruma Netejes",
+      "time": "18:52",
+      "date": "01/05/2026",
+      "type": "action_needed",
+      "priority": "medium",
+      "status": "pending",
+      "id": "6b6db1d9d695"
+    },
+    {
+      "text": "fazer",
+      "sender": "Kuruma Netejes",
+      "time": "9:27",
+      "date": "01/05/2026",
+      "type": "task_keyword",
+      "priority": "medium",
+      "status": "pending",
+      "id": "cd5c5e9ee509"
+    },
+    {
+      "text": "atualizar",
+      "sender": "Kuruma Netejes",
+      "time": "9:28",
+      "date": "01/05/2026",
+      "type": "task_keyword",
+      "priority": "medium",
+      "status": "pending",
+      "id": "1656dd51344b"
+    }
+  ],
+  "version": "1.0"
+}

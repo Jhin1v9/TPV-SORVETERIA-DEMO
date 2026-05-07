@@ -237,6 +237,7 @@ export interface DemoStateSnapshot {
   productCategories: ProductCategory[];
   products: Product[];
   sabores: Sabor[];
+  ingredientes?: Ingrediente[];
   toppings: Topping[];
   pedidos: Pedido[];
   vendasHistorico: DiaVenda[];
@@ -475,6 +476,165 @@ export function normalizeProductToProduto(p: Product): Produto {
     emEstoque: p.emEstoque,
     alergenos: p.alergenos,
   };
+}
+
+// ═══════════════════════════════════════════════════════════
+// FASE 6 — LOYALTY PROGRAM (Pontos + Tiers + Resgate)
+// ═══════════════════════════════════════════════════════════
+
+export type CustomerTier = 'bronze' | 'silver' | 'gold';
+
+export interface LoyaltyTransaction {
+  id: string;
+  tipo: 'ganho' | 'resgate' | 'bonus' | 'expirado';
+  pontos: number;
+  pedidoId?: string;
+  descricao: string;
+  timestamp: string;
+}
+
+export interface LoyaltyProfile {
+  pontosDisponiveis: number;
+  pontosLifetime: number;
+  tier: CustomerTier;
+  historico: LoyaltyTransaction[];
+}
+
+// ═══════════════════════════════════════════════════════════
+// FASE 5 — REVENUE ENGINE (Upsell + Combos + Cross-sell)
+// ═══════════════════════════════════════════════════════════
+
+/** Um complementar/upsel que pode ser sugerido ao adicionar um produto */
+export interface Complementar {
+  id: string;
+  nome: LocalizedText;
+  descricao?: LocalizedText;
+  preco: number;
+  imagem: string;
+  emoji?: string;
+  /** IDs dos produtos que podem ter este complemento sugerido */
+  produtosAlvo: string[];
+  /** IDs de categorias que podem ter este complemento sugerido */
+  categoriasAlvo?: string[];
+  /** Tipo de complemento para agrupar visualmente */
+  tipo: 'topping' | 'bebida' | 'extra' | 'acompanhamento';
+}
+
+/** Um bundle/combo predefinido com desconto */
+export interface Bundle {
+  id: string;
+  nome: LocalizedText;
+  descricao: LocalizedText;
+  imagem: string;
+  /** Preço promocional do bundle */
+  precoPromocional: number;
+  /** Preço original somado dos itens (para mostrar economia) */
+  precoOriginal: number;
+  /** Itens incluídos no bundle */
+  itens: BundleItem[];
+  ativo: boolean;
+  badge?: LocalizedText;
+}
+
+/** Um item dentro de um bundle — pode ter opções de escolha */
+export interface BundleItem {
+  id: string;
+  nome: LocalizedText;
+  /** Se o item é fixo ou o usuário escolhe entre opções */
+  tipo: 'fixo' | 'escolha';
+  /** Produto fixo (se tipo === 'fixo') */
+  produtoId?: string;
+  /** Opções disponíveis (se tipo === 'escolha') */
+  opcoes?: { produtoId: string; nome: LocalizedText }[];
+  /** Opção selecionada (preenchido em runtime) */
+  opcaoSelecionada?: string;
+  quantidade: number;
+}
+
+// ═══ FASE 10 — Ingredient-level Inventory ═══
+
+export interface Ingrediente {
+  id: string;
+  nome: LocalizedText;
+  unidade: 'ml' | 'g' | 'un';
+  stock: number;
+  alertaStock: number;
+  ativo: boolean;
+}
+
+export interface ReceitaItem {
+  ingredienteId: string;
+  quantidade: number;
+}
+
+export interface ProductRecipe {
+  productId: string;
+  ingredientes: ReceitaItem[];
+}
+
+export interface InventoryAlert {
+  tipo: 'ingrediente' | 'sabor';
+  id: string;
+  nome: string;
+  stockAtual: number;
+  alertaStock: number;
+  severidade: 'critico' | 'aviso';
+}
+
+// ═══ FASE 11 — Group Ordering ═══
+
+export interface GroupMember {
+  id: string;
+  nome: string;
+  avatar?: string;
+  timestampEntrada: string;
+}
+
+export interface GroupCartItem extends CartItem {
+  id: string;
+  addedBy: string;
+  addedByName: string;
+  timestamp: string;
+}
+
+export type GroupOrderStatus = 'abierto' | 'cerrado' | 'pedido_realizado';
+
+export interface GroupOrder {
+  id: string;
+  codigo: string;
+  hostId: string;
+  nome: string;
+  membros: GroupMember[];
+  itens: GroupCartItem[];
+  status: GroupOrderStatus;
+  criadoEm: string;
+  atualizadoEm: string;
+  limiteMinutos: number;
+}
+
+// ═══ FASE 12 — AI-Driven Ops ═══
+
+export interface DemandForecast {
+  hora: number;
+  diaSemana: number;
+  pedidosEsperados: number;
+  confianca: number; // 0-1
+}
+
+export interface DynamicPriceConfig {
+  ativo: boolean;
+  multiplicadorMin: number;
+  multiplicadorMax: number;
+  thresholdBaixaDemanda: number; // % de capacidade
+  thresholdAltaDemanda: number;
+}
+
+export interface AIRecommendation {
+  tipo: 'upsell' | 'combo' | 'promocao';
+  produtoId: string;
+  produtoNome: string;
+  score: number;
+  razao: string;
 }
 
 // Nota: Modelo kiosk (Categoria, Sabor, Topping) definido no topo do arquivo
