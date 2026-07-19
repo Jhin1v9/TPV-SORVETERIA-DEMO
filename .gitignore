@@ -91,7 +91,6 @@ supabase-db-settings.png
 # ==============================================
 artifacts/
 ARQUIVOS_NAO_ESSENCIAIS/
-.brain/
 .brain-orchestrator-new/
 
 # ==============================================
