@@ -1,7 +1,7 @@
 {
-  "installCommand": "cd ../.. && npm ci",
+  "installCommand": "cd ../.. && npm install",
   "buildCommand": "cd ../.. && npm run build:kiosk",
-  "outputDirectory": "dist/kiosk",
+  "outputDirectory": "../../dist/kiosk",
   "framework": "vite",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }

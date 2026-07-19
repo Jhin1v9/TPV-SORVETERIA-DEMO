@@ -7,6 +7,10 @@ export default defineConfig({
   envDir: '../../',
   publicDir: '../../public',
   plugins: [react()],
+  server: {
+    port: 5103,
+    strictPort: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

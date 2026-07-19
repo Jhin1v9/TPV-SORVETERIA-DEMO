@@ -69,8 +69,9 @@
 
 ```bash
 npm install
-npm run dev      # localhost:3000
-npm run build    # dist/ pronto para deploy
+npm run dev:all   # sobe os 4 apps: cliente :5101, kiosk :5102, kds :5103, admin :5104
+npm run dev:kiosk # ou um app individual (dev:cliente / dev:kiosk / dev:kds / dev:admin)
+npm run build:all # dist/{cliente,kiosk,kds,admin} prontos para deploy
 ```
 
 ---

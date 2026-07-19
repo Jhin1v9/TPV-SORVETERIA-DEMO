@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --config apps/cliente/vite.config.ts",
+    "dev:all": "node scripts/dev-all.mjs",
     "dev:cliente": "vite --config apps/cliente/vite.config.ts",
     "dev:kiosk": "vite --config apps/kiosk/vite.config.ts",
     "dev:admin": "vite --config apps/admin/vite.config.ts",
